@@ -42,6 +42,11 @@ function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
 }
 
 function describeArc(x, y, radius, startAngle, endAngle) {
+  // Handle full circle
+  if (Math.abs(endAngle - startAngle) >= 360) {
+    endAngle -= 0.001; // Tiny offset to make it a valid arc, not a 0-area point
+  }
+
   const start = polarToCartesian(x, y, radius, endAngle);
   const end = polarToCartesian(x, y, radius, startAngle);
   const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
@@ -56,7 +61,7 @@ function describeArc(x, y, radius, startAngle, endAngle) {
   return d;
 }
 
-// Render Magic Mandala (12 slices, 5 rings)
+// Render Magic Mandala
 function renderMagicMandala() {
   const container = document.getElementById('magic-mandala');
   container.innerHTML = '';
@@ -69,7 +74,9 @@ function renderMagicMandala() {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
   
-  const angleStep = 360 / 12;
+  const numNodes = appState.magicNodes.length;
+  if (numNodes === 0) return;
+  const angleStep = 360 / numNodes;
 
   // Draw slices
   appState.magicNodes.forEach((node, i) => {
@@ -105,6 +112,9 @@ function renderMagicMandala() {
     if (rot > 90 && rot < 270) {
       rot += 180;
     }
+    // If only 1 node, no rotation needed
+    if (numNodes === 1) rot = 0;
+
     text.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
     
     text.textContent = node.label;
@@ -137,7 +147,9 @@ function renderTargetMandala() {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
   
-  const angleStep = 360 / 12;
+  const numNodes = appState.targetNodes.length;
+  if (numNodes === 0) return;
+  const angleStep = 360 / numNodes;
 
   appState.targetNodes.forEach((node, i) => {
     const startAngle = i * angleStep;
@@ -168,6 +180,8 @@ function renderTargetMandala() {
     if (rot > 90 && rot < 270) {
       rot += 180;
     }
+    if (numNodes === 1) rot = 0;
+
     text.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
     
     // Multi-line for labels like "Self @ Close"
@@ -241,6 +255,38 @@ document.getElementById('modal-save').addEventListener('click', () => {
   closeModal();
 });
 
+// Slot Modification Logic
+function resizeNodes(nodeArray, newSize, prefix) {
+  if (newSize < nodeArray.length) {
+    nodeArray.length = newSize; // Truncate
+  } else {
+    while (nodeArray.length < newSize) {
+      const idx = nodeArray.length;
+      nodeArray.push({
+        id: `${prefix}${Date.now()}_${idx}`, // unique ID
+        label: `Slot ${idx + 1}`,
+        color: '#888888'
+      });
+    }
+  }
+}
+
+document.getElementById('magic-slots').addEventListener('change', (e) => {
+  const newSize = parseInt(e.target.value, 10);
+  if (newSize > 0) {
+    resizeNodes(appState.magicNodes, newSize, 'm');
+    renderMagicMandala();
+  }
+});
+
+document.getElementById('target-slots').addEventListener('change', (e) => {
+  const newSize = parseInt(e.target.value, 10);
+  if (newSize > 0) {
+    resizeNodes(appState.targetNodes, newSize, 't');
+    renderTargetMandala();
+  }
+});
+
 // Save/Load Logic
 document.getElementById('save-btn').addEventListener('click', () => {
   const dataStr = JSON.stringify(appState, null, 2);
@@ -269,6 +315,9 @@ document.getElementById('file-input').addEventListener('change', (e) => {
       const loadedState = JSON.parse(event.target.result);
       if (loadedState.magicNodes && loadedState.targetNodes) {
         appState = loadedState;
+        // Update input values
+        document.getElementById('magic-slots').value = appState.magicNodes.length;
+        document.getElementById('target-slots').value = appState.targetNodes.length;
         renderMagicMandala();
         renderTargetMandala();
       } else {
@@ -282,5 +331,7 @@ document.getElementById('file-input').addEventListener('change', (e) => {
 });
 
 // Init
+document.getElementById('magic-slots').value = appState.magicNodes.length;
+document.getElementById('target-slots').value = appState.targetNodes.length;
 renderMagicMandala();
 renderTargetMandala();
