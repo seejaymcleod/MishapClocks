@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Magic Mandalas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Arcane Weave</h1>
+      <div class="controls">
+        <button id="save-btn" class="btn primary">Save State</button>
+        <button id="load-btn" class="btn secondary">Load State</button>
+        <input type="file" id="file-input" accept=".json" style="display: none;" />
+      </div>
+    </header>
+
+    <main class="mandala-container">
+      <div class="mandala-wrapper">
+        <h2>Magic Schools</h2>
+        <div id="magic-mandala" class="svg-container"></div>
+      </div>
+      <div class="mandala-wrapper">
+        <h2>Targeting</h2>
+        <div id="target-mandala" class="svg-container"></div>
+      </div>
+    </main>
+
+    <!-- Modal for editing nodes -->
+    <div id="edit-modal" class="modal hidden">
+      <div class="modal-content">
+        <h3 id="modal-title">Edit Node</h3>
+        <div class="form-group">
+          <label for="node-label">Name</label>
+          <input type="text" id="node-label" />
+        </div>
+        <div class="form-group">
+          <label for="node-color">Color</label>
+          <input type="color" id="node-color" />
+        </div>
+        <div class="modal-actions">
+          <button id="modal-cancel" class="btn secondary">Cancel</button>
+          <button id="modal-save" class="btn primary">Apply</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
