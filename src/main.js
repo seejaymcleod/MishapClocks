@@ -1,18 +1,16 @@
 // State
 let appState = {
   magicNodes: [
-    { id: 'm0', label: 'Fire', color: '#ff4500' },
-    { id: 'm1', label: 'Space', color: '#8a2be2' },
-    { id: 'm2', label: 'Life', color: '#32cd32' },
-    { id: 'm3', label: 'Electricity', color: '#ffd700' },
-    { id: 'm4', label: 'Air', color: '#87ceeb' },
-    { id: 'm5', label: 'Mind', color: '#ff69b4' },
-    { id: 'm6', label: 'Cold', color: '#00ffff' },
-    { id: 'm7', label: 'Time', color: '#4682b4' },
-    { id: 'm8', label: 'Death', color: '#2f4f4f' },
-    { id: 'm9', label: 'Water', color: '#1e90ff' },
-    { id: 'm10', label: 'Earth', color: '#8b4513' },
-    { id: 'm11', label: 'Void', color: '#483d8b' },
+    { id: 'm0', label: 'Thermal', color: '#ff4500', opposite: 'Hydro', slider: 'Injecting kinetic heat (ignition) ↔ siphoning it (absolute zero).' },
+    { id: 'm1', label: 'Aero', color: '#87ceeb', opposite: 'Geo', slider: 'High pressure and gales ↔ suffocating vacuums.' },
+    { id: 'm2', label: 'Electro', color: '#ffd700', opposite: 'Neural', slider: 'Spiking electrical/magnetic currents ↔ grounding them into dead zones.' },
+    { id: 'm3', label: 'Spatial', color: '#8a2be2', opposite: 'Temporal', slider: 'Expanding distance and folding dimensions ↔ compressing matter and anchoring.' },
+    { id: 'm4', label: 'Luminal', color: '#fffacd', opposite: 'Vital', slider: 'Blinding photons and exposure ↔ absolute shadow and absence.' },
+    { id: 'm5', label: 'Hydro', color: '#1e90ff', opposite: 'Thermal', slider: 'Flooding and fluidity ↔ severe desiccation and drought.' },
+    { id: 'm6', label: 'Geo', color: '#8b4513', opposite: 'Aero', slider: 'Density, metal, and bedrock ↔ rust, erosion, and dust.' },
+    { id: 'm7', label: 'Neural', color: '#ff69b4', opposite: 'Electro', slider: 'Structuring logic and perception ↔ shattering the psyche into madness.' },
+    { id: 'm8', label: 'Temporal', color: '#4682b4', opposite: 'Spatial', slider: 'Accelerating chronological flow ↔ halting momentum into stasis.' },
+    { id: 'm9', label: 'Vital', color: '#32cd32', opposite: 'Luminal', slider: 'Rapid cellular growth and healing ↔ necrosis, atrophy, and decay.' },
   ],
   targetNodes: [
     { id: 't0', label: 'Self @ Close', color: '#e2e8f0' },
