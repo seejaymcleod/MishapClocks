@@ -1,16 +1,16 @@
 // State
 let appState = {
   magicNodes: [
-    { id: 'm0', label: 'Thermal', color: '#ff4500', opposite: 'Hydro', slider: 'Injecting kinetic heat (ignition) ↔ siphoning it (absolute zero).' },
-    { id: 'm1', label: 'Aero', color: '#87ceeb', opposite: 'Geo', slider: 'High pressure and gales ↔ suffocating vacuums.' },
-    { id: 'm2', label: 'Electro', color: '#ffd700', opposite: 'Neural', slider: 'Spiking electrical/magnetic currents ↔ grounding them into dead zones.' },
-    { id: 'm3', label: 'Spatial', color: '#8a2be2', opposite: 'Temporal', slider: 'Expanding distance and folding dimensions ↔ compressing matter and anchoring.' },
-    { id: 'm4', label: 'Luminal', color: '#fffacd', opposite: 'Vital', slider: 'Blinding photons and exposure ↔ absolute shadow and absence.' },
-    { id: 'm5', label: 'Hydro', color: '#1e90ff', opposite: 'Thermal', slider: 'Flooding and fluidity ↔ severe desiccation and drought.' },
-    { id: 'm6', label: 'Geo', color: '#8b4513', opposite: 'Aero', slider: 'Density, metal, and bedrock ↔ rust, erosion, and dust.' },
-    { id: 'm7', label: 'Neural', color: '#ff69b4', opposite: 'Electro', slider: 'Structuring logic and perception ↔ shattering the psyche into madness.' },
-    { id: 'm8', label: 'Temporal', color: '#4682b4', opposite: 'Spatial', slider: 'Accelerating chronological flow ↔ halting momentum into stasis.' },
-    { id: 'm9', label: 'Vital', color: '#32cd32', opposite: 'Luminal', slider: 'Rapid cellular growth and healing ↔ necrosis, atrophy, and decay.' },
+    { id: 'm0', label: 'Thermal', icon: 'gi-fire', color: '#ff4500', opposite: 'Hydro', slider: 'Injecting kinetic heat (ignition) ↔ siphoning it (absolute zero).' },
+    { id: 'm1', label: 'Aero', icon: 'gi-tornado', color: '#87ceeb', opposite: 'Geo', slider: 'High pressure and gales ↔ suffocating vacuums.' },
+    { id: 'm2', label: 'Electro', icon: 'gi-lightning-trio', color: '#ffd700', opposite: 'Neural', slider: 'Spiking electrical/magnetic currents ↔ grounding them into dead zones.' },
+    { id: 'm3', label: 'Spatial', icon: 'gi-portal', color: '#8a2be2', opposite: 'Temporal', slider: 'Expanding distance and folding dimensions ↔ compressing matter and anchoring.' },
+    { id: 'm4', label: 'Luminal', icon: 'gi-sun', color: '#fffacd', opposite: 'Vital', slider: 'Blinding photons and exposure ↔ absolute shadow and absence.' },
+    { id: 'm5', label: 'Hydro', icon: 'gi-water-drop', color: '#1e90ff', opposite: 'Thermal', slider: 'Flooding and fluidity ↔ severe desiccation and drought.' },
+    { id: 'm6', label: 'Geo', icon: 'gi-stone-block', color: '#8b4513', opposite: 'Aero', slider: 'Density, metal, and bedrock ↔ rust, erosion, and dust.' },
+    { id: 'm7', label: 'Neural', icon: 'gi-brain', color: '#ff69b4', opposite: 'Electro', slider: 'Structuring logic and perception ↔ shattering the psyche into madness.' },
+    { id: 'm8', label: 'Temporal', icon: 'gi-hourglass', color: '#4682b4', opposite: 'Spatial', slider: 'Accelerating chronological flow ↔ halting momentum into stasis.' },
+    { id: 'm9', label: 'Vital', icon: 'gi-health-normal', color: '#32cd32', opposite: 'Luminal', slider: 'Rapid cellular growth and healing ↔ necrosis, atrophy, and decay.' },
   ],
   targetNodes: [
     { id: 't0', label: 'Self @ Close', color: '#e2e8f0' },
@@ -64,7 +64,7 @@ function renderMagicMandala() {
   const container = document.getElementById('magic-mandala');
   container.innerHTML = '';
   
-  const size = 500;
+  const size = 700;
   const cx = size / 2;
   const cy = size / 2;
   const outerRadius = 240;
@@ -97,15 +97,9 @@ function renderMagicMandala() {
     
     // Add text label
     const textAngle = startAngle;
-    // Place text at 80% radius
-    const textPos = polarToCartesian(cx, cy, outerRadius * 0.82, textAngle);
+    // Place text outside the circle, further out
+    const textPos = polarToCartesian(cx, cy, outerRadius + 55, textAngle);
     
-    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    text.setAttribute("x", textPos.x);
-    text.setAttribute("y", textPos.y);
-    text.setAttribute("class", "node-text");
-    
-    // Rotate text to face outwards
     let rot = textAngle;
     if (rot > 90 && rot < 270) {
       rot += 180;
@@ -113,10 +107,28 @@ function renderMagicMandala() {
     // If only 1 node, no rotation needed
     if (numNodes === 1) rot = 0;
 
-    text.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
-    
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
+    g.style.pointerEvents = "none"; // let clicks pass through to the slice
+
+    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    text.setAttribute("x", textPos.x);
+    text.setAttribute("y", textPos.y + (node.icon ? 18 : 0));
+    text.setAttribute("class", "node-text");
     text.textContent = node.label;
-    svg.appendChild(text);
+    g.appendChild(text);
+
+    if (node.icon) {
+      const fObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+      fObj.setAttribute("x", textPos.x - 15);
+      fObj.setAttribute("y", textPos.y - 28);
+      fObj.setAttribute("width", 30);
+      fObj.setAttribute("height", 30);
+      fObj.innerHTML = `<i class="gi ${node.icon}" style="font-size: 26px; color: var(--text-color); display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
+      g.appendChild(fObj);
+    }
+    
+    svg.appendChild(g);
   });
   
   // Draw 5 rings (Shadowdark tiers)
@@ -137,7 +149,7 @@ function renderTargetMandala() {
   const container = document.getElementById('target-mandala');
   container.innerHTML = '';
   
-  const size = 500;
+  const size = 700;
   const cx = size / 2;
   const cy = size / 2;
   const outerRadius = 240;
