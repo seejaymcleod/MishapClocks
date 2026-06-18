@@ -233,3 +233,50 @@ svg {
   text-align: center;
   font-family: inherit;
 }
+
+.tier-controls-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  width: 100%;
+  max-width: 400px;
+  background: var(--panel-bg);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.tier-control-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.tier-control-row label {
+  font-size: 0.9rem;
+  color: #c9d1d9;
+  min-width: 50px;
+}
+
+.tier-control-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tier-control-group input[type="number"] {
+  background: var(--bg-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.2rem 0.4rem;
+  width: 45px;
+  text-align: center;
+  font-family: inherit;
+}
+
+.tier-control-group input[type="range"] {
+  flex-grow: 1;
+  accent-color: var(--accent-color);
+}

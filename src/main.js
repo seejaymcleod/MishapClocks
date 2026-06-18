@@ -25,65 +25,65 @@ let appState = {
     { id: 't9', label: 'All @ Close', color: '#fde047' },
     { id: 't10', label: 'All @ Near', color: '#facc15' },
     { id: 't11', label: 'All @ Far', color: '#eab308' },
+  ],
+  scaledTiers: [
+    { offset: 0, nodes: [
+      { span: 3, type: 'Self-Harm', dc: 'DC 9', dice: 'd4' },
+      { span: 3, type: 'Mistarget', dc: 'DC 9', dice: '—' },
+      { span: 3, type: 'Multi-Target', dc: 'DC 9', dice: '—' },
+      { span: 3, type: 'Close Range', dc: 'DC 9', dice: 'd4' }
+    ]},
+    { offset: 0, nodes: [
+      { span: 3, type: 'Self-Harm', dc: 'DC 11', dice: 'd6' },
+      { span: 3, type: 'Mistarget', dc: 'DC 11', dice: '—' },
+      { span: 3, type: 'Multi-Target', dc: 'DC 11', dice: 'd4' },
+      { span: 3, type: 'Close Range', dc: 'DC 11', dice: 'd6' }
+    ]},
+    { offset: 0, nodes: [
+      { span: 2, type: 'Self-Harm', dc: 'DC 13', dice: 'd8' },
+      { span: 2, type: 'Mistarget', dc: 'DC 13', dice: '—' },
+      { span: 2, type: 'Multi-Target', dc: 'DC 13', dice: 'd6' },
+      { span: 2, type: 'Close Range', dc: 'DC 13', dice: 'd8' },
+      { span: 2, type: 'Anti-School', dc: 'DC 13', dice: '—' },
+      { span: 2, type: 'Alter Environment', dc: 'DC 13', dice: 'd4' }
+    ]},
+    { offset: 0, nodes: [
+      { span: 2, type: 'Self-Harm', dc: 'DC 15', dice: 'd10' },
+      { span: 2, type: 'Mistarget', dc: 'DC 15', dice: 'd4' },
+      { span: 2, type: 'Multi-Target', dc: 'DC 15', dice: 'd8' },
+      { span: 2, type: 'Close Range', dc: 'DC 15', dice: 'd10' },
+      { span: 2, type: 'Anti-School', dc: 'DC 15', dice: 'd6' },
+      { span: 2, type: 'Alter Environment', dc: 'DC 15', dice: 'd6' }
+    ]},
+    { offset: 0, nodes: [
+      { span: 1, type: 'Self-Harm', dc: 'DC 17', dice: 'd12' },
+      { span: 1, type: 'Mistarget', dc: 'DC 17', dice: '—' },
+      { span: 1, type: 'Multi-Target', dc: 'DC 17', dice: 'd10' },
+      { span: 1, type: 'Close Range', dc: 'DC 17', dice: 'd12' },
+      { span: 1, type: 'Anti-School', dc: 'DC 17', dice: '—' },
+      { span: 1, type: 'Alter Environment', dc: 'DC 17', dice: 'd8' },
+      { span: 1, type: 'Zone', dc: 'DC 17', dice: 'd4' },
+      { span: 1, type: 'Permanent Self-Harm', dc: 'DC 17', dice: 'd3' },
+      { span: 1, type: 'Materia Leak', dc: 'DC 17', dice: 'd4' },
+      { span: 1, type: 'Permanent Zone', dc: 'DC 17', dice: '—' },
+      { span: 2, type: '[Outer Shift]', dc: '—', dice: '—' }
+    ]},
+    { offset: 0, nodes: [
+      { span: 1, type: 'Self-Harm', dc: 'DC 19', dice: 'd20' },
+      { span: 1, type: 'Mistarget', dc: 'DC 19', dice: '—' },
+      { span: 1, type: 'Multi-Target', dc: 'DC 19', dice: 'd12' },
+      { span: 1, type: 'Close Range', dc: 'DC 19', dice: 'd20' },
+      { span: 1, type: 'Anti-School', dc: 'DC 19', dice: '—' },
+      { span: 1, type: 'Alter Environment', dc: 'DC 19', dice: 'd10' },
+      { span: 1, type: 'Zone', dc: 'DC 19', dice: 'd6' },
+      { span: 1, type: 'Permanent Self-Harm', dc: 'DC 19', dice: 'd6' },
+      { span: 1, type: 'Materia Leak', dc: 'DC 19', dice: 'd8' },
+      { span: 1, type: 'Permanent Zone', dc: 'DC 19', dice: '—' },
+      { span: 1, type: 'Personal Lockout', dc: 'DC 19', dice: '—' },
+      { span: 1, type: 'Hex', dc: 'DC 19', dice: '—' }
+    ]}
   ]
 };
-
-const scaledMandalaData = [
-  [ // Tier 0
-    { type: 'Self-Harm', dc: 'DC 9', dice: 'd4' },
-    { type: 'Retarget', dc: 'DC 9', dice: '—' }
-  ],
-  [ // Tier 1
-    { type: 'Self-Harm', dc: 'DC 11', dice: 'd6' },
-    { type: 'Retarget', dc: 'DC 11', dice: '—' },
-    { type: 'Multi-Target', dc: 'DC 11', dice: 'd4' },
-    { type: 'Close Range', dc: 'DC 11', dice: 'd6' }
-  ],
-  [ // Tier 2
-    { type: 'Self-Harm', dc: 'DC 13', dice: 'd8' },
-    { type: 'Retarget', dc: 'DC 13', dice: '—' },
-    { type: 'Multi-Target', dc: 'DC 13', dice: 'd6' },
-    { type: 'Close Range', dc: 'DC 13', dice: 'd8' },
-    { type: 'Anti-School', dc: 'DC 13', dice: '—' },
-    { type: 'Alter Environment', dc: 'DC 13', dice: 'd4' }
-  ],
-  [ // Tier 3
-    { type: 'Self-Harm', dc: 'DC 15', dice: 'd10' },
-    { type: 'Retarget', dc: 'DC 15', dice: 'd4' },
-    { type: 'Multi-Target', dc: 'DC 15', dice: 'd8' },
-    { type: 'Close Range', dc: 'DC 15', dice: 'd10' },
-    { type: 'Anti-School', dc: 'DC 15', dice: 'd6' },
-    { type: 'Alter Environment', dc: 'DC 15', dice: 'd6' },
-    { type: 'Zone', dc: 'DC 15', dice: 'd4' },
-    { type: 'Permanent Self-Harm', dc: 'DC 15', dice: 'd3' }
-  ],
-  [ // Tier 4
-    { type: 'Self-Harm', dc: 'DC 17', dice: 'd12' },
-    { type: 'Retarget', dc: 'DC 17', dice: '—' },
-    { type: 'Multi-Target', dc: 'DC 17', dice: 'd10' },
-    { type: 'Close Range', dc: 'DC 17', dice: 'd12' },
-    { type: 'Anti-School', dc: 'DC 17', dice: '—' },
-    { type: 'Alter Environment', dc: 'DC 17', dice: 'd8' },
-    { type: 'Zone', dc: 'DC 17', dice: 'd6' },
-    { type: 'Permanent Self-Harm', dc: 'DC 17', dice: 'd6' },
-    { type: 'Materia Leak', dc: 'DC 17', dice: 'd4' },
-    { type: 'Permanent Zone', dc: 'DC 17', dice: '—' }
-  ],
-  [ // Tier 5
-    { type: 'Self-Harm', dc: 'DC 19', dice: 'd20' },
-    { type: 'Retarget', dc: 'DC 19', dice: '—' },
-    { type: 'Multi-Target', dc: 'DC 19', dice: 'd12' },
-    { type: 'Close Range', dc: 'DC 19', dice: 'd20' },
-    { type: 'Anti-School', dc: 'DC 19', dice: '—' },
-    { type: 'Alter Environment', dc: 'DC 19', dice: 'd10' },
-    { type: 'Zone', dc: 'DC 19', dice: 'd8' },
-    { type: 'Permanent Self-Harm', dc: 'DC 19', dice: '—' },
-    { type: 'Materia Leak', dc: 'DC 19', dice: 'd8' },
-    { type: 'Permanent Zone', dc: 'DC 19', dice: '—' },
-    { type: 'Personal Systemic Lockout', dc: 'DC 19', dice: '—' },
-    { type: 'Hex', dc: 'DC 19', dice: '—' }
-  ]
-];
 
 let activeNodeId = null;
 
@@ -226,16 +226,27 @@ function renderScaledMandala() {
   svg.appendChild(bg);
 
   // Draw 6 Tiers
-  scaledMandalaData.forEach((tier, tIndex) => {
-    const numNodes = tier.length;
-    const angleStep = 360 / numNodes;
+  
+  const outerNumbers = appState.outerClockNumbers || 12;
+  const outerAngleStep = 360 / Math.max(outerNumbers, 1);
+  const baseOffset = outerAngleStep / 2;
+
+  appState.scaledTiers.forEach((tierData, tIndex) => {
+    const tier = tierData.nodes;
     const innerR = holeRadius + tIndex * ringWidth;
     const outerR = innerR + ringWidth;
     
+    const numNodes = tier.length;
+    const anglePerUnit = 360 / Math.max(numNodes, 1);
+    
+    // Start at baseOffset degrees + the tier's custom rotation offset
+    let currentAngle = baseOffset + (tierData.offset || 0);
+    
     // Draw slices
     tier.forEach((node, i) => {
-      const startAngle = i * angleStep;
-      const endAngle = (i + 1) * angleStep;
+      const startAngle = currentAngle;
+      const endAngle = currentAngle + anglePerUnit;
+      const sliceAngle = anglePerUnit;
       
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
       
@@ -244,7 +255,7 @@ function renderScaledMandala() {
       const endOuter = polarToCartesian(cx, cy, outerR, startAngle);
       const startInner = polarToCartesian(cx, cy, innerR, startAngle);
       const endInner = polarToCartesian(cx, cy, innerR, endAngle);
-      const largeArcFlag = angleStep <= 180 ? "0" : "1";
+      const largeArcFlag = sliceAngle <= 180 ? "0" : "1";
       
       const d = [
         "M", startOuter.x, startOuter.y, 
@@ -273,7 +284,7 @@ function renderScaledMandala() {
       svg.appendChild(path);
       
       // Add text label
-      const textAngle = startAngle + angleStep / 2;
+      const textAngle = currentAngle + (sliceAngle / 2);
       const textRadius = innerR + ringWidth * 0.5;
       const textPos = polarToCartesian(cx, cy, textRadius, textAngle);
       
@@ -317,6 +328,8 @@ function renderScaledMandala() {
       text.appendChild(dcSpan);
       
       svg.appendChild(text);
+      
+      currentAngle = endAngle;
     });
     
     // Tier Label
@@ -332,9 +345,9 @@ function renderScaledMandala() {
     svg.appendChild(tierText);
   });
 
-  // Clock numbers 1-12 centered evenly
-  for (let i = 1; i <= 12; i++) {
-    const angle = i * 30; // 12 * 30 = 360 (Top)
+  // Clock numbers centered evenly
+  for (let i = 1; i <= outerNumbers; i++) {
+    const angle = i * outerAngleStep; // Outer numbers drawn at exact angle
     
     const textPos = polarToCartesian(cx, cy, outerRadius + 80, angle);
     const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -348,9 +361,10 @@ function renderScaledMandala() {
     text.setAttribute("dominant-baseline", "middle");
     svg.appendChild(text);
     
-    // Optional tick mark
-    const tickStart = polarToCartesian(cx, cy, outerRadius, angle);
-    const tickEnd = polarToCartesian(cx, cy, outerRadius + 30, angle);
+    // Optional tick mark (shifted by baseOffset so it aligns with boundaries)
+    const tickAngle = angle + baseOffset;
+    const tickStart = polarToCartesian(cx, cy, outerRadius, tickAngle);
+    const tickEnd = polarToCartesian(cx, cy, outerRadius + 30, tickAngle);
     const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
     line.setAttribute("x1", tickStart.x);
     line.setAttribute("y1", tickStart.y);
@@ -442,9 +456,111 @@ document.getElementById('magic-slots').addEventListener('change', (e) => {
   }
 });
 
-document.getElementById('target-slots').addEventListener('change', (e) => {
-  // Disabled
-});
+function renderTierControls() {
+  const container = document.getElementById('tier-controls');
+  if (!container) return;
+  container.innerHTML = '';
+  
+  if (!appState.scaledTiers) return;
+
+  // Outer Clock Numbers control
+  const globalRow = document.createElement('div');
+  globalRow.className = 'tier-control-row';
+  globalRow.style.marginBottom = '1rem';
+  globalRow.style.paddingBottom = '1rem';
+  globalRow.style.borderBottom = '1px solid var(--border-color)';
+  
+  const globalLabel = document.createElement('label');
+  globalLabel.textContent = 'Outer Clock:';
+  globalLabel.style.fontWeight = 'bold';
+  globalRow.appendChild(globalLabel);
+  
+  const globalGroup = document.createElement('div');
+  globalGroup.className = 'tier-control-group';
+  
+  const numLabel = document.createElement('label');
+  numLabel.textContent = 'Numbers:';
+  
+  const numInput = document.createElement('input');
+  numInput.type = 'number';
+  numInput.min = '1';
+  numInput.max = '100';
+  numInput.value = appState.outerClockNumbers || 12;
+  numInput.addEventListener('change', (e) => {
+    appState.outerClockNumbers = parseInt(e.target.value, 10);
+    renderScaledMandala();
+  });
+  
+  globalGroup.appendChild(numLabel);
+  globalGroup.appendChild(numInput);
+  globalRow.appendChild(globalGroup);
+  
+  container.appendChild(globalRow);
+  
+  appState.scaledTiers.forEach((tierData, tIndex) => {
+    const row = document.createElement('div');
+    row.className = 'tier-control-row';
+    
+    const label = document.createElement('label');
+    label.textContent = `T${tIndex}`;
+    row.appendChild(label);
+    
+    // Slices control
+    const sliceGroup = document.createElement('div');
+    sliceGroup.className = 'tier-control-group';
+    
+    const sliceLabel = document.createElement('label');
+    sliceLabel.textContent = 'Slices:';
+    
+    const sliceInput = document.createElement('input');
+    sliceInput.type = 'number';
+    sliceInput.min = '1';
+    sliceInput.max = '36';
+    sliceInput.value = tierData.nodes.length;
+    sliceInput.addEventListener('change', (e) => {
+      const newSize = parseInt(e.target.value, 10);
+      if (newSize > 0) {
+        // resize scaled tier nodes
+        const nodeArray = tierData.nodes;
+        if (newSize < nodeArray.length) {
+          nodeArray.length = newSize; // Truncate
+        } else {
+          while (nodeArray.length < newSize) {
+            nodeArray.push({
+              type: 'New', dc: '—', dice: '—', span: 1
+            });
+          }
+        }
+        renderScaledMandala();
+      }
+    });
+    
+    sliceGroup.appendChild(sliceLabel);
+    sliceGroup.appendChild(sliceInput);
+    row.appendChild(sliceGroup);
+    
+    // Rotation control
+    const rotGroup = document.createElement('div');
+    rotGroup.className = 'tier-control-group';
+    rotGroup.style.flexGrow = '1';
+    
+    const rotInput = document.createElement('input');
+    rotInput.type = 'range';
+    rotInput.min = '-180';
+    rotInput.max = '180';
+    rotInput.value = tierData.offset || 0;
+    rotInput.title = 'Rotation Offset';
+    rotInput.addEventListener('input', (e) => {
+      tierData.offset = parseInt(e.target.value, 10);
+      renderScaledMandala();
+    });
+    
+    rotGroup.appendChild(rotInput);
+    row.appendChild(rotGroup);
+    
+    container.appendChild(row);
+  });
+}
 
 // Save/Load Logic
 document.getElementById('save-btn').addEventListener('click', () => {
@@ -477,7 +593,13 @@ document.getElementById('file-input').addEventListener('change', (e) => {
         // Update input values
         document.getElementById('magic-slots').value = appState.magicNodes.length;
         renderMagicMandala();
-        // Target slots no longer change Scaled Mandala
+        
+        // Ensure old saves have scaledTiers
+        if (!appState.scaledTiers) {
+           appState.scaledTiers = [];
+        }
+        renderTierControls();
+        renderScaledMandala();
       } else {
         alert('Invalid save file format.');
       }
@@ -491,4 +613,5 @@ document.getElementById('file-input').addEventListener('change', (e) => {
 // Init
 document.getElementById('magic-slots').value = appState.magicNodes.length;
 renderMagicMandala();
+renderTierControls();
 renderScaledMandala();
