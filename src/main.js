@@ -1,18 +1,16 @@
 // State
 let appState = {
   magicNodes: [
-    { id: 'm0', label: 'Fire', color: '#ff4500' },
-    { id: 'm1', label: 'Space', color: '#8a2be2' },
-    { id: 'm2', label: 'Life', color: '#32cd32' },
-    { id: 'm3', label: 'Electricity', color: '#ffd700' },
-    { id: 'm4', label: 'Air', color: '#87ceeb' },
-    { id: 'm5', label: 'Mind', color: '#ff69b4' },
-    { id: 'm6', label: 'Cold', color: '#00ffff' },
-    { id: 'm7', label: 'Time', color: '#4682b4' },
-    { id: 'm8', label: 'Death', color: '#2f4f4f' },
-    { id: 'm9', label: 'Water', color: '#1e90ff' },
-    { id: 'm10', label: 'Earth', color: '#8b4513' },
-    { id: 'm11', label: 'Void', color: '#483d8b' },
+    { id: 'm0', label: 'Thermal', icon: 'gi-fire', color: '#ff4500', opposite: 'Hydro', slider: 'Injecting kinetic heat (ignition) ↔ siphoning it (absolute zero).' },
+    { id: 'm1', label: 'Aero', icon: 'gi-tornado', color: '#87ceeb', opposite: 'Geo', slider: 'High pressure and gales ↔ suffocating vacuums.' },
+    { id: 'm2', label: 'Electro', icon: 'gi-lightning-trio', color: '#ffd700', opposite: 'Neural', slider: 'Spiking electrical/magnetic currents ↔ grounding them into dead zones.' },
+    { id: 'm3', label: 'Spatial', icon: 'gi-portal', color: '#8a2be2', opposite: 'Temporal', slider: 'Expanding distance and folding dimensions ↔ compressing matter and anchoring.' },
+    { id: 'm4', label: 'Luminal', icon: 'gi-sun', color: '#fffacd', opposite: 'Vital', slider: 'Blinding photons and exposure ↔ absolute shadow and absence.' },
+    { id: 'm5', label: 'Hydro', icon: 'gi-water-drop', color: '#1e90ff', opposite: 'Thermal', slider: 'Flooding and fluidity ↔ severe desiccation and drought.' },
+    { id: 'm6', label: 'Geo', icon: 'gi-stone-block', color: '#8b4513', opposite: 'Aero', slider: 'Density, metal, and bedrock ↔ rust, erosion, and dust.' },
+    { id: 'm7', label: 'Neural', icon: 'gi-brain', color: '#ff69b4', opposite: 'Electro', slider: 'Structuring logic and perception ↔ shattering the psyche into madness.' },
+    { id: 'm8', label: 'Temporal', icon: 'gi-hourglass', color: '#4682b4', opposite: 'Spatial', slider: 'Accelerating chronological flow ↔ halting momentum into stasis.' },
+    { id: 'm9', label: 'Vital', icon: 'gi-health-normal', color: '#32cd32', opposite: 'Luminal', slider: 'Rapid cellular growth and healing ↔ necrosis, atrophy, and decay.' },
   ],
   targetNodes: [
     { id: 't0', label: 'Self @ Close', color: '#e2e8f0' },
@@ -123,7 +121,7 @@ function renderMagicMandala() {
   const container = document.getElementById('magic-mandala');
   container.innerHTML = '';
   
-  const size = 500;
+  const size = 700;
   const cx = size / 2;
   const cy = size / 2;
   const outerRadius = 240;
@@ -156,15 +154,9 @@ function renderMagicMandala() {
     
     // Add text label
     const textAngle = startAngle;
-    // Place text at 80% radius
-    const textPos = polarToCartesian(cx, cy, outerRadius * 0.82, textAngle);
+    // Place text outside the circle, further out
+    const textPos = polarToCartesian(cx, cy, outerRadius + 55, textAngle);
     
-    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    text.setAttribute("x", textPos.x);
-    text.setAttribute("y", textPos.y);
-    text.setAttribute("class", "node-text");
-    
-    // Rotate text to face outwards
     let rot = textAngle;
     if (rot > 90 && rot < 270) {
       rot += 180;
@@ -172,10 +164,28 @@ function renderMagicMandala() {
     // If only 1 node, no rotation needed
     if (numNodes === 1) rot = 0;
 
-    text.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
-    
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
+    g.style.pointerEvents = "none"; // let clicks pass through to the slice
+
+    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    text.setAttribute("x", textPos.x);
+    text.setAttribute("y", textPos.y + (node.icon ? 18 : 0));
+    text.setAttribute("class", "node-text");
     text.textContent = node.label;
-    svg.appendChild(text);
+    g.appendChild(text);
+
+    if (node.icon) {
+      const fObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+      fObj.setAttribute("x", textPos.x - 15);
+      fObj.setAttribute("y", textPos.y - 28);
+      fObj.setAttribute("width", 30);
+      fObj.setAttribute("height", 30);
+      fObj.innerHTML = `<i class="gi ${node.icon}" style="font-size: 26px; color: var(--text-color); display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
+      g.appendChild(fObj);
+    }
+    
+    svg.appendChild(g);
   });
   
   // Draw 5 rings (Shadowdark tiers)
@@ -196,12 +206,12 @@ function renderScaledMandala() {
   const container = document.getElementById('target-mandala');
   container.innerHTML = '';
   
-  const size = 2000;
+  const size = 4000;
   const cx = size / 2;
   const cy = size / 2;
   
-  const holeRadius = 150;
-  const outerRadius = 900;
+  const holeRadius = 300;
+  const outerRadius = 1800;
   const ringWidth = (outerRadius - holeRadius) / 6;
   
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -244,12 +254,21 @@ function renderScaledMandala() {
         "Z"
       ].join(" ");
       
+      const tierColors = [
+        ['#1e1b4b', '#17153b'], // T0
+        ['#281b4f', '#1f1440'], // T1
+        ['#341b52', '#281541'], // T2
+        ['#411b54', '#321442'], // T3
+        ['#4f1a56', '#3e1344'], // T4
+        ['#5e1957', '#4a1244'], // T5
+      ];
+      
       path.setAttribute("d", d);
-      // Alternate colors slightly for visual distinction
-      const brightness = (tIndex % 2 === 0) ? (i % 2 === 0 ? '#2d2d2d' : '#333333') : (i % 2 === 0 ? '#383838' : '#2d2d2d');
+      const brightness = tierColors[tIndex][i % 2];
       path.setAttribute("fill", brightness);
-      path.setAttribute("stroke", "#555555");
-      path.setAttribute("stroke-width", "2");
+      path.setAttribute("stroke", "#ffffff");
+      path.setAttribute("stroke-opacity", "0.1");
+      path.setAttribute("stroke-width", "4");
       
       svg.appendChild(path);
       
@@ -272,26 +291,26 @@ function renderScaledMandala() {
       text.setAttribute("fill", "#ffffff");
       text.setAttribute("text-anchor", "middle");
       text.setAttribute("dominant-baseline", "middle");
-      text.setAttribute("font-size", "14px");
+      text.setAttribute("font-size", "36px");
       text.setAttribute("font-weight", "600");
 
       // Multiple lines
       const typeSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
       typeSpan.setAttribute("x", textPos.x);
-      typeSpan.setAttribute("dy", "-1em");
+      typeSpan.setAttribute("dy", "-0.8em");
       typeSpan.textContent = node.type;
       
       const diceSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
       diceSpan.setAttribute("x", textPos.x);
-      diceSpan.setAttribute("dy", "1.2em");
+      diceSpan.setAttribute("dy", "1.4em");
       diceSpan.textContent = node.dice !== '—' ? node.dice : '';
       diceSpan.setAttribute("fill", "#ff9800"); // highlight dice
       
       const dcSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
       dcSpan.setAttribute("x", textPos.x);
-      dcSpan.setAttribute("dy", "1.2em");
+      dcSpan.setAttribute("dy", "1.4em");
       dcSpan.textContent = node.dc;
-      dcSpan.setAttribute("fill", "#9e9e9e");
+      dcSpan.setAttribute("fill", "#a78bfa");
       
       text.appendChild(typeSpan);
       text.appendChild(diceSpan);
@@ -303,28 +322,27 @@ function renderScaledMandala() {
     // Tier Label
     const tierText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     tierText.setAttribute("x", cx);
-    tierText.setAttribute("y", cy - innerR - 10);
+    tierText.setAttribute("y", cy - innerR - 20);
     tierText.textContent = "T" + tIndex;
     tierText.setAttribute("fill", "#ffffff");
-    tierText.setAttribute("font-size", "18px");
+    tierText.setAttribute("opacity", "0.5");
+    tierText.setAttribute("font-size", "40px");
     tierText.setAttribute("font-weight", "bold");
     tierText.setAttribute("text-anchor", "middle");
     svg.appendChild(tierText);
   });
 
-  // Clock numbers 1-12 with a 10-degree offset to avoid hitting any tier boundary lines
+  // Clock numbers 1-12 centered evenly
   for (let i = 1; i <= 12; i++) {
-    const angle = (i * 30) - 20; // 12 * 30 - 20 = 340 (10 degree offset since top is usually 0 but here 0 is top). Wait, my formula for clock was: `(i * 30) - 15` without offset, `(i*30) - 5` with 10 degree offset.
-    // Let's use exactly what we derived: angle = (i * 30) - 20.
-    // 1 -> 10, 2 -> 40, ..., 12 -> 340.
+    const angle = i * 30; // 12 * 30 = 360 (Top)
     
-    const textPos = polarToCartesian(cx, cy, outerRadius + 40, angle);
+    const textPos = polarToCartesian(cx, cy, outerRadius + 80, angle);
     const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
     text.setAttribute("x", textPos.x);
     text.setAttribute("y", textPos.y);
     text.textContent = i.toString();
-    text.setAttribute("fill", "#ffeb3b");
-    text.setAttribute("font-size", "36px");
+    text.setAttribute("fill", "#fbbf24");
+    text.setAttribute("font-size", "80px");
     text.setAttribute("font-weight", "bold");
     text.setAttribute("text-anchor", "middle");
     text.setAttribute("dominant-baseline", "middle");
@@ -332,14 +350,14 @@ function renderScaledMandala() {
     
     // Optional tick mark
     const tickStart = polarToCartesian(cx, cy, outerRadius, angle);
-    const tickEnd = polarToCartesian(cx, cy, outerRadius + 15, angle);
+    const tickEnd = polarToCartesian(cx, cy, outerRadius + 30, angle);
     const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
     line.setAttribute("x1", tickStart.x);
     line.setAttribute("y1", tickStart.y);
     line.setAttribute("x2", tickEnd.x);
     line.setAttribute("y2", tickEnd.y);
-    line.setAttribute("stroke", "#ffeb3b");
-    line.setAttribute("stroke-width", "3");
+    line.setAttribute("stroke", "#fbbf24");
+    line.setAttribute("stroke-width", "6");
     svg.appendChild(line);
   }
   
@@ -349,10 +367,12 @@ function renderScaledMandala() {
   centerText.setAttribute("y", cy);
   centerText.textContent = "SCALED";
   centerText.setAttribute("fill", "#ffffff");
-  centerText.setAttribute("font-size", "24px");
+  centerText.setAttribute("opacity", "0.8");
+  centerText.setAttribute("font-size", "70px");
   centerText.setAttribute("font-weight", "bold");
   centerText.setAttribute("text-anchor", "middle");
   centerText.setAttribute("dominant-baseline", "middle");
+  centerText.setAttribute("letter-spacing", "4px");
   svg.appendChild(centerText);
 
   container.appendChild(svg);
