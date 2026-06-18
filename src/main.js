@@ -30,6 +30,63 @@ let appState = {
   ]
 };
 
+const scaledMandalaData = [
+  [ // Tier 0
+    { type: 'Self-Harm', dc: 'DC 9', dice: 'd4' },
+    { type: 'Retarget', dc: 'DC 9', dice: '—' }
+  ],
+  [ // Tier 1
+    { type: 'Self-Harm', dc: 'DC 11', dice: 'd6' },
+    { type: 'Retarget', dc: 'DC 11', dice: '—' },
+    { type: 'Multi-Target', dc: 'DC 11', dice: 'd4' },
+    { type: 'Close Range', dc: 'DC 11', dice: 'd6' }
+  ],
+  [ // Tier 2
+    { type: 'Self-Harm', dc: 'DC 13', dice: 'd8' },
+    { type: 'Retarget', dc: 'DC 13', dice: '—' },
+    { type: 'Multi-Target', dc: 'DC 13', dice: 'd6' },
+    { type: 'Close Range', dc: 'DC 13', dice: 'd8' },
+    { type: 'Anti-School', dc: 'DC 13', dice: '—' },
+    { type: 'Alter Environment', dc: 'DC 13', dice: 'd4' }
+  ],
+  [ // Tier 3
+    { type: 'Self-Harm', dc: 'DC 15', dice: 'd10' },
+    { type: 'Retarget', dc: 'DC 15', dice: 'd4' },
+    { type: 'Multi-Target', dc: 'DC 15', dice: 'd8' },
+    { type: 'Close Range', dc: 'DC 15', dice: 'd10' },
+    { type: 'Anti-School', dc: 'DC 15', dice: 'd6' },
+    { type: 'Alter Environment', dc: 'DC 15', dice: 'd6' },
+    { type: 'Zone', dc: 'DC 15', dice: 'd4' },
+    { type: 'Permanent Self-Harm', dc: 'DC 15', dice: 'd3' }
+  ],
+  [ // Tier 4
+    { type: 'Self-Harm', dc: 'DC 17', dice: 'd12' },
+    { type: 'Retarget', dc: 'DC 17', dice: '—' },
+    { type: 'Multi-Target', dc: 'DC 17', dice: 'd10' },
+    { type: 'Close Range', dc: 'DC 17', dice: 'd12' },
+    { type: 'Anti-School', dc: 'DC 17', dice: '—' },
+    { type: 'Alter Environment', dc: 'DC 17', dice: 'd8' },
+    { type: 'Zone', dc: 'DC 17', dice: 'd6' },
+    { type: 'Permanent Self-Harm', dc: 'DC 17', dice: 'd6' },
+    { type: 'Materia Leak', dc: 'DC 17', dice: 'd4' },
+    { type: 'Permanent Zone', dc: 'DC 17', dice: '—' }
+  ],
+  [ // Tier 5
+    { type: 'Self-Harm', dc: 'DC 19', dice: 'd20' },
+    { type: 'Retarget', dc: 'DC 19', dice: '—' },
+    { type: 'Multi-Target', dc: 'DC 19', dice: 'd12' },
+    { type: 'Close Range', dc: 'DC 19', dice: 'd20' },
+    { type: 'Anti-School', dc: 'DC 19', dice: '—' },
+    { type: 'Alter Environment', dc: 'DC 19', dice: 'd10' },
+    { type: 'Zone', dc: 'DC 19', dice: 'd8' },
+    { type: 'Permanent Self-Harm', dc: 'DC 19', dice: '—' },
+    { type: 'Materia Leak', dc: 'DC 19', dice: 'd8' },
+    { type: 'Permanent Zone', dc: 'DC 19', dice: '—' },
+    { type: 'Personal Systemic Lockout', dc: 'DC 19', dice: '—' },
+    { type: 'Hex', dc: 'DC 19', dice: '—' }
+  ]
+];
+
 let activeNodeId = null;
 
 // Drawing Utilities
@@ -135,87 +192,172 @@ function renderMagicMandala() {
   container.appendChild(svg);
 }
 
-function renderTargetMandala() {
+function renderScaledMandala() {
   const container = document.getElementById('target-mandala');
   container.innerHTML = '';
   
-  const size = 500;
+  const size = 2000;
   const cx = size / 2;
   const cy = size / 2;
-  const outerRadius = 240;
+  
+  const holeRadius = 150;
+  const outerRadius = 900;
+  const ringWidth = (outerRadius - holeRadius) / 6;
   
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
   
-  const numNodes = appState.targetNodes.length;
-  if (numNodes === 0) return;
-  const angleStep = 360 / numNodes;
+  // Background
+  const bg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  bg.setAttribute("cx", cx);
+  bg.setAttribute("cy", cy);
+  bg.setAttribute("r", outerRadius);
+  bg.setAttribute("fill", "#1e1e1e");
+  svg.appendChild(bg);
 
-  appState.targetNodes.forEach((node, i) => {
-    const startAngle = i * angleStep;
-    const endAngle = (i + 1) * angleStep;
+  // Draw 6 Tiers
+  scaledMandalaData.forEach((tier, tIndex) => {
+    const numNodes = tier.length;
+    const angleStep = 360 / numNodes;
+    const innerR = holeRadius + tIndex * ringWidth;
+    const outerR = innerR + ringWidth;
     
-    const shiftedStart = startAngle - angleStep / 2;
-    const shiftedEnd = endAngle - angleStep / 2;
+    // Draw slices
+    tier.forEach((node, i) => {
+      const startAngle = i * angleStep;
+      const endAngle = (i + 1) * angleStep;
+      
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      
+      // Calculate arc with inner and outer radius
+      const startOuter = polarToCartesian(cx, cy, outerR, endAngle);
+      const endOuter = polarToCartesian(cx, cy, outerR, startAngle);
+      const startInner = polarToCartesian(cx, cy, innerR, startAngle);
+      const endInner = polarToCartesian(cx, cy, innerR, endAngle);
+      const largeArcFlag = angleStep <= 180 ? "0" : "1";
+      
+      const d = [
+        "M", startOuter.x, startOuter.y, 
+        "A", outerR, outerR, 0, largeArcFlag, 0, endOuter.x, endOuter.y,
+        "L", startInner.x, startInner.y,
+        "A", innerR, innerR, 0, largeArcFlag, 1, endInner.x, endInner.y,
+        "Z"
+      ].join(" ");
+      
+      path.setAttribute("d", d);
+      // Alternate colors slightly for visual distinction
+      const brightness = (tIndex % 2 === 0) ? (i % 2 === 0 ? '#2d2d2d' : '#333333') : (i % 2 === 0 ? '#383838' : '#2d2d2d');
+      path.setAttribute("fill", brightness);
+      path.setAttribute("stroke", "#555555");
+      path.setAttribute("stroke-width", "2");
+      
+      svg.appendChild(path);
+      
+      // Add text label
+      const textAngle = startAngle + angleStep / 2;
+      const textRadius = innerR + ringWidth * 0.5;
+      const textPos = polarToCartesian(cx, cy, textRadius, textAngle);
+      
+      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      text.setAttribute("x", textPos.x);
+      text.setAttribute("y", textPos.y);
+      text.setAttribute("class", "scaled-text");
+      
+      let rot = textAngle;
+      if (rot > 90 && rot < 270) {
+        rot += 180;
+      }
 
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("d", describeArc(cx, cy, outerRadius, shiftedStart, shiftedEnd));
-    path.setAttribute("fill", node.color);
-    path.setAttribute("class", "node-path segment-line");
-    path.style.color = node.color;
+      text.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
+      text.setAttribute("fill", "#ffffff");
+      text.setAttribute("text-anchor", "middle");
+      text.setAttribute("dominant-baseline", "middle");
+      text.setAttribute("font-size", "14px");
+      text.setAttribute("font-weight", "600");
+
+      // Multiple lines
+      const typeSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+      typeSpan.setAttribute("x", textPos.x);
+      typeSpan.setAttribute("dy", "-1em");
+      typeSpan.textContent = node.type;
+      
+      const diceSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+      diceSpan.setAttribute("x", textPos.x);
+      diceSpan.setAttribute("dy", "1.2em");
+      diceSpan.textContent = node.dice !== '—' ? node.dice : '';
+      diceSpan.setAttribute("fill", "#ff9800"); // highlight dice
+      
+      const dcSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+      dcSpan.setAttribute("x", textPos.x);
+      dcSpan.setAttribute("dy", "1.2em");
+      dcSpan.textContent = node.dc;
+      dcSpan.setAttribute("fill", "#9e9e9e");
+      
+      text.appendChild(typeSpan);
+      text.appendChild(diceSpan);
+      text.appendChild(dcSpan);
+      
+      svg.appendChild(text);
+    });
     
-    path.addEventListener('click', () => openModal(node, 'target'));
+    // Tier Label
+    const tierText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    tierText.setAttribute("x", cx);
+    tierText.setAttribute("y", cy - innerR - 10);
+    tierText.textContent = "T" + tIndex;
+    tierText.setAttribute("fill", "#ffffff");
+    tierText.setAttribute("font-size", "18px");
+    tierText.setAttribute("font-weight", "bold");
+    tierText.setAttribute("text-anchor", "middle");
+    svg.appendChild(tierText);
+  });
+
+  // Clock numbers 1-12 with a 10-degree offset to avoid hitting any tier boundary lines
+  for (let i = 1; i <= 12; i++) {
+    const angle = (i * 30) - 20; // 12 * 30 - 20 = 340 (10 degree offset since top is usually 0 but here 0 is top). Wait, my formula for clock was: `(i * 30) - 15` without offset, `(i*30) - 5` with 10 degree offset.
+    // Let's use exactly what we derived: angle = (i * 30) - 20.
+    // 1 -> 10, 2 -> 40, ..., 12 -> 340.
     
-    svg.appendChild(path);
-    
-    const textAngle = startAngle;
-    const textPos = polarToCartesian(cx, cy, outerRadius * 0.70, textAngle);
-    
+    const textPos = polarToCartesian(cx, cy, outerRadius + 40, angle);
     const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
     text.setAttribute("x", textPos.x);
     text.setAttribute("y", textPos.y);
-    text.setAttribute("class", "node-text");
-    
-    let rot = textAngle;
-    if (rot > 90 && rot < 270) {
-      rot += 180;
-    }
-    if (numNodes === 1) rot = 0;
-
-    text.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
-    
-    // Multi-line for labels like "Self @ Close"
-    const parts = node.label.split(' @ ');
-    if (parts.length === 2) {
-      const tspan1 = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      tspan1.setAttribute("x", textPos.x);
-      tspan1.setAttribute("dy", "-0.6em");
-      tspan1.textContent = parts[0];
-      
-      const tspan2 = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      tspan2.setAttribute("x", textPos.x);
-      tspan2.setAttribute("dy", "1.2em");
-      tspan2.textContent = "@ " + parts[1];
-      
-      text.appendChild(tspan1);
-      text.appendChild(tspan2);
-    } else {
-      text.textContent = node.label;
-    }
-    
+    text.textContent = i.toString();
+    text.setAttribute("fill", "#ffeb3b");
+    text.setAttribute("font-size", "36px");
+    text.setAttribute("font-weight", "bold");
+    text.setAttribute("text-anchor", "middle");
+    text.setAttribute("dominant-baseline", "middle");
     svg.appendChild(text);
-  });
+    
+    // Optional tick mark
+    const tickStart = polarToCartesian(cx, cy, outerRadius, angle);
+    const tickEnd = polarToCartesian(cx, cy, outerRadius + 15, angle);
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute("x1", tickStart.x);
+    line.setAttribute("y1", tickStart.y);
+    line.setAttribute("x2", tickEnd.x);
+    line.setAttribute("y2", tickEnd.y);
+    line.setAttribute("stroke", "#ffeb3b");
+    line.setAttribute("stroke-width", "3");
+    svg.appendChild(line);
+  }
   
-  // Just a single inner ring for decoration
-  const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-  circle.setAttribute("cx", cx);
-  circle.setAttribute("cy", cy);
-  circle.setAttribute("r", outerRadius * 0.4);
-  circle.setAttribute("class", "tier-line");
-  svg.appendChild(circle);
+  // Center Label
+  const centerText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  centerText.setAttribute("x", cx);
+  centerText.setAttribute("y", cy);
+  centerText.textContent = "SCALED";
+  centerText.setAttribute("fill", "#ffffff");
+  centerText.setAttribute("font-size", "24px");
+  centerText.setAttribute("font-weight", "bold");
+  centerText.setAttribute("text-anchor", "middle");
+  centerText.setAttribute("dominant-baseline", "middle");
+  svg.appendChild(centerText);
 
   container.appendChild(svg);
 }
+
 
 // Modal Logic
 function openModal(node, type) {
@@ -248,7 +390,8 @@ document.getElementById('modal-save').addEventListener('click', () => {
     if (node) {
       node.label = newLabel;
       node.color = newColor;
-      renderTargetMandala();
+      // Scaled mandala is static, no re-render needed for its edits because we disabled them.
+      // But we should just keep this block for safety.
     }
   }
   
@@ -280,11 +423,7 @@ document.getElementById('magic-slots').addEventListener('change', (e) => {
 });
 
 document.getElementById('target-slots').addEventListener('change', (e) => {
-  const newSize = parseInt(e.target.value, 10);
-  if (newSize > 0) {
-    resizeNodes(appState.targetNodes, newSize, 't');
-    renderTargetMandala();
-  }
+  // Disabled
 });
 
 // Save/Load Logic
@@ -317,9 +456,8 @@ document.getElementById('file-input').addEventListener('change', (e) => {
         appState = loadedState;
         // Update input values
         document.getElementById('magic-slots').value = appState.magicNodes.length;
-        document.getElementById('target-slots').value = appState.targetNodes.length;
         renderMagicMandala();
-        renderTargetMandala();
+        // Target slots no longer change Scaled Mandala
       } else {
         alert('Invalid save file format.');
       }
@@ -332,6 +470,5 @@ document.getElementById('file-input').addEventListener('change', (e) => {
 
 // Init
 document.getElementById('magic-slots').value = appState.magicNodes.length;
-document.getElementById('target-slots').value = appState.targetNodes.length;
 renderMagicMandala();
-renderTargetMandala();
+renderScaledMandala();
