@@ -1,6 +1,6 @@
 // State
 let appState = {
-  viewMode: 'full',
+  viewMode: 'curved-text',
   magicNodes: [
     { id: 'm0', label: 'Thermal', icon: 'gi-fire', color: '#ff4500', opposite: 'Hydro', slider: 'Injecting kinetic heat (ignition) ↔ siphoning it (absolute zero).' },
     { id: 'm1', label: 'Aero', icon: 'gi-tornado', color: '#87ceeb', opposite: 'Geo', slider: 'High pressure and gales ↔ suffocating vacuums.' },
@@ -266,6 +266,26 @@ function renderScaledMandala() {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
   
+  // Add defs for text shadow filter
+  const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+  const filter = document.createElementNS("http://www.w3.org/2000/svg", "filter");
+  filter.setAttribute("id", "text-shadow-filter");
+  filter.setAttribute("x", "-20%");
+  filter.setAttribute("y", "-20%");
+  filter.setAttribute("width", "140%");
+  filter.setAttribute("height", "140%");
+  
+  const dropShadow = document.createElementNS("http://www.w3.org/2000/svg", "feDropShadow");
+  dropShadow.setAttribute("dx", "0");
+  dropShadow.setAttribute("dy", "4");
+  dropShadow.setAttribute("stdDeviation", "8");
+  dropShadow.setAttribute("flood-color", "#000000");
+  dropShadow.setAttribute("flood-opacity", "0.95");
+  
+  filter.appendChild(dropShadow);
+  defs.appendChild(filter);
+  svg.appendChild(defs);
+  
   // Background
   const bg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
   bg.setAttribute("cx", cx);
@@ -320,35 +340,90 @@ function renderScaledMandala() {
       svg.appendChild(path);
       
       // Add text label
+      const isThermalSlice = (i === 0);
+      const hideModText = isThermalSlice && ['stacked-pill', 'curved-text'].includes(appState.viewMode);
+      const modText = (tIndex === 0 || hideModText) ? '' : (node.modifier || node.dc || '—');
       const textRadius = innerR + ringWidth * 0.5;
-      const modText = tIndex === 0 ? '' : (node.modifier || node.dc || '—');
-      const textPos = polarToCartesian(cx, cy, textRadius, centerAngle);
 
-      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      text.setAttribute("x", textPos.x);
-      text.setAttribute("y", textPos.y);
-      text.setAttribute("class", "scaled-text");
-      text.style.pointerEvents = "none";
-      
-      let rot = centerAngle;
-      if (rot > 90 && rot < 270) {
-        rot += 180;
+      if (modText) {
+        if (appState.viewMode === 'curved-text') {
+          // Render curved text for school i, tier tIndex
+          let pathData;
+          const isBottomHalf = (centerAngle > 90 && centerAngle < 270);
+          if (isBottomHalf) {
+            const pathStart = polarToCartesian(cx, cy, textRadius, endAngle);
+            const pathEnd = polarToCartesian(cx, cy, textRadius, startAngle);
+            pathData = [
+              "M", pathStart.x, pathStart.y,
+              "A", textRadius, textRadius, 0, 0, 0, pathEnd.x, pathEnd.y
+            ].join(" ");
+          } else {
+            const pathStart = polarToCartesian(cx, cy, textRadius, startAngle);
+            const pathEnd = polarToCartesian(cx, cy, textRadius, endAngle);
+            pathData = [
+              "M", pathStart.x, pathStart.y,
+              "A", textRadius, textRadius, 0, 0, 1, pathEnd.x, pathEnd.y
+            ].join(" ");
+          }
+
+          const pathId = `curved-path-${tIndex}-${i}`;
+          const defsPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          defsPath.setAttribute("id", pathId);
+          defsPath.setAttribute("d", pathData);
+          defsPath.setAttribute("fill", "none");
+          svg.appendChild(defsPath);
+
+          const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          textEl.setAttribute("class", "scaled-text effect-name-text");
+          textEl.setAttribute("fill", "#ffffff");
+          
+          const arcLength = textRadius * (angleStep * Math.PI / 180);
+          const maxChars = modText.length || 1;
+          const targetWidth = arcLength * 0.85;
+          const fontSize = Math.min(56, targetWidth / (maxChars * 0.55));
+          
+          textEl.setAttribute("font-size", `${fontSize}px`);
+          textEl.setAttribute("font-weight", "600");
+          textEl.style.pointerEvents = "none";
+
+          const textPath = document.createElementNS("http://www.w3.org/2000/svg", "textPath");
+          textPath.setAttribute("href", `#${pathId}`);
+          textPath.setAttribute("startOffset", "50%");
+          textPath.setAttribute("text-anchor", "middle");
+          textPath.textContent = modText;
+          
+          textEl.appendChild(textPath);
+          svg.appendChild(textEl);
+        } else {
+          // Draw standard straight text (original code)
+          const textPos = polarToCartesian(cx, cy, textRadius, centerAngle);
+          const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          text.setAttribute("x", textPos.x);
+          text.setAttribute("y", textPos.y);
+          text.setAttribute("class", "scaled-text effect-name-text");
+          text.style.pointerEvents = "none";
+          
+          let rot = centerAngle;
+          if (rot > 90 && rot < 270) {
+            rot += 180;
+          }
+          text.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
+          text.setAttribute("fill", "#ffffff");
+          text.setAttribute("text-anchor", "middle");
+          text.setAttribute("dominant-baseline", "middle");
+
+          // Dynamic Font Size to prevent boundary overlap in inner tiers
+          const arcLength = textRadius * (angleStep * Math.PI / 180);
+          const maxChars = modText.length || 1;
+          const targetWidth = arcLength * 0.85; // 85% safety margin
+          const fontSize = Math.min(56, targetWidth / (maxChars * 0.55));
+
+          text.setAttribute("font-size", `${fontSize}px`);
+          text.setAttribute("font-weight", "600");
+          text.textContent = modText;
+          svg.appendChild(text);
+        }
       }
-      text.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
-      text.setAttribute("fill", "#ffffff");
-      text.setAttribute("text-anchor", "middle");
-      text.setAttribute("dominant-baseline", "middle");
-
-      // Dynamic Font Size to prevent boundary overlap in inner tiers
-      const arcLength = textRadius * (angleStep * Math.PI / 180);
-      const maxChars = modText.length || 1;
-      const targetWidth = arcLength * 0.85; // 85% safety margin
-      const fontSize = Math.min(56, targetWidth / (maxChars * 0.55));
-
-      text.setAttribute("font-size", `${fontSize}px`);
-      text.setAttribute("font-weight", "600");
-      text.textContent = modText;
-      svg.appendChild(text);
     });
     
     // Tier Label
@@ -359,70 +434,252 @@ function renderScaledMandala() {
     let R_label;
     let labelText;
     const showDiceDc = appState.viewMode === 'full' || appState.viewMode === 'bottom-dice';
+    const hasStandardLabel = ['full', 'clean-top', 'clean-bottom', 'bottom-dice'].includes(appState.viewMode);
 
-    if (appState.viewMode === 'clean-bottom' || appState.viewMode === 'bottom-dice') {
-      R_label = innerR + 45;
-      labelText = "T" + tIndex;
-    } else if (appState.viewMode === 'clean-top') {
-      R_label = outerR - 45;
-      labelText = "Tier" + tIndex;
+    if (hasStandardLabel) {
+      if (appState.viewMode === 'clean-bottom' || appState.viewMode === 'bottom-dice') {
+        R_label = innerR + 45;
+        labelText = "T" + tIndex;
+      } else if (appState.viewMode === 'clean-top') {
+        R_label = outerR - 45;
+        labelText = "Tier" + tIndex;
+      } else {
+        // Default / Full View
+        R_label = tIndex === 0 ? (innerR + ringWidth * 0.5) : (outerR - 45);
+        labelText = "Tier" + tIndex;
+      }
+
+      // R_dice_dc is always at the top line of the ring (outerR - 45) for all tiers, including T0
+      const R_dice_dc = outerR - 45;
+
+      const paddingPixels = 80;
+      const anglePadding = (paddingPixels / R_dice_dc) * (180 / Math.PI);
+      const angleOffset = Math.max(10, 22.5 - anglePadding);
+
+      // Center TX label
+      const posC = polarToCartesian(cx, cy, R_label, 0);
+      const tierText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      tierText.setAttribute("x", posC.x);
+      tierText.setAttribute("y", posC.y);
+      tierText.textContent = labelText;
+      tierText.setAttribute("fill", "#ffffff");
+      tierText.setAttribute("opacity", "0.5");
+      tierText.setAttribute("font-size", "50px");
+      tierText.setAttribute("font-weight", "bold");
+      tierText.setAttribute("text-anchor", "middle");
+      tierText.style.pointerEvents = "none";
+      svg.appendChild(tierText);
+
+      if (showDiceDc) {
+        // Dice (xdy) on the left side of the pie (rotated to curve along the circle)
+        const posL = polarToCartesian(cx, cy, R_dice_dc, -angleOffset);
+        const diceTextEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        diceTextEl.setAttribute("x", posL.x);
+        diceTextEl.setAttribute("y", posL.y);
+        diceTextEl.textContent = diceText;
+        diceTextEl.setAttribute("fill", "#ffffff");
+        diceTextEl.setAttribute("opacity", "0.5");
+        diceTextEl.setAttribute("font-size", "45px");
+        diceTextEl.setAttribute("font-weight", "bold");
+        diceTextEl.setAttribute("text-anchor", "middle");
+        diceTextEl.setAttribute("transform", `rotate(${-angleOffset}, ${posL.x}, ${posL.y})`);
+        diceTextEl.style.pointerEvents = "none";
+        svg.appendChild(diceTextEl);
+
+        // DC on the right side of the pie (rotated to curve along the circle)
+        const posR = polarToCartesian(cx, cy, R_dice_dc, angleOffset);
+        const dcTextEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        dcTextEl.setAttribute("x", posR.x);
+        dcTextEl.setAttribute("y", posR.y);
+        dcTextEl.textContent = dcText;
+        dcTextEl.setAttribute("fill", "#ffffff");
+        dcTextEl.setAttribute("opacity", "0.5");
+        dcTextEl.setAttribute("font-size", "45px");
+        dcTextEl.setAttribute("font-weight", "bold");
+        dcTextEl.setAttribute("text-anchor", "middle");
+        dcTextEl.setAttribute("transform", `rotate(${angleOffset}, ${posR.x}, ${posR.y})`);
+        dcTextEl.style.pointerEvents = "none";
+        svg.appendChild(dcTextEl);
+      }
     } else {
-      // Default / Full View
-      R_label = tIndex === 0 ? (innerR + ringWidth * 0.5) : (outerR - 45);
-      labelText = "Tier" + tIndex;
-    }
+      // Rendering logic for the 3 experimental print-friendly modes:
+      if (appState.viewMode === 'radial-axis') {
+        const axisAngle = -22.5;
 
-    // R_dice_dc is always at the top line of the ring (outerR - 45) for all tiers, including T0
-    const R_dice_dc = outerR - 45;
+        // Draw divider line at -22.5 degrees as the gauge axis
+        const axisStart = polarToCartesian(cx, cy, innerR, axisAngle);
+        const axisEnd = polarToCartesian(cx, cy, outerR, axisAngle);
+        
+        const axisLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        axisLine.setAttribute("x1", axisStart.x);
+        axisLine.setAttribute("y1", axisStart.y);
+        axisLine.setAttribute("x2", axisEnd.x);
+        axisLine.setAttribute("y2", axisEnd.y);
+        axisLine.setAttribute("stroke", "rgba(255, 255, 255, 0.4)");
+        axisLine.setAttribute("stroke-width", "6");
+        svg.appendChild(axisLine);
 
-    const paddingPixels = 80;
-    const anglePadding = (paddingPixels / R_dice_dc) * (180 / Math.PI);
-    const angleOffset = Math.max(10, 22.5 - anglePadding);
+        // Perpendicular tick line at outerR
+        const tickStart = polarToCartesian(cx, cy, outerR, axisAngle - 2.5);
+        const tickEnd = polarToCartesian(cx, cy, outerR, axisAngle + 2.5);
+        const tickLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        tickLine.setAttribute("x1", tickStart.x);
+        tickLine.setAttribute("y1", tickStart.y);
+        tickLine.setAttribute("x2", tickEnd.x);
+        tickLine.setAttribute("y2", tickEnd.y);
+        tickLine.setAttribute("stroke", "rgba(255, 255, 255, 0.6)");
+        tickLine.setAttribute("stroke-width", "6");
+        svg.appendChild(tickLine);
 
-    // Center TX label
-    const posC = polarToCartesian(cx, cy, R_label, 0);
-    const tierText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    tierText.setAttribute("x", posC.x);
-    tierText.setAttribute("y", posC.y);
-    tierText.textContent = labelText;
-    tierText.setAttribute("fill", "#ffffff");
-    tierText.setAttribute("opacity", "0.5");
-    tierText.setAttribute("font-size", "50px");
-    tierText.setAttribute("font-weight", "bold");
-    tierText.setAttribute("text-anchor", "middle");
-    tierText.style.pointerEvents = "none";
-    svg.appendChild(tierText);
+        if (tIndex === 0) {
+          const innerTickStart = polarToCartesian(cx, cy, innerR, axisAngle - 2.5);
+          const innerTickEnd = polarToCartesian(cx, cy, innerR, axisAngle + 2.5);
+          const innerTickLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          innerTickLine.setAttribute("x1", innerTickStart.x);
+          innerTickLine.setAttribute("y1", innerTickStart.y);
+          innerTickLine.setAttribute("x2", innerTickEnd.x);
+          innerTickLine.setAttribute("y2", innerTickEnd.y);
+          innerTickLine.setAttribute("stroke", "rgba(255, 255, 255, 0.6)");
+          innerTickLine.setAttribute("stroke-width", "6");
+          svg.appendChild(innerTickLine);
+        }
 
-    if (showDiceDc) {
-      // Dice (xdy) on the left side of the pie (rotated to curve along the circle)
-      const posL = polarToCartesian(cx, cy, R_dice_dc, -angleOffset);
-      const diceTextEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      diceTextEl.setAttribute("x", posL.x);
-      diceTextEl.setAttribute("y", posL.y);
-      diceTextEl.textContent = diceText;
-      diceTextEl.setAttribute("fill", "#ffffff");
-      diceTextEl.setAttribute("opacity", "0.5");
-      diceTextEl.setAttribute("font-size", "45px");
-      diceTextEl.setAttribute("font-weight", "bold");
-      diceTextEl.setAttribute("text-anchor", "middle");
-      diceTextEl.setAttribute("transform", `rotate(${-angleOffset}, ${posL.x}, ${posL.y})`);
-      diceTextEl.style.pointerEvents = "none";
-      svg.appendChild(diceTextEl);
+        // Text label placed along the axis (slightly offset to the right of the divider line)
+        const textAngle = axisAngle + 3.5;
+        const textR = innerR + ringWidth * 0.5;
+        const textPos = polarToCartesian(cx, cy, textR, textAngle);
+        
+        const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        textEl.setAttribute("x", textPos.x);
+        textEl.setAttribute("y", textPos.y);
+        textEl.textContent = `T${tIndex} [${dcText} • ${diceText}]`;
+        textEl.setAttribute("fill", "#fbbf24");
+        textEl.setAttribute("font-size", "45px");
+        textEl.setAttribute("font-weight", "bold");
+        textEl.setAttribute("text-anchor", "start");
+        textEl.setAttribute("dominant-baseline", "middle");
+        
+        let rot = textAngle;
+        if (rot > 90 && rot < 270) {
+          rot += 180;
+        }
+        textEl.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
+        textEl.style.pointerEvents = "none";
+        svg.appendChild(textEl);
 
-      // DC on the right side of the pie (rotated to curve along the circle)
-      const posR = polarToCartesian(cx, cy, R_dice_dc, angleOffset);
-      const dcTextEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      dcTextEl.setAttribute("x", posR.x);
-      dcTextEl.setAttribute("y", posR.y);
-      dcTextEl.textContent = dcText;
-      dcTextEl.setAttribute("fill", "#ffffff");
-      dcTextEl.setAttribute("opacity", "0.5");
-      dcTextEl.setAttribute("font-size", "45px");
-      dcTextEl.setAttribute("font-weight", "bold");
-      dcTextEl.setAttribute("text-anchor", "middle");
-      dcTextEl.setAttribute("transform", `rotate(${angleOffset}, ${posR.x}, ${posR.y})`);
-      dcTextEl.style.pointerEvents = "none";
-      svg.appendChild(dcTextEl);
+      } else if (appState.viewMode === 'stacked-pill') {
+        const textR = innerR + ringWidth * 0.5;
+        const posC = polarToCartesian(cx, cy, textR, 0);
+        const modifierText = firstNode.modifier || '—';
+
+        // Pill rect
+        const w = 480;
+        const h = 150;
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("x", posC.x - w / 2);
+        rect.setAttribute("y", posC.y - h / 2);
+        rect.setAttribute("width", w);
+        rect.setAttribute("height", h);
+        rect.setAttribute("rx", "25");
+        rect.setAttribute("ry", "25");
+        rect.setAttribute("fill", "rgba(17, 24, 39, 0.9)");
+        rect.setAttribute("stroke", "rgba(251, 191, 36, 0.5)");
+        rect.setAttribute("stroke-width", "5");
+        rect.style.pointerEvents = "none";
+        svg.appendChild(rect);
+
+        // Top text: T0: Singe / T1: Blister
+        const textTop = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        textTop.setAttribute("x", posC.x);
+        textTop.setAttribute("y", posC.y - 18);
+        textTop.textContent = `T${tIndex}: ${modifierText}`;
+        textTop.setAttribute("fill", "#ffffff");
+        textTop.setAttribute("font-size", "42px");
+        textTop.setAttribute("font-weight", "bold");
+        textTop.setAttribute("text-anchor", "middle");
+        textTop.style.pointerEvents = "none";
+        svg.appendChild(textTop);
+
+        // Bottom text: DC X • YdZ
+        const textBottom = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        textBottom.setAttribute("x", posC.x);
+        textBottom.setAttribute("y", posC.y + 35);
+        textBottom.textContent = `${dcText} • ${diceText}`;
+        textBottom.setAttribute("fill", "#fbbf24");
+        textBottom.setAttribute("font-size", "34px");
+        textBottom.setAttribute("font-weight", "bold");
+        textBottom.setAttribute("text-anchor", "middle");
+        textBottom.style.pointerEvents = "none";
+      } else if (appState.viewMode === 'curved-text') {
+        const getDynamicFontSize = (text, radius) => {
+          const arcLength = radius * (angleStep * Math.PI / 180);
+          const maxChars = text.length || 1;
+          const targetWidth = arcLength * 0.85;
+          return Math.min(56, targetWidth / (maxChars * 0.55));
+        };
+
+        const pathRadius = innerR + ringWidth * 0.5;
+        const modifierText = firstNode.modifier || '—';
+
+        const createCurvedLine = (id, radius, textContent, color, fontSize, customClass = "scaled-text") => {
+          const pathStart = polarToCartesian(cx, cy, radius, -22.5);
+          const pathEnd = polarToCartesian(cx, cy, radius, 22.5);
+          const pathData = [
+            "M", pathStart.x, pathStart.y,
+            "A", radius, radius, 0, 0, 1, pathEnd.x, pathEnd.y
+          ].join(" ");
+          
+          const defsPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          defsPath.setAttribute("id", id);
+          defsPath.setAttribute("d", pathData);
+          defsPath.setAttribute("fill", "none");
+          svg.appendChild(defsPath);
+
+          const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          textEl.setAttribute("class", customClass);
+          textEl.setAttribute("fill", color);
+          textEl.setAttribute("font-size", `${fontSize}px`);
+          textEl.setAttribute("font-weight", "600");
+          textEl.setAttribute("filter", "url(#text-shadow-filter)");
+          textEl.style.pointerEvents = "none";
+
+          const textPath = document.createElementNS("http://www.w3.org/2000/svg", "textPath");
+          textPath.setAttribute("href", `#${id}`);
+          textPath.setAttribute("startOffset", "50%");
+          textPath.setAttribute("text-anchor", "middle");
+          textPath.textContent = textContent;
+          
+          textEl.appendChild(textPath);
+          svg.appendChild(textEl);
+        };
+
+        if (tIndex === 0) {
+          // T0: Curved stacked text with 2 rows (Singe effect name removed)
+          const rRow1 = pathRadius + 35;
+          const rRow2 = pathRadius - 35;
+
+          // Row 1: dice   DC (standard size 45px, 3 spaces, drop shadow)
+          createCurvedLine(`curved-path-${tIndex}-r1`, rRow1, `${diceText}   ${dcText}`, "#fbbf24", 45, "scaled-text");
+          
+          // Row 2: T0 (has the same size as T1-T5 tier labels, i.e., 56px)
+          createCurvedLine(`curved-path-${tIndex}-r2`, rRow2, "T0", "rgba(255, 255, 255, 0.7)", 56, "scaled-text tier-label-text");
+        } else {
+          // T1-T5: Curved stacked text (3 separate rows/radii)
+          // Radii for the three lines (spaced by 70px and 70px)
+          const rRow1 = pathRadius + 60;
+          const rRow2 = pathRadius - 10;
+          const rRow3 = pathRadius - 80;
+
+          const calculatedFontSize = getDynamicFontSize(modifierText, rRow1);
+
+          // Row 1: Effect Name (Montserrat/Small-Caps, size: calculated + 2)
+          createCurvedLine(`curved-path-${tIndex}-r1`, rRow1, modifierText, "#ffffff", calculatedFontSize + 2, "scaled-text effect-name-text");
+          // Row 2: dice   DC (standard size 45px, 3 spaces, drop shadow)
+          createCurvedLine(`curved-path-${tIndex}-r2`, rRow2, `${diceText}   ${dcText}`, "#fbbf24", 45, "scaled-text");
+          // Row 3: TX (size: calculated, drop shadow, Montserrat/Small-Caps)
+          createCurvedLine(`curved-path-${tIndex}-r3`, rRow3, `T${tIndex}`, "rgba(255, 255, 255, 0.7)", calculatedFontSize, "scaled-text tier-label-text");
+        }
+      }
     }
   });
 
@@ -436,13 +693,14 @@ function renderScaledMandala() {
   centerCircle.setAttribute("stroke-width", "8");
   svg.appendChild(centerCircle);
 
-  const centerIconSize = holeRadius * 1.3;
+  // Mandala Central icon (atomic-slashes, perfectly centered)
   const centerIconFObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
-  centerIconFObj.setAttribute("x", cx - centerIconSize / 2);
-  centerIconFObj.setAttribute("y", cy - centerIconSize / 2);
-  centerIconFObj.setAttribute("width", centerIconSize);
-  centerIconFObj.setAttribute("height", centerIconSize);
-  centerIconFObj.innerHTML = `<i class="gi gi-hourglass" style="font-size: ${centerIconSize * 0.8}px; color: #fbbf24; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
+  centerIconFObj.setAttribute("id", "center-hud-content");
+  centerIconFObj.setAttribute("x", cx - holeRadius);
+  centerIconFObj.setAttribute("y", cy - holeRadius);
+  centerIconFObj.setAttribute("width", holeRadius * 2);
+  centerIconFObj.setAttribute("height", holeRadius * 2);
+  centerIconFObj.innerHTML = `<i class="gi gi-atomic-slashes" style="font-size: ${holeRadius * 1.3}px; color: #fbbf24; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
   svg.appendChild(centerIconFObj);
 
   // Outer Ring Section
@@ -450,70 +708,239 @@ function renderScaledMandala() {
     const angle = i * angleStep;
     const effectName = appState.scaledTiers[0].nodes[i]?.type || `Effect ${i+1}`;
     
-    const textRadius = outerRadius + 180;
-    const textPos = polarToCartesian(cx, cy, textRadius, angle);
-    
-    const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    
-    let rot = angle;
-    if (rot > 90 && rot < 270) {
-      rot += 180;
-    }
-    group.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
+    if (appState.viewMode === 'curved-text') {
+      const outerTextRadius = outerRadius + 180;
+      const isBottomHalf = (angle > 90 && angle < 270);
 
-    // Number in the middle
-    const numberText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    numberText.setAttribute("x", textPos.x);
-    numberText.setAttribute("y", textPos.y);
-    numberText.setAttribute("text-anchor", "middle");
-    numberText.setAttribute("dominant-baseline", "middle");
-    numberText.setAttribute("fill", "#fbbf24");
-    numberText.setAttribute("font-size", "110px");
-    numberText.setAttribute("font-weight", "bold");
-    numberText.textContent = (i + 1).toString();
-    group.appendChild(numberText);
-    
-    // Left of center: Name and Icon
-    const leftX = textPos.x - 90;
-    
-    const schoolText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    schoolText.setAttribute("x", leftX);
-    schoolText.setAttribute("y", textPos.y);
-    schoolText.setAttribute("text-anchor", "end");
-    schoolText.setAttribute("dominant-baseline", "middle");
-    schoolText.setAttribute("fill", school.color);
-    schoolText.setAttribute("font-size", "70px");
-    schoolText.setAttribute("font-weight", "bold");
-    schoolText.textContent = school.label;
-    group.appendChild(schoolText);
+      // 1. Center Big Number (Upright / Radial, like in normal view)
+      const textPos = polarToCartesian(cx, cy, outerTextRadius, angle);
+      let rot = angle;
+      if (isBottomHalf) {
+        rot += 180;
+      }
 
-    if (school.icon) {
-      const iconSize = 90;
-      const iconX = leftX - (school.label.length * 40) - iconSize - 25; 
+      const numberText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      numberText.setAttribute("class", "scaled-text");
+      numberText.setAttribute("x", textPos.x);
+      numberText.setAttribute("y", textPos.y);
+      numberText.setAttribute("text-anchor", "middle");
+      numberText.setAttribute("dominant-baseline", "middle");
+      numberText.setAttribute("fill", "#fbbf24");
+      numberText.setAttribute("font-size", "110px");
+      numberText.setAttribute("font-weight", "bold");
+      numberText.setAttribute("filter", "url(#text-shadow-filter)");
+      numberText.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
+      numberText.textContent = (i + 1).toString();
+      svg.appendChild(numberText);
+
+      // 2. School Name (Curved Left Path)
+      let schoolPathData;
+      let schoolTextAnchor;
+      let schoolStartOffset;
+      const schoolPathId = `outer-school-path-${i}`;
+
+      if (isBottomHalf) {
+        // Left is angle + 15, goes counter-clockwise to angle + 2.5
+        const pathStart = polarToCartesian(cx, cy, outerTextRadius, angle + 15);
+        const pathEnd = polarToCartesian(cx, cy, outerTextRadius, angle + 2.5);
+        schoolPathData = [
+          "M", pathStart.x, pathStart.y,
+          "A", outerTextRadius, outerTextRadius, 0, 0, 0, pathEnd.x, pathEnd.y
+        ].join(" ");
+        schoolTextAnchor = "end";
+        schoolStartOffset = "100%";
+      } else {
+        // Left is angle - 15, goes clockwise to angle - 2.5
+        const pathStart = polarToCartesian(cx, cy, outerTextRadius, angle - 15);
+        const pathEnd = polarToCartesian(cx, cy, outerTextRadius, angle - 2.5);
+        schoolPathData = [
+          "M", pathStart.x, pathStart.y,
+          "A", outerTextRadius, outerTextRadius, 0, 0, 1, pathEnd.x, pathEnd.y
+        ].join(" ");
+        schoolTextAnchor = "end";
+        schoolStartOffset = "100%";
+      }
+
+      const schoolDefsPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      schoolDefsPath.setAttribute("id", schoolPathId);
+      schoolDefsPath.setAttribute("d", schoolPathData);
+      schoolDefsPath.setAttribute("fill", "none");
+      svg.appendChild(schoolDefsPath);
+
+      const schoolTextEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      schoolTextEl.setAttribute("class", "scaled-text outer-ring-text");
+      schoolTextEl.setAttribute("font-size", "70px");
+      schoolTextEl.setAttribute("font-weight", "bold");
+      schoolTextEl.setAttribute("filter", "url(#text-shadow-filter)");
+      schoolTextEl.style.pointerEvents = "none";
+
+      const schoolTextPath = document.createElementNS("http://www.w3.org/2000/svg", "textPath");
+      schoolTextPath.setAttribute("href", `#${schoolPathId}`);
+      schoolTextPath.setAttribute("startOffset", schoolStartOffset);
+      schoolTextPath.setAttribute("text-anchor", schoolTextAnchor);
+      schoolTextPath.setAttribute("fill", school.color);
+      schoolTextPath.textContent = school.label;
+
+      schoolTextEl.appendChild(schoolTextPath);
+      svg.appendChild(schoolTextEl);
+
+      // 3. School Icon (on the left of School Name) - expanded container and shifted to prevent overlaps and alignment issues
+      if (school.icon) {
+        // Calculate label angle span using the wider Montserrat font (1.8 degrees per character)
+        const labelAngleSpan = school.label.length * 1.8;
+        let iconAngle;
+        if (isBottomHalf) {
+          iconAngle = angle + 2.5 + labelAngleSpan + 4.5;
+        } else {
+          iconAngle = angle - 2.5 - labelAngleSpan - 4.5;
+        }
+
+        // Align icon vertically with cap-height of the text by adding +30px to the radius
+        const iconPos = polarToCartesian(cx, cy, outerTextRadius + 30, iconAngle);
+        let iconRot = iconAngle;
+        if (isBottomHalf) {
+          iconRot += 180;
+        }
+
+        const iconGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        iconGroup.setAttribute("transform", `rotate(${iconRot}, ${iconPos.x}, ${iconPos.y})`);
+
+        const iconSize = 90;
+        const containerSize = iconSize * 2; // 180px container
+        const fObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+        fObj.setAttribute("x", iconPos.x - containerSize / 2);
+        fObj.setAttribute("y", iconPos.y - containerSize / 2);
+        fObj.setAttribute("width", containerSize);
+        fObj.setAttribute("height", containerSize);
+        fObj.innerHTML = `<i class="gi ${school.icon}" style="font-size: ${iconSize}px; color: ${school.color}; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
+        iconGroup.appendChild(fObj);
+        svg.appendChild(iconGroup);
+      }
+
+      // 4. Effect Name (Curved Right Path)
+      let effectPathData;
+      let effectTextAnchor;
+      let effectStartOffset;
+      const effectPathId = `outer-effect-path-${i}`;
+
+      if (isBottomHalf) {
+        // Right is angle - 2.5, goes counter-clockwise to angle - 15
+        const pathStart = polarToCartesian(cx, cy, outerTextRadius, angle - 2.5);
+        const pathEnd = polarToCartesian(cx, cy, outerTextRadius, angle - 15);
+        effectPathData = [
+          "M", pathStart.x, pathStart.y,
+          "A", outerTextRadius, outerTextRadius, 0, 0, 0, pathEnd.x, pathEnd.y
+        ].join(" ");
+        effectTextAnchor = "start";
+        effectStartOffset = "0%";
+      } else {
+        // Right is angle + 2.5, goes clockwise to angle + 15
+        const pathStart = polarToCartesian(cx, cy, outerTextRadius, angle + 2.5);
+        const pathEnd = polarToCartesian(cx, cy, outerTextRadius, angle + 15);
+        effectPathData = [
+          "M", pathStart.x, pathStart.y,
+          "A", outerTextRadius, outerTextRadius, 0, 0, 1, pathEnd.x, pathEnd.y
+        ].join(" ");
+        effectTextAnchor = "start";
+        effectStartOffset = "0%";
+      }
+
+      const effectDefsPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      effectDefsPath.setAttribute("id", effectPathId);
+      effectDefsPath.setAttribute("d", effectPathData);
+      effectDefsPath.setAttribute("fill", "none");
+      svg.appendChild(effectDefsPath);
+
+      const effectTextEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      effectTextEl.setAttribute("class", "scaled-text outer-ring-text");
+      effectTextEl.setAttribute("font-size", "70px");
+      effectTextEl.setAttribute("font-weight", "normal");
+      effectTextEl.setAttribute("filter", "url(#text-shadow-filter)");
+      effectTextEl.style.pointerEvents = "none";
+
+      const effectTextPath = document.createElementNS("http://www.w3.org/2000/svg", "textPath");
+      effectTextPath.setAttribute("href", `#${effectPathId}`);
+      effectTextPath.setAttribute("startOffset", effectStartOffset);
+      effectTextPath.setAttribute("text-anchor", effectTextAnchor);
+      effectTextPath.setAttribute("fill", "#e2e8f0");
+      effectTextPath.textContent = effectName;
+
+      effectTextEl.appendChild(effectTextPath);
+      svg.appendChild(effectTextEl);
+    } else {
+      const textRadius = outerRadius + 180;
+      const textPos = polarToCartesian(cx, cy, textRadius, angle);
       
-      const fObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
-      fObj.setAttribute("x", iconX);
-      fObj.setAttribute("y", textPos.y - iconSize / 2);
-      fObj.setAttribute("width", iconSize);
-      fObj.setAttribute("height", iconSize);
-      fObj.innerHTML = `<i class="gi ${school.icon}" style="font-size: ${iconSize}px; color: ${school.color}; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
-      group.appendChild(fObj);
+      const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      
+      let rot = angle;
+      if (rot > 90 && rot < 270) {
+        rot += 180;
+      }
+      group.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
+
+      // Number in the middle (Montserrat Bold, drop shadow)
+      const numberText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      numberText.setAttribute("class", "scaled-text outer-ring-text");
+      numberText.setAttribute("x", textPos.x);
+      numberText.setAttribute("y", textPos.y);
+      numberText.setAttribute("text-anchor", "middle");
+      numberText.setAttribute("dominant-baseline", "middle");
+      numberText.setAttribute("fill", "#fbbf24");
+      numberText.setAttribute("font-size", "110px");
+      numberText.setAttribute("font-weight", "bold");
+      numberText.setAttribute("filter", "url(#text-shadow-filter)");
+      numberText.textContent = (i + 1).toString();
+      group.appendChild(numberText);
+      
+      // Left of center: Name and Icon (Montserrat Bold, uppercase)
+      const leftX = textPos.x - 90;
+      
+      const schoolText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      schoolText.setAttribute("class", "scaled-text outer-ring-text");
+      schoolText.setAttribute("x", leftX);
+      schoolText.setAttribute("y", textPos.y);
+      schoolText.setAttribute("text-anchor", "end");
+      schoolText.setAttribute("dominant-baseline", "middle");
+      schoolText.setAttribute("fill", school.color);
+      schoolText.setAttribute("font-size", "70px");
+      schoolText.setAttribute("font-weight", "bold");
+      schoolText.setAttribute("filter", "url(#text-shadow-filter)");
+      schoolText.textContent = school.label;
+      group.appendChild(schoolText);
+
+      // Icon in standard view - expanded container and shifted left using wider character multiplier (65px) to prevent overlap
+      if (school.icon) {
+        const iconSize = 90;
+        const containerSize = iconSize * 2; // 180px container
+        const iconX = leftX - (school.label.length * 65) - iconSize - 25; 
+        
+        const fObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+        fObj.setAttribute("x", (iconX + iconSize / 2) - containerSize / 2);
+        fObj.setAttribute("y", textPos.y - containerSize / 2);
+        fObj.setAttribute("width", containerSize);
+        fObj.setAttribute("height", containerSize);
+        fObj.innerHTML = `<i class="gi ${school.icon}" style="font-size: ${iconSize}px; color: ${school.color}; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
+        group.appendChild(fObj);
+      }
+
+      // Right of center: Scale Type (Montserrat Normal, uppercase, drop shadow)
+      const rightX = textPos.x + 90;
+      const effectText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      effectText.setAttribute("class", "scaled-text outer-ring-text");
+      effectText.setAttribute("x", rightX);
+      effectText.setAttribute("y", textPos.y);
+      effectText.setAttribute("text-anchor", "start");
+      effectText.setAttribute("dominant-baseline", "middle");
+      effectText.setAttribute("fill", "#e2e8f0");
+      effectText.setAttribute("font-size", "70px");
+      effectText.setAttribute("font-weight", "normal");
+      effectText.setAttribute("filter", "url(#text-shadow-filter)");
+      effectText.textContent = effectName;
+      group.appendChild(effectText);
+
+      svg.appendChild(group);
     }
-
-    // Right of center: Scale Type
-    const rightX = textPos.x + 90;
-    const effectText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    effectText.setAttribute("x", rightX);
-    effectText.setAttribute("y", textPos.y);
-    effectText.setAttribute("text-anchor", "start");
-    effectText.setAttribute("dominant-baseline", "middle");
-    effectText.setAttribute("fill", "#e2e8f0");
-    effectText.setAttribute("font-size", "70px");
-    effectText.setAttribute("font-weight", "normal");
-    effectText.textContent = effectName;
-    group.appendChild(effectText);
-
-    svg.appendChild(group);
     
     // tick mark on the boundary
     const tickAngle = angle - angleStep / 2; 
@@ -744,7 +1171,7 @@ document.getElementById('file-input').addEventListener('change', (e) => {
            appState.scaledTiers = [];
         }
         if (!appState.viewMode) {
-          appState.viewMode = appState.hideDiceDc ? 'clean-top' : 'full';
+          appState.viewMode = 'curved-text';
         }
         syncViewModeButtons();
         renderTierControls();
@@ -800,7 +1227,7 @@ async function init() {
   });
 
   if (!appState.viewMode) {
-    appState.viewMode = appState.hideDiceDc ? 'clean-top' : 'full';
+    appState.viewMode = 'curved-text';
   }
   syncViewModeButtons();
 
