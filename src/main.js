@@ -380,10 +380,10 @@ function renderScaledMandala() {
           const arcLength = textRadius * (angleStep * Math.PI / 180);
           const maxChars = modText.length || 1;
           const targetWidth = arcLength * 0.85;
-          const fontSize = Math.min(56, targetWidth / (maxChars * 0.55));
+          const fontSize = Math.min(75, targetWidth / (maxChars * 0.50)); // Increased limit and font scaling
           
           textEl.setAttribute("font-size", `${fontSize}px`);
-          textEl.setAttribute("font-weight", "600");
+          textEl.setAttribute("font-weight", "bold");
           textEl.style.pointerEvents = "none";
 
           const textPath = document.createElementNS("http://www.w3.org/2000/svg", "textPath");
@@ -615,7 +615,7 @@ function renderScaledMandala() {
           const arcLength = radius * (angleStep * Math.PI / 180);
           const maxChars = text.length || 1;
           const targetWidth = arcLength * 0.85;
-          return Math.min(56, targetWidth / (maxChars * 0.55));
+          return Math.min(75, targetWidth / (maxChars * 0.50)); // Increased limit and font scaling
         };
 
         const pathRadius = innerR + ringWidth * 0.5;
@@ -639,7 +639,7 @@ function renderScaledMandala() {
           textEl.setAttribute("class", customClass);
           textEl.setAttribute("fill", color);
           textEl.setAttribute("font-size", `${fontSize}px`);
-          textEl.setAttribute("font-weight", "600");
+          textEl.setAttribute("font-weight", "bold");
           textEl.setAttribute("filter", "url(#text-shadow-filter)");
           textEl.style.pointerEvents = "none";
 
@@ -666,9 +666,9 @@ function renderScaledMandala() {
         } else {
           // T1-T5: Curved stacked text (3 separate rows/radii)
           // Radii for the three lines (spaced by 70px and 70px)
-          const rRow1 = pathRadius + 60;
+          const rRow1 = pathRadius + 65;
           const rRow2 = pathRadius - 10;
-          const rRow3 = pathRadius - 80;
+          const rRow3 = pathRadius - 85;
 
           const calculatedFontSize = getDynamicFontSize(modifierText, rRow1);
 
@@ -693,14 +693,15 @@ function renderScaledMandala() {
   centerCircle.setAttribute("stroke-width", "8");
   svg.appendChild(centerCircle);
 
-  // Mandala Central icon (atomic-slashes, perfectly centered)
+  // Mandala Central icon (atomic-slashes, perfectly centered, 2x bigger)
+  const centerIconSize = holeRadius * 2.6; // 312px (previously 156px)
   const centerIconFObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
   centerIconFObj.setAttribute("id", "center-hud-content");
-  centerIconFObj.setAttribute("x", cx - holeRadius);
-  centerIconFObj.setAttribute("y", cy - holeRadius);
-  centerIconFObj.setAttribute("width", holeRadius * 2);
-  centerIconFObj.setAttribute("height", holeRadius * 2);
-  centerIconFObj.innerHTML = `<i class="gi gi-atomic-slashes" style="font-size: ${holeRadius * 1.3}px; color: #fbbf24; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
+  centerIconFObj.setAttribute("x", cx - centerIconSize / 2);
+  centerIconFObj.setAttribute("y", cy - centerIconSize / 2);
+  centerIconFObj.setAttribute("width", centerIconSize);
+  centerIconFObj.setAttribute("height", centerIconSize);
+  centerIconFObj.innerHTML = `<i class="gi gi-atomic-slashes" style="font-size: ${centerIconSize}px; color: #fbbf24; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
   svg.appendChild(centerIconFObj);
 
   // Outer Ring Section
@@ -733,15 +734,16 @@ function renderScaledMandala() {
       numberText.textContent = (i + 1).toString();
       svg.appendChild(numberText);
 
-      // 2. School Name (Curved Left Path)
+      // 2. School Name (Curved Left Path) - Extended to 26 degrees to prevent clipping
       let schoolPathData;
       let schoolTextAnchor;
       let schoolStartOffset;
       const schoolPathId = `outer-school-path-${i}`;
+      const pathSpan = 26; // Expanded path span to prevent text clipping for long labels
 
       if (isBottomHalf) {
-        // Left is angle + 15, goes counter-clockwise to angle + 2.5
-        const pathStart = polarToCartesian(cx, cy, outerTextRadius, angle + 15);
+        // Left is angle + pathSpan, goes counter-clockwise to angle + 2.5
+        const pathStart = polarToCartesian(cx, cy, outerTextRadius, angle + pathSpan);
         const pathEnd = polarToCartesian(cx, cy, outerTextRadius, angle + 2.5);
         schoolPathData = [
           "M", pathStart.x, pathStart.y,
@@ -750,8 +752,8 @@ function renderScaledMandala() {
         schoolTextAnchor = "end";
         schoolStartOffset = "100%";
       } else {
-        // Left is angle - 15, goes clockwise to angle - 2.5
-        const pathStart = polarToCartesian(cx, cy, outerTextRadius, angle - 15);
+        // Left is angle - pathSpan, goes clockwise to angle - 2.5
+        const pathStart = polarToCartesian(cx, cy, outerTextRadius, angle - pathSpan);
         const pathEnd = polarToCartesian(cx, cy, outerTextRadius, angle - 2.5);
         schoolPathData = [
           "M", pathStart.x, pathStart.y,
@@ -784,19 +786,22 @@ function renderScaledMandala() {
       schoolTextEl.appendChild(schoolTextPath);
       svg.appendChild(schoolTextEl);
 
-      // 3. School Icon (on the left of School Name) - expanded container and shifted to prevent overlaps and alignment issues
+      // 3. School Icon (on the left of School Name) - Resized to 180px, precisely positioned & vertically aligned
       if (school.icon) {
-        // Calculate label angle span using the wider Montserrat font (1.8 degrees per character)
-        const labelAngleSpan = school.label.length * 1.8;
+        // Calculate label angle span using Montserrat character span (1.4 degrees per character)
+        const labelAngleSpan = school.label.length * 1.4;
+        const halfIconAngleSpan = 2.6; // half of 180px icon angular width at radius 1980
+        const padding = 3.5;
         let iconAngle;
         if (isBottomHalf) {
-          iconAngle = angle + 2.5 + labelAngleSpan + 4.5;
+          iconAngle = angle + 2.5 + labelAngleSpan + padding + halfIconAngleSpan;
         } else {
-          iconAngle = angle - 2.5 - labelAngleSpan - 4.5;
+          iconAngle = angle - 2.5 - labelAngleSpan - padding - halfIconAngleSpan;
         }
 
-        // Align icon vertically with cap-height of the text by adding +30px to the radius
-        const iconPos = polarToCartesian(cx, cy, outerTextRadius + 30, iconAngle);
+        // Align icon vertically by matching the text shift direction (inwards in bottom, outwards in top)
+        const iconRadius = isBottomHalf ? (outerTextRadius - 40) : (outerTextRadius + 40);
+        const iconPos = polarToCartesian(cx, cy, iconRadius, iconAngle);
         let iconRot = iconAngle;
         if (isBottomHalf) {
           iconRot += 180;
@@ -805,8 +810,8 @@ function renderScaledMandala() {
         const iconGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
         iconGroup.setAttribute("transform", `rotate(${iconRot}, ${iconPos.x}, ${iconPos.y})`);
 
-        const iconSize = 90;
-        const containerSize = iconSize * 2; // 180px container
+        const iconSize = 180; // Resized to 2x bigger (previously 90px)
+        const containerSize = iconSize * 2; // 360px container to support larger icon without clipping
         const fObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
         fObj.setAttribute("x", iconPos.x - containerSize / 2);
         fObj.setAttribute("y", iconPos.y - containerSize / 2);
@@ -817,16 +822,16 @@ function renderScaledMandala() {
         svg.appendChild(iconGroup);
       }
 
-      // 4. Effect Name (Curved Right Path)
+      // 4. Effect Name (Curved Right Path) - Extended to 26 degrees to prevent clipping
       let effectPathData;
       let effectTextAnchor;
       let effectStartOffset;
       const effectPathId = `outer-effect-path-${i}`;
 
       if (isBottomHalf) {
-        // Right is angle - 2.5, goes counter-clockwise to angle - 15
+        // Right is angle - 2.5, goes counter-clockwise to angle - pathSpan
         const pathStart = polarToCartesian(cx, cy, outerTextRadius, angle - 2.5);
-        const pathEnd = polarToCartesian(cx, cy, outerTextRadius, angle - 15);
+        const pathEnd = polarToCartesian(cx, cy, outerTextRadius, angle - pathSpan);
         effectPathData = [
           "M", pathStart.x, pathStart.y,
           "A", outerTextRadius, outerTextRadius, 0, 0, 0, pathEnd.x, pathEnd.y
@@ -834,9 +839,9 @@ function renderScaledMandala() {
         effectTextAnchor = "start";
         effectStartOffset = "0%";
       } else {
-        // Right is angle + 2.5, goes clockwise to angle + 15
+        // Right is angle + 2.5, goes clockwise to angle + pathSpan
         const pathStart = polarToCartesian(cx, cy, outerTextRadius, angle + 2.5);
-        const pathEnd = polarToCartesian(cx, cy, outerTextRadius, angle + 15);
+        const pathEnd = polarToCartesian(cx, cy, outerTextRadius, angle + pathSpan);
         effectPathData = [
           "M", pathStart.x, pathStart.y,
           "A", outerTextRadius, outerTextRadius, 0, 0, 1, pathEnd.x, pathEnd.y
@@ -853,7 +858,7 @@ function renderScaledMandala() {
 
       const effectTextEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
       effectTextEl.setAttribute("class", "scaled-text outer-ring-text");
-      effectTextEl.setAttribute("font-size", "70px");
+      effectTextEl.setAttribute("font-size", "70px"); // Put back to match school name size (70px)
       effectTextEl.setAttribute("font-weight", "normal");
       effectTextEl.setAttribute("filter", "url(#text-shadow-filter)");
       effectTextEl.style.pointerEvents = "none";
@@ -909,11 +914,11 @@ function renderScaledMandala() {
       schoolText.textContent = school.label;
       group.appendChild(schoolText);
 
-      // Icon in standard view - expanded container and shifted left using wider character multiplier (65px) to prevent overlap
+      // Icon in standard view - Resized to 180px (2x bigger) and precisely shifted left based on character length
       if (school.icon) {
-        const iconSize = 90;
-        const containerSize = iconSize * 2; // 180px container
-        const iconX = leftX - (school.label.length * 65) - iconSize - 25; 
+        const iconSize = 180; // Resized to 2x bigger (previously 90px)
+        const containerSize = iconSize * 2; // 360px container
+        const iconX = leftX - (school.label.length * 50) - iconSize - 35; 
         
         const fObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
         fObj.setAttribute("x", (iconX + iconSize / 2) - containerSize / 2);
