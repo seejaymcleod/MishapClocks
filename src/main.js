@@ -1,19 +1,24 @@
 // State
 let appState = {
-  viewMode: 'curved-text',
+  viewMode: 'curved-axis',
   centerOuterText: false,
   outerPinOffset: 11,
-  bottomShift: 65,
+  labelOffsetTop: 10,
+  labelOffsetBottom: 10,
   bottomIconShift: 0,
+  rollFontSize: 180,
+  labelSeparation: 145,
+  outerDistTop: 240,
+  outerDistBottom: 240,
   magicNodes: [
-    { id: 'm0', label: 'Thermal', icon: 'gi-fire', color: '#ff4500', opposite: 'Hydro', slider: 'Injecting kinetic heat (ignition) ↔ siphoning it (absolute zero).' },
-    { id: 'm1', label: 'Aero', icon: 'gi-tornado', color: '#87ceeb', opposite: 'Geo', slider: 'High pressure and gales ↔ suffocating vacuums.' },
-    { id: 'm2', label: 'Electro', icon: 'gi-lightning-trio', color: '#ffd700', opposite: 'Dimensional', slider: 'Spiking electrical/magnetic currents ↔ grounding them into dead zones.' },
-    { id: 'm3', label: 'Neural', icon: 'gi-brain', color: '#ff69b4', opposite: 'Vital', slider: 'Structuring logic and perception ↔ shattering the psyche into madness.' },
-    { id: 'm4', label: 'Hydro', icon: 'gi-water-drop', color: '#1e90ff', opposite: 'Thermal', slider: 'Flooding and fluidity ↔ severe desiccation and drought.' },
-    { id: 'm5', label: 'Geo', icon: 'gi-stone-block', color: '#8b4513', opposite: 'Aero', slider: 'Density, metal, and bedrock ↔ rust, erosion, and dust.' },
-    { id: 'm6', label: 'Dimensional', icon: 'gi-portal', color: '#8a2be2', opposite: 'Electro', slider: 'Accelerating chronological flow ↔ halting momentum into stasis.' },
-    { id: 'm7', label: 'Vital', icon: 'gi-health-normal', color: '#32cd32', opposite: 'Neural', slider: 'Rapid cellular growth and healing ↔ necrosis, atrophy, and decay.' },
+    { id: 'm0', label: 'Thermal', icon: 'gi-fire', negativeIcon: 'gi-snowflake-1', color: '#ff4500', opposite: 'Hydro', slider: 'Injecting kinetic heat (ignition) ↔ siphoning it (absolute zero).' },
+    { id: 'm1', label: 'Aero', icon: 'gi-tornado', negativeIcon: 'gi-sound-off', color: '#87ceeb', opposite: 'Geo', slider: 'High pressure and gales ↔ suffocating vacuums.' },
+    { id: 'm2', label: 'Electro', icon: 'gi-lightning-trio', negativeIcon: 'gi-eclipse', color: '#ffd700', opposite: 'Dimensional', slider: 'Spiking electrical/magnetic currents ↔ grounding them into dead zones.' },
+    { id: 'm3', label: 'Neural', icon: 'gi-brain', negativeIcon: 'gi-screaming', color: '#ff69b4', opposite: 'Vital', slider: 'Structuring logic and perception ↔ shattering the psyche into madness.' },
+    { id: 'm4', label: 'Hydro', icon: 'gi-water-drop', negativeIcon: 'gi-desert', color: '#1e90ff', opposite: 'Thermal', slider: 'Flooding and fluidity ↔ severe desiccation and drought.' },
+    { id: 'm5', label: 'Geo', icon: 'gi-stone-block', negativeIcon: 'gi-broken-wall', color: '#8b4513', opposite: 'Aero', slider: 'Density, metal, and bedrock ↔ rust, erosion, and dust.' },
+    { id: 'm6', label: 'Dimensional', icon: 'gi-portal', negativeIcon: 'gi-hourglass', color: '#8a2be2', opposite: 'Electro', slider: 'Accelerating chronological flow ↔ halting momentum into stasis.' },
+    { id: 'm7', label: 'Vital', icon: 'gi-health-normal', negativeIcon: 'gi-poison', color: '#32cd32', opposite: 'Neural', slider: 'Rapid cellular growth and healing ↔ necrosis, atrophy, and decay.' },
   ],
   targetNodes: [
     { id: 't0', label: 'Self @ Close', color: '#e2e8f0' },
@@ -145,8 +150,9 @@ function mapTablesToState(tables) {
       label: row[0] || `School ${idx + 1}`,
       color: row[1] || '#888888',
       icon: row[2] || 'gi-help',
-      opposite: row[3] || '',
-      slider: row[4] || ''
+      negativeIcon: row[3] || 'gi-help',
+      opposite: row[4] || '',
+      slider: row[5] || ''
     };
   });
   
@@ -259,7 +265,7 @@ function renderScaledMandala() {
   if (!container) return;
   container.innerHTML = '';
   
-  const size = 4300;
+  const size = 5200;
   const cx = size / 2;
   const cy = size / 2;
   
@@ -345,12 +351,12 @@ function renderScaledMandala() {
       
       // Add text label
       const isThermalSlice = (i === 0);
-      const hideModText = isThermalSlice && ['stacked-pill', 'curved-text'].includes(appState.viewMode);
+      const hideModText = isThermalSlice;
       const modText = (tIndex === 0 || hideModText) ? '' : (node.modifier || node.dc || '—');
       const textRadius = innerR + ringWidth * 0.5;
 
       if (modText) {
-        if (appState.viewMode === 'curved-text') {
+        if (['curved-axis', 'horizontal-hud', 'radial-vector', 'minimal-rune', 'curved-text'].includes(appState.viewMode)) {
           // Render curved text for school i, tier tIndex
           let pathData;
           const isBottomHalf = (centerAngle > 90 && centerAngle < 270);
@@ -614,7 +620,7 @@ function renderScaledMandala() {
         textBottom.setAttribute("font-weight", "bold");
         textBottom.setAttribute("text-anchor", "middle");
         textBottom.style.pointerEvents = "none";
-      } else if (appState.viewMode === 'curved-text') {
+      } else if (['curved-axis', 'horizontal-hud', 'radial-vector', 'minimal-rune', 'curved-text'].includes(appState.viewMode)) {
         const getDynamicFontSize = (text, radius) => {
           const arcLength = radius * (angleStep * Math.PI / 180);
           const maxChars = text.length || 1;
@@ -713,12 +719,22 @@ function renderScaledMandala() {
     const angle = i * angleStep;
     const effectName = appState.scaledTiers[0].nodes[i]?.type || `Effect ${i+1}`;
     
-    if (appState.viewMode === 'curved-text') {
-      const outerTextRadius = outerRadius + 180;
+    // Retrieve opposite school color dynamically
+    const oppositeNode = appState.magicNodes.find(n => n.label === school.opposite);
+    const negativeColor = oppositeNode ? oppositeNode.color : school.color;
+    if (appState.viewMode === 'curved-axis' || appState.viewMode === 'curved-text') {
       const isBottomHalf = (angle > 90 && angle < 270);
+      const outerDistTop = Number(appState.outerDistTop ?? 320);
+      const outerDistBottom = Number(appState.outerDistBottom ?? 320);
+      const centerRadius = outerRadius + (isBottomHalf ? outerDistBottom : outerDistTop);
+      const labelOffsetTop = Number(appState.labelOffsetTop ?? 0);
+      const labelOffsetBottom = Number(appState.labelOffsetBottom ?? 65);
+      const bottomIconShift = Number(appState.bottomIconShift ?? 0);
+      const rollFontSize = Number(appState.rollFontSize ?? 110);
+      const labelSep = Number(appState.labelSeparation ?? 100);
 
-      // 1. Center Big Number (Upright / Radial, like in normal view)
-      const textPos = polarToCartesian(cx, cy, outerTextRadius, angle);
+      // 1. Center Big Number
+      const textPos = polarToCartesian(cx, cy, centerRadius, angle);
       let rot = angle;
       if (isBottomHalf) {
         rot += 180;
@@ -731,7 +747,7 @@ function renderScaledMandala() {
       numberText.setAttribute("text-anchor", "middle");
       numberText.setAttribute("dominant-baseline", "middle");
       numberText.setAttribute("fill", "#fbbf24");
-      numberText.setAttribute("font-size", "110px");
+      numberText.setAttribute("font-size", `${rollFontSize}px`);
       numberText.setAttribute("font-weight", "bold");
       numberText.setAttribute("filter", "url(#text-shadow-filter)");
       numberText.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
@@ -741,17 +757,17 @@ function renderScaledMandala() {
       // Left/Right center angle calculations based on the centerOuterText toggle and outerPinOffset
       let leftCenterAngle;
       let rightCenterAngle;
-      const offsetVal = Number(appState.outerPinOffset ?? 9);
+      const offsetVal = Number(appState.outerPinOffset ?? 15); // Default to 15 degrees for horizontal spacing
       if (appState.centerOuterText) {
-        leftCenterAngle = isBottomHalf ? (angle + 12.5) : (angle - 12.5);
-        rightCenterAngle = isBottomHalf ? (angle - 12.5) : (angle + 12.5);
+        leftCenterAngle = isBottomHalf ? (angle + 15) : (angle - 15);
+        rightCenterAngle = isBottomHalf ? (angle - 15) : (angle + 15);
       } else {
         leftCenterAngle = isBottomHalf ? (angle + offsetVal) : (angle - offsetVal);
         rightCenterAngle = isBottomHalf ? (angle - offsetVal) : (angle + offsetVal);
       }
 
       // Helper to draw centered text along a circular path segment
-      const drawCenteredText = (text, radius, centerAngle, pathId, isSchool) => {
+      const drawSingleLineText = (text, radius, centerAngle, pathId, isSchool) => {
         let pathStart, pathEnd, pathData;
         const halfSpan = 15; // 30-degree path segment span to prevent clipping
         
@@ -796,18 +812,46 @@ function renderScaledMandala() {
         svg.appendChild(textEl);
       };
 
-      // 2. School Name (Curved Left Path) - Stacked layout (Inner relative to circle half to keep icon on top)
-      const schoolPathId = `outer-school-path-${i}`;
-      const bottomShift = Number(appState.bottomShift ?? 65);
-      const bottomIconShift = Number(appState.bottomIconShift ?? 0);
-      const schoolRadius = isBottomHalf ? (outerTextRadius + 35 + bottomShift) : (outerTextRadius - 35);
-      drawCenteredText(school.label, schoolRadius, leftCenterAngle, schoolPathId, true);
+      const drawCenteredText = (text, radius, centerAngle, pathId, isSchool) => {
+        // Wrap effect names if they contain a space or hyphen and are long enough
+        const shouldWrap = !isSchool && (text.includes(" ") || text.includes("-")) && text.length > 8;
+        if (shouldWrap) {
+          let parts = [];
+          if (text.includes(" ")) {
+            parts = text.split(" ");
+          } else {
+            const idx = text.indexOf("-");
+            parts = [text.substring(0, idx), text.substring(idx + 1)];
+          }
+          const radius1 = isBottomHalf ? (radius - 25) : (radius + 25);
+          const radius2 = isBottomHalf ? (radius + 25) : (radius - 25);
+          drawSingleLineText(parts[0], radius1, centerAngle, `${pathId}-line1`, isSchool);
+          drawSingleLineText(parts[1], radius2, centerAngle, `${pathId}-line2`, isSchool);
+        } else {
+          drawSingleLineText(text, radius, centerAngle, pathId, isSchool);
+        }
+      };
 
-      // 3. School Icon (stacked vertically to always sit physically on top of the School Name)
-      if (school.icon) {
-        const iconRadius = isBottomHalf ? (outerTextRadius - 115 + bottomShift + bottomIconShift) : (outerTextRadius + 115); // Icon is always further UP on screen
-        const iconPos = polarToCartesian(cx, cy, iconRadius, leftCenterAngle);
-        let iconRot = leftCenterAngle;
+      // 2. School Name above the number (curved)
+      const schoolPathId = `outer-school-path-${i}`;
+      // Add bottom/top label offset directly for perfect symmetry and adjustment
+      const schoolRadius = isBottomHalf ? (centerRadius - labelSep + labelOffsetBottom) : (centerRadius + labelSep + labelOffsetTop);
+      drawCenteredText(school.label, schoolRadius, angle, schoolPathId, true);
+
+      // 3. Effect Name below the number (curved)
+      const effectPathId = `outer-effect-path-${i}`;
+      // Add bottom/top label offset directly for perfect symmetry and adjustment
+      const effectRadius = isBottomHalf ? (centerRadius + labelSep + labelOffsetBottom) : (centerRadius - labelSep + labelOffsetTop);
+      drawCenteredText(effectName, effectRadius, angle, effectPathId, false);
+
+      // 4. Positive and Negative Icons (aligned horizontally along the same arc, swapped positions)
+      const iconRadius = centerRadius + (isBottomHalf ? bottomIconShift : 0);
+      const iconSize = 180;
+      const containerSize = iconSize * 2;
+
+      const renderIcon = (iconClass, targetAngle, targetColor) => {
+        const iconPos = polarToCartesian(cx, cy, iconRadius, targetAngle);
+        let iconRot = targetAngle;
         if (isBottomHalf) {
           iconRot += 180;
         }
@@ -815,105 +859,376 @@ function renderScaledMandala() {
         const iconGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
         iconGroup.setAttribute("transform", `rotate(${iconRot}, ${iconPos.x}, ${iconPos.y})`);
 
-        const iconSize = 180;
-        const containerSize = iconSize * 2; // 360px
         const fObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
         fObj.setAttribute("x", iconPos.x - containerSize / 2);
         fObj.setAttribute("y", iconPos.y - containerSize / 2);
         fObj.setAttribute("width", containerSize);
         fObj.setAttribute("height", containerSize);
-        fObj.innerHTML = `<i class="gi ${school.icon}" style="font-size: ${iconSize}px; color: ${school.color}; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
+        fObj.innerHTML = `<i class="gi ${iconClass}" style="font-size: ${iconSize}px; color: ${targetColor}; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
         iconGroup.appendChild(fObj);
         svg.appendChild(iconGroup);
-      }
+      };
 
-      // 4. Effect Name (Curved Right Path) - Dynamic wrapping for 2-word labels
-      const effectPathId = `outer-effect-path-${i}`;
-      const words = effectName.split(" ");
-      if (words.length === 2) {
-        const word1 = words[0];
-        const word2 = words[1];
-        const r1 = isBottomHalf ? (outerTextRadius - 38) : (outerTextRadius + 38);
-        const r2 = isBottomHalf ? (outerTextRadius + 38) : (outerTextRadius - 38);
-        
-        drawCenteredText(word1, r1, rightCenterAngle, `${effectPathId}-w1`, false);
-        drawCenteredText(word2, r2, rightCenterAngle, `${effectPathId}-w2`, false);
-      } else {
-        drawCenteredText(effectName, outerTextRadius, rightCenterAngle, effectPathId, false);
+      // Swapped: Negative on left, Positive on right
+      if (school.negativeIcon) {
+        renderIcon(school.negativeIcon, leftCenterAngle, school.color);
       }
-    } else {
-      const textRadius = outerRadius + 180;
-      const textPos = polarToCartesian(cx, cy, textRadius, angle);
-      
-      const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-      
-      let rot = angle;
-      if (rot > 90 && rot < 270) {
-        rot += 180;
-      }
-      group.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
-
-      // Number in the middle (Montserrat Bold, drop shadow)
-      const numberText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      numberText.setAttribute("class", "scaled-text outer-ring-text");
-      numberText.setAttribute("x", textPos.x);
-      numberText.setAttribute("y", textPos.y);
-      numberText.setAttribute("text-anchor", "middle");
-      numberText.setAttribute("dominant-baseline", "middle");
-      numberText.setAttribute("fill", "#fbbf24");
-      numberText.setAttribute("font-size", "110px");
-      numberText.setAttribute("font-weight", "bold");
-      numberText.setAttribute("filter", "url(#text-shadow-filter)");
-      numberText.textContent = (i + 1).toString();
-      group.appendChild(numberText);
-      
-      // Left of center: Name and Icon (Montserrat Bold, uppercase)
-      const leftX = textPos.x - 90;
-      
-      const schoolText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      schoolText.setAttribute("class", "scaled-text outer-ring-text");
-      schoolText.setAttribute("x", leftX);
-      schoolText.setAttribute("y", textPos.y);
-      schoolText.setAttribute("text-anchor", "end");
-      schoolText.setAttribute("dominant-baseline", "middle");
-      schoolText.setAttribute("fill", school.color);
-      schoolText.setAttribute("font-size", "70px");
-      schoolText.setAttribute("font-weight", "bold");
-      schoolText.setAttribute("filter", "url(#text-shadow-filter)");
-      schoolText.textContent = school.label;
-      group.appendChild(schoolText);
-
-      // Icon in standard view - Resized to 180px (2x bigger) and precisely shifted left based on character length
       if (school.icon) {
-        const iconSize = 180; // Resized to 2x bigger (previously 90px)
-        const containerSize = iconSize * 2; // 360px container
-        const iconX = leftX - (school.label.length * 50) - iconSize - 35; 
-        
-        const fObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
-        fObj.setAttribute("x", (iconX + iconSize / 2) - containerSize / 2);
-        fObj.setAttribute("y", textPos.y - containerSize / 2);
-        fObj.setAttribute("width", containerSize);
-        fObj.setAttribute("height", containerSize);
-        fObj.innerHTML = `<i class="gi ${school.icon}" style="font-size: ${iconSize}px; color: ${school.color}; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
-        group.appendChild(fObj);
+        renderIcon(school.icon, rightCenterAngle, school.color);
       }
 
-      // Right of center: Scale Type (Montserrat Normal, uppercase, drop shadow)
-      const rightX = textPos.x + 90;
+      // 5. Draw Minimalistic Translucent Curved Line Arrows pointing OUTWARDS (no arrowheads)
+      const arrowRadius = iconRadius;
+
+      // Define Arrow Gradients dynamically in the SVG defs (more aggressive fade to 0.0 opacity)
+      const defs = svg.querySelector('defs');
+      if (defs) {
+        // Left gradient: starts at center number (high opacity), ends at left icon (fully transparent)
+        const leftGradId = `arrow-grad-left-${i}`;
+        let leftGrad = defs.querySelector(`#${leftGradId}`);
+        if (!leftGrad) {
+          leftGrad = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
+          leftGrad.setAttribute("id", leftGradId);
+          leftGrad.setAttribute("gradientUnits", "userSpaceOnUse");
+          defs.appendChild(leftGrad);
+        }
+        const startLeft = polarToCartesian(cx, cy, arrowRadius, angle - 3.5);
+        const endLeft = polarToCartesian(cx, cy, arrowRadius, angle - 11.5);
+        leftGrad.setAttribute("x1", startLeft.x);
+        leftGrad.setAttribute("y1", startLeft.y);
+        leftGrad.setAttribute("x2", endLeft.x);
+        leftGrad.setAttribute("y2", endLeft.y);
+        leftGrad.innerHTML = `
+          <stop offset="0%" stop-color="${school.color}" stop-opacity="1.0" />
+          <stop offset="40%" stop-color="${school.color}" stop-opacity="0.2" />
+          <stop offset="100%" stop-color="${school.color}" stop-opacity="0.0" />
+        `;
+
+        // Right gradient: starts at center number (high opacity), ends at right icon (fully transparent)
+        const rightGradId = `arrow-grad-right-${i}`;
+        let rightGrad = defs.querySelector(`#${rightGradId}`);
+        if (!rightGrad) {
+          rightGrad = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
+          rightGrad.setAttribute("id", rightGradId);
+          rightGrad.setAttribute("gradientUnits", "userSpaceOnUse");
+          defs.appendChild(rightGrad);
+        }
+        const startRight = polarToCartesian(cx, cy, arrowRadius, angle + 3.5);
+        const endRight = polarToCartesian(cx, cy, arrowRadius, angle + 11.5);
+        rightGrad.setAttribute("x1", startRight.x);
+        rightGrad.setAttribute("y1", startRight.y);
+        rightGrad.setAttribute("x2", endRight.x);
+        rightGrad.setAttribute("y2", endRight.y);
+        rightGrad.innerHTML = `
+          <stop offset="0%" stop-color="${school.color}" stop-opacity="1.0" />
+          <stop offset="40%" stop-color="${school.color}" stop-opacity="0.2" />
+          <stop offset="100%" stop-color="${school.color}" stop-opacity="0.0" />
+        `;
+      }
+
+      // Draw Left Arrow Line
+      const startLeft = polarToCartesian(cx, cy, arrowRadius, angle - 3.5);
+      const endLeft = polarToCartesian(cx, cy, arrowRadius, angle - 11.5);
+
+      const leftArrowLine = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      leftArrowLine.setAttribute("d", `M ${startLeft.x} ${startLeft.y} A ${arrowRadius} ${arrowRadius} 0 0 0 ${endLeft.x} ${endLeft.y}`);
+      leftArrowLine.setAttribute("fill", "none");
+      leftArrowLine.setAttribute("stroke", `url(#arrow-grad-left-${i})`);
+      leftArrowLine.setAttribute("stroke-width", "8");
+      leftArrowLine.setAttribute("stroke-linecap", "round");
+      svg.appendChild(leftArrowLine);
+
+      // Draw Right Arrow Line
+      const startRight = polarToCartesian(cx, cy, arrowRadius, angle + 3.5);
+      const endRight = polarToCartesian(cx, cy, arrowRadius, angle + 11.5);
+
+      const rightArrowLine = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      rightArrowLine.setAttribute("d", `M ${startRight.x} ${startRight.y} A ${arrowRadius} ${arrowRadius} 0 0 1 ${endRight.x} ${endRight.y}`);
+      rightArrowLine.setAttribute("fill", "none");
+      rightArrowLine.setAttribute("stroke", `url(#arrow-grad-right-${i})`);
+      rightArrowLine.setAttribute("stroke-width", "8");
+      rightArrowLine.setAttribute("stroke-linecap", "round");
+      svg.appendChild(rightArrowLine);
+     } else if (appState.viewMode === 'horizontal-hud') {
+      const isBottomHalf = (angle > 90 && angle < 270);
+      const outerDistTop = Number(appState.outerDistTop ?? 320);
+      const outerDistBottom = Number(appState.outerDistBottom ?? 320);
+      const hudRadius = outerRadius + (isBottomHalf ? outerDistBottom : outerDistTop) + 40;
+      const hudPos = polarToCartesian(cx, cy, hudRadius, angle);
+      let hudRot = angle;
+      if (isBottomHalf) {
+        hudRot += 180;
+      }
+
+      const hudGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      hudGroup.setAttribute("transform", `translate(${hudPos.x}, ${hudPos.y}) rotate(${hudRot})`);
+
+      // Glassmorphic Capsule Background
+      const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      rect.setAttribute("x", "-550");
+      rect.setAttribute("y", "-90");
+      rect.setAttribute("width", "1100");
+      rect.setAttribute("height", "180");
+      rect.setAttribute("rx", "90");
+      rect.setAttribute("ry", "90");
+      rect.setAttribute("fill", "rgba(13, 17, 23, 0.9)");
+      rect.setAttribute("stroke", school.color);
+      rect.setAttribute("stroke-width", "6");
+      rect.setAttribute("filter", "url(#text-shadow-filter)");
+      hudGroup.appendChild(rect);
+
+      // Swapped: Negative Icon on Left
+      const leftIconFObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+      leftIconFObj.setAttribute("x", "-510");
+      leftIconFObj.setAttribute("y", "-60");
+      leftIconFObj.setAttribute("width", "120");
+      leftIconFObj.setAttribute("height", "120");
+      leftIconFObj.innerHTML = `<i class="gi ${school.negativeIcon}" style="font-size: 100px; color: ${school.color}; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
+      hudGroup.appendChild(leftIconFObj);
+
+      // Effect/Mishap Label on Left
       const effectText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      effectText.setAttribute("class", "scaled-text outer-ring-text");
-      effectText.setAttribute("x", rightX);
-      effectText.setAttribute("y", textPos.y);
+      effectText.setAttribute("x", "-380");
+      effectText.setAttribute("y", "0");
       effectText.setAttribute("text-anchor", "start");
       effectText.setAttribute("dominant-baseline", "middle");
-      effectText.setAttribute("fill", "#e2e8f0");
-      effectText.setAttribute("font-size", "70px");
+      effectText.setAttribute("fill", "#ffffff");
+      effectText.setAttribute("font-size", "45px");
       effectText.setAttribute("font-weight", "normal");
       effectText.setAttribute("filter", "url(#text-shadow-filter)");
       effectText.textContent = effectName;
-      group.appendChild(effectText);
+      hudGroup.appendChild(effectText);
 
-      svg.appendChild(group);
+      // Left Transition Arrow (pointing left)
+      const leftArrowFObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+      leftArrowFObj.setAttribute("x", "-160");
+      leftArrowFObj.setAttribute("y", "-40");
+      leftArrowFObj.setAttribute("width", "80");
+      leftArrowFObj.setAttribute("height", "80");
+      leftArrowFObj.innerHTML = `<i class="gi gi-plain-arrow gi-flip-horizontal" style="font-size: 70px; color: ${school.color}; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
+      hudGroup.appendChild(leftArrowFObj);
+
+      // Center Big Number Badge
+      const numCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      numCircle.setAttribute("cx", "0");
+      numCircle.setAttribute("cy", "0");
+      numCircle.setAttribute("r", "60");
+      numCircle.setAttribute("fill", "#1f2937");
+      numCircle.setAttribute("stroke", "#fbbf24");
+      numCircle.setAttribute("stroke-width", "5");
+      hudGroup.appendChild(numCircle);
+
+      const numText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      numText.setAttribute("x", "0");
+      numText.setAttribute("y", "0");
+      numText.setAttribute("text-anchor", "middle");
+      numText.setAttribute("dominant-baseline", "middle");
+      numText.setAttribute("fill", "#fbbf24");
+      const rollFontSize = Number(appState.rollFontSize ?? 110);
+      numText.setAttribute("font-size", `${rollFontSize * 65 / 110}px`);
+      numText.setAttribute("font-weight", "bold");
+      numText.textContent = (i + 1).toString();
+      hudGroup.appendChild(numText);
+
+      // Right Transition Arrow (pointing right)
+      const rightArrowFObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+      rightArrowFObj.setAttribute("x", "80");
+      rightArrowFObj.setAttribute("y", "-40");
+      rightArrowFObj.setAttribute("width", "80");
+      rightArrowFObj.setAttribute("height", "80");
+      rightArrowFObj.innerHTML = `<i class="gi gi-plain-arrow" style="font-size: 70px; color: ${school.color}; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
+      hudGroup.appendChild(rightArrowFObj);
+
+      // School Label on Right
+      const schoolText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      schoolText.setAttribute("x", "180");
+      schoolText.setAttribute("y", "0");
+      schoolText.setAttribute("text-anchor", "start");
+      schoolText.setAttribute("dominant-baseline", "middle");
+      schoolText.setAttribute("fill", "#ffffff");
+      schoolText.setAttribute("font-size", "52px");
+      schoolText.setAttribute("font-weight", "bold");
+      schoolText.setAttribute("filter", "url(#text-shadow-filter)");
+      schoolText.textContent = school.label;
+      hudGroup.appendChild(schoolText);
+
+      // Swapped: Positive Icon on Right
+      const rightIconFObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+      rightIconFObj.setAttribute("x", "400");
+      rightIconFObj.setAttribute("y", "-60");
+      rightIconFObj.setAttribute("width", "120");
+      rightIconFObj.setAttribute("height", "120");
+      rightIconFObj.innerHTML = `<i class="gi ${school.icon}" style="font-size: 100px; color: ${school.color}; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
+      hudGroup.appendChild(rightIconFObj);
+
+      svg.appendChild(hudGroup);
+     } else if (appState.viewMode === 'radial-vector') {
+      const isBottomHalf = (angle > 90 && angle < 270);
+      const outerDistTop = Number(appState.outerDistTop ?? 320);
+      const outerDistBottom = Number(appState.outerDistBottom ?? 320);
+      const centerRadius = outerRadius + (isBottomHalf ? outerDistBottom : outerDistTop);
+
+      // Center Group (Icons + Arrow + Number)
+      const centerPos = polarToCartesian(cx, cy, centerRadius, angle);
+      let rot = angle;
+      if (isBottomHalf) {
+        rot += 180;
+      }
+
+      const vectorGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      vectorGroup.setAttribute("transform", `translate(${centerPos.x}, ${centerPos.y}) rotate(${rot})`);
+
+      // Swapped: Negative Icon (Left)
+      const negIconFObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+      negIconFObj.setAttribute("x", "-240");
+      negIconFObj.setAttribute("y", "-75");
+      negIconFObj.setAttribute("width", "150");
+      negIconFObj.setAttribute("height", "150");
+      negIconFObj.innerHTML = `<i class="gi ${school.negativeIcon}" style="font-size: 140px; color: ${school.color}; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
+      vectorGroup.appendChild(negIconFObj);
+
+      // Left transition arrow (pointing left)
+      const arrowLeftFObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+      arrowLeftFObj.setAttribute("x", "-80");
+      arrowLeftFObj.setAttribute("y", "-55");
+      arrowLeftFObj.setAttribute("width", "70");
+      arrowLeftFObj.setAttribute("height", "70");
+      arrowLeftFObj.innerHTML = `<i class="gi gi-plain-arrow gi-flip-horizontal" style="font-size: 60px; color: ${school.color}; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
+      vectorGroup.appendChild(arrowLeftFObj);
+
+      // Right transition arrow (pointing right)
+      const arrowRightFObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+      arrowRightFObj.setAttribute("x", "10");
+      arrowRightFObj.setAttribute("y", "-55");
+      arrowRightFObj.setAttribute("width", "70");
+      arrowRightFObj.setAttribute("height", "70");
+      arrowRightFObj.innerHTML = `<i class="gi gi-plain-arrow" style="font-size: 60px; color: ${school.color}; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
+      vectorGroup.appendChild(arrowRightFObj);
+
+      // Swapped: Positive Icon (Right)
+      const posIconFObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+      posIconFObj.setAttribute("x", "90");
+      posIconFObj.setAttribute("y", "-75");
+      posIconFObj.setAttribute("width", "150");
+      posIconFObj.setAttribute("height", "150");
+      posIconFObj.innerHTML = `<i class="gi ${school.icon}" style="font-size: 140px; color: ${school.color}; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
+      vectorGroup.appendChild(posIconFObj);
+
+      // Sector Number (bottom centered)
+      const numText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      numText.setAttribute("x", "0");
+      numText.setAttribute("y", "120");
+      numText.setAttribute("text-anchor", "middle");
+      numText.setAttribute("dominant-baseline", "middle");
+      numText.setAttribute("fill", "#fbbf24");
+      const rollFontSize = Number(appState.rollFontSize ?? 110);
+      numText.setAttribute("font-size", `${rollFontSize * 75 / 110}px`);
+      numText.setAttribute("font-weight", "bold");
+      numText.setAttribute("filter", "url(#text-shadow-filter)");
+      numText.textContent = (i + 1).toString();
+      vectorGroup.appendChild(numText);
+
+      svg.appendChild(vectorGroup);
+
+      // Radial Rays Labels
+      let leftAngle, rightAngle;
+      const offsetVal = Number(appState.outerPinOffset ?? 11);
+      leftAngle = isBottomHalf ? (angle + offsetVal) : (angle - offsetVal);
+      rightAngle = isBottomHalf ? (angle - offsetVal) : (angle + offsetVal);
+
+      const drawRadialRayText = (text, textAngle, isLeft) => {
+        const baseDist = isBottomHalf ? outerDistBottom : outerDistTop;
+        const textStartRadius = outerRadius + baseDist - 210;
+        const pos = polarToCartesian(cx, cy, textStartRadius, textAngle);
+        let actualRot = textAngle + 90;
+        if (textAngle > 90 && textAngle < 270) {
+          actualRot += 180;
+        }
+
+        const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        textEl.setAttribute("class", "scaled-text");
+        textEl.setAttribute("x", pos.x);
+        textEl.setAttribute("y", pos.y);
+        textEl.setAttribute("font-size", "65px");
+        textEl.setAttribute("font-weight", isLeft ? "bold" : "normal");
+        textEl.setAttribute("fill", isLeft ? school.color : "#e2e8f0");
+        textEl.setAttribute("text-anchor", (textAngle > 90 && textAngle < 270) ? "end" : "start");
+        textEl.setAttribute("dominant-baseline", "middle");
+        textEl.setAttribute("transform", `rotate(${actualRot}, ${pos.x}, ${pos.y})`);
+        textEl.setAttribute("filter", "url(#text-shadow-filter)");
+        textEl.textContent = text;
+        svg.appendChild(textEl);
+      };
+
+      // Swapped side labels to match swapped icons
+      drawRadialRayText(effectName, leftAngle, false);
+      drawRadialRayText(school.label, rightAngle, true);
+     } else if (appState.viewMode === 'minimal-rune') {
+      const isBottomHalf = (angle > 90 && angle < 270);
+      const outerDistTop = Number(appState.outerDistTop ?? 320);
+      const outerDistBottom = Number(appState.outerDistBottom ?? 320);
+      const centerRadius = outerRadius + (isBottomHalf ? outerDistBottom : outerDistTop);
+
+      const centerPos = polarToCartesian(cx, cy, centerRadius, angle);
+      let rot = angle;
+      if (isBottomHalf) {
+        rot += 180;
+      }
+
+      const runeGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      runeGroup.setAttribute("transform", `translate(${centerPos.x}, ${centerPos.y}) rotate(${rot})`);
+
+      // Swapped: Negative Icon (Left)
+      const negIconFObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+      negIconFObj.setAttribute("x", "-240");
+      negIconFObj.setAttribute("y", "-75");
+      negIconFObj.setAttribute("width", "150");
+      negIconFObj.setAttribute("height", "150");
+      negIconFObj.innerHTML = `<i class="gi ${school.negativeIcon}" style="font-size: 140px; color: ${school.color}; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
+      runeGroup.appendChild(negIconFObj);
+
+      // Left transition arrow
+      const arrowLeftFObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+      arrowLeftFObj.setAttribute("x", "-80");
+      arrowLeftFObj.setAttribute("y", "-55");
+      arrowLeftFObj.setAttribute("width", "70");
+      arrowLeftFObj.setAttribute("height", "70");
+      arrowLeftFObj.innerHTML = `<i class="gi gi-plain-arrow gi-flip-horizontal" style="font-size: 60px; color: ${school.color}; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
+      runeGroup.appendChild(arrowLeftFObj);
+
+      // Right transition arrow
+      const arrowRightFObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+      arrowRightFObj.setAttribute("x", "10");
+      arrowRightFObj.setAttribute("y", "-55");
+      arrowRightFObj.setAttribute("width", "70");
+      arrowRightFObj.setAttribute("height", "70");
+      arrowRightFObj.innerHTML = `<i class="gi gi-plain-arrow" style="font-size: 60px; color: ${school.color}; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
+      runeGroup.appendChild(arrowRightFObj);
+
+      // Swapped: Positive Icon (Right)
+      const posIconFObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+      posIconFObj.setAttribute("x", "90");
+      posIconFObj.setAttribute("y", "-75");
+      posIconFObj.setAttribute("width", "150");
+      posIconFObj.setAttribute("height", "150");
+      posIconFObj.innerHTML = `<i class="gi ${school.icon}" style="font-size: 140px; color: ${school.color}; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
+      runeGroup.appendChild(posIconFObj);
+
+      // Sector Number
+      const numText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      numText.setAttribute("x", "0");
+      numText.setAttribute("y", "120");
+      numText.setAttribute("text-anchor", "middle");
+      numText.setAttribute("dominant-baseline", "middle");
+      numText.setAttribute("fill", "#fbbf24");
+      const rollFontSize = Number(appState.rollFontSize ?? 110);
+      numText.setAttribute("font-size", `${rollFontSize * 75 / 110}px`);
+      numText.setAttribute("font-weight", "bold");
+      numText.setAttribute("filter", "url(#text-shadow-filter)");
+      numText.textContent = (i + 1).toString();
+      runeGroup.appendChild(numText);
+
+      svg.appendChild(runeGroup);
     }
     
     // tick mark on the boundary
@@ -1145,14 +1460,15 @@ document.getElementById('file-input').addEventListener('change', (e) => {
            appState.scaledTiers = [];
         }
          if (!appState.viewMode) {
-          appState.viewMode = 'curved-text';
+          appState.viewMode = 'curved-axis';
         }
-        if (appState.bottomShift === undefined) {
-          appState.bottomShift = 65;
-        }
-        if (appState.bottomIconShift === undefined) {
-          appState.bottomIconShift = 0;
-        }
+        if (appState.labelOffsetTop === undefined) appState.labelOffsetTop = appState.labelOffsetTop !== undefined ? appState.labelOffsetTop : 0;
+        if (appState.labelOffsetBottom === undefined) appState.labelOffsetBottom = appState.bottomShift !== undefined ? appState.bottomShift : 65;
+        if (appState.bottomIconShift === undefined) appState.bottomIconShift = 0;
+        if (appState.rollFontSize === undefined) appState.rollFontSize = 110;
+        if (appState.labelSeparation === undefined) appState.labelSeparation = 100;
+        if (appState.outerDistTop === undefined) appState.outerDistTop = appState.outerDistance !== undefined ? appState.outerDistance : 320;
+        if (appState.outerDistBottom === undefined) appState.outerDistBottom = (appState.outerDistance !== undefined && appState.bottomOuterShift !== undefined) ? (appState.outerDistance + appState.bottomOuterShift) : 320;
         syncViewModeButtons();
         syncOuterCenteringButton();
         renderTierControls();
@@ -1177,12 +1493,17 @@ function syncViewModeButtons() {
     }
   });
 
-  const isCurved = (appState.viewMode === 'curved-text');
+  const isCurved = ['curved-axis', 'curved-text'].includes(appState.viewMode);
   const curvedControls = [
     document.getElementById('outer-centering-btn'),
     document.getElementById('outer-offset-container'),
-    document.getElementById('bottom-shift-container'),
-    document.getElementById('bottom-icon-container')
+    document.getElementById('label-offset-top-container'),
+    document.getElementById('label-offset-bottom-container'),
+    document.getElementById('bottom-icon-container'),
+    document.getElementById('roll-size-container'),
+    document.getElementById('label-sep-container'),
+    document.getElementById('outer-dist-top-container'),
+    document.getElementById('outer-dist-bottom-container')
   ];
   curvedControls.forEach(el => {
     if (el) {
@@ -1227,20 +1548,55 @@ function syncOuterOffsetSlider() {
 }
 
 function syncBottomSliders() {
-  const bottomShiftSlider = document.getElementById('bottom-shift-slider');
-  const bottomShiftVal = document.getElementById('bottom-shift-val');
+  const labelOffsetTopSlider = document.getElementById('label-offset-top-slider');
+  const labelOffsetTopVal = document.getElementById('label-offset-top-val');
+  const labelOffsetBottomSlider = document.getElementById('label-offset-bottom-slider');
+  const labelOffsetBottomVal = document.getElementById('label-offset-bottom-val');
   const bottomIconSlider = document.getElementById('bottom-icon-slider');
   const bottomIconVal = document.getElementById('bottom-icon-val');
+  const rollSizeSlider = document.getElementById('roll-size-slider');
+  const rollSizeVal = document.getElementById('roll-size-val');
+  const labelSepSlider = document.getElementById('label-sep-slider');
+  const labelSepVal = document.getElementById('label-sep-val');
+  const outerDistTopSlider = document.getElementById('outer-dist-top-slider');
+  const outerDistTopVal = document.getElementById('outer-dist-top-val');
+  const outerDistBottomSlider = document.getElementById('outer-dist-bottom-slider');
+  const outerDistBottomVal = document.getElementById('outer-dist-bottom-val');
   
-  if (bottomShiftSlider && bottomShiftVal) {
-    const val = appState.bottomShift ?? 65;
-    bottomShiftSlider.value = val;
-    bottomShiftVal.textContent = val + "px";
+  if (labelOffsetTopSlider && labelOffsetTopVal) {
+    const val = appState.labelOffsetTop ?? 0;
+    labelOffsetTopSlider.value = val;
+    labelOffsetTopVal.textContent = val + "px";
+  }
+  if (labelOffsetBottomSlider && labelOffsetBottomVal) {
+    const val = appState.labelOffsetBottom ?? 65;
+    labelOffsetBottomSlider.value = val;
+    labelOffsetBottomVal.textContent = val + "px";
   }
   if (bottomIconSlider && bottomIconVal) {
     const val = appState.bottomIconShift ?? 0;
     bottomIconSlider.value = val;
     bottomIconVal.textContent = val + "px";
+  }
+  if (rollSizeSlider && rollSizeVal) {
+    const val = appState.rollFontSize ?? 110;
+    rollSizeSlider.value = val;
+    rollSizeVal.textContent = val + "px";
+  }
+  if (labelSepSlider && labelSepVal) {
+    const val = appState.labelSeparation ?? 100;
+    labelSepSlider.value = val;
+    labelSepVal.textContent = val + "px";
+  }
+  if (outerDistTopSlider && outerDistTopVal) {
+    const val = appState.outerDistTop ?? 320;
+    outerDistTopSlider.value = val;
+    outerDistTopVal.textContent = val + "px";
+  }
+  if (outerDistBottomSlider && outerDistBottomVal) {
+    const val = appState.outerDistBottom ?? 320;
+    outerDistBottomSlider.value = val;
+    outerDistBottomVal.textContent = val + "px";
   }
 }
 
@@ -1295,13 +1651,23 @@ async function init() {
     });
   }
 
-  // Set up bottom shift sliders listeners
-  const bottomShiftSlider = document.getElementById('bottom-shift-slider');
-  const bottomShiftVal = document.getElementById('bottom-shift-val');
-  if (bottomShiftSlider && bottomShiftVal) {
-    bottomShiftSlider.addEventListener('input', (e) => {
-      appState.bottomShift = parseInt(e.target.value, 10);
-      bottomShiftVal.textContent = appState.bottomShift + "px";
+  // Set up top/bottom label offset sliders listeners
+  const labelOffsetTopSlider = document.getElementById('label-offset-top-slider');
+  const labelOffsetTopVal = document.getElementById('label-offset-top-val');
+  if (labelOffsetTopSlider && labelOffsetTopVal) {
+    labelOffsetTopSlider.addEventListener('input', (e) => {
+      appState.labelOffsetTop = parseInt(e.target.value, 10);
+      labelOffsetTopVal.textContent = appState.labelOffsetTop + "px";
+      renderScaledMandala();
+    });
+  }
+
+  const labelOffsetBottomSlider = document.getElementById('label-offset-bottom-slider');
+  const labelOffsetBottomVal = document.getElementById('label-offset-bottom-val');
+  if (labelOffsetBottomSlider && labelOffsetBottomVal) {
+    labelOffsetBottomSlider.addEventListener('input', (e) => {
+      appState.labelOffsetBottom = parseInt(e.target.value, 10);
+      labelOffsetBottomVal.textContent = appState.labelOffsetBottom + "px";
       renderScaledMandala();
     });
   }
@@ -1316,8 +1682,48 @@ async function init() {
     });
   }
 
+  const rollSizeSlider = document.getElementById('roll-size-slider');
+  const rollSizeVal = document.getElementById('roll-size-val');
+  if (rollSizeSlider && rollSizeVal) {
+    rollSizeSlider.addEventListener('input', (e) => {
+      appState.rollFontSize = parseInt(e.target.value, 10);
+      rollSizeVal.textContent = appState.rollFontSize + "px";
+      renderScaledMandala();
+    });
+  }
+
+  const labelSepSlider = document.getElementById('label-sep-slider');
+  const labelSepVal = document.getElementById('label-sep-val');
+  if (labelSepSlider && labelSepVal) {
+    labelSepSlider.addEventListener('input', (e) => {
+      appState.labelSeparation = parseInt(e.target.value, 10);
+      labelSepVal.textContent = appState.labelSeparation + "px";
+      renderScaledMandala();
+    });
+  }
+
+  const outerDistTopSlider = document.getElementById('outer-dist-top-slider');
+  const outerDistTopVal = document.getElementById('outer-dist-top-val');
+  if (outerDistTopSlider && outerDistTopVal) {
+    outerDistTopSlider.addEventListener('input', (e) => {
+      appState.outerDistTop = parseInt(e.target.value, 10);
+      outerDistTopVal.textContent = appState.outerDistTop + "px";
+      renderScaledMandala();
+    });
+  }
+
+  const outerDistBottomSlider = document.getElementById('outer-dist-bottom-slider');
+  const outerDistBottomVal = document.getElementById('outer-dist-bottom-val');
+  if (outerDistBottomSlider && outerDistBottomVal) {
+    outerDistBottomSlider.addEventListener('input', (e) => {
+      appState.outerDistBottom = parseInt(e.target.value, 10);
+      outerDistBottomVal.textContent = appState.outerDistBottom + "px";
+      renderScaledMandala();
+    });
+  }
+
   if (!appState.viewMode) {
-    appState.viewMode = 'curved-text';
+    appState.viewMode = 'curved-axis';
   }
   syncViewModeButtons();
   syncOuterCenteringButton();
