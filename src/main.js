@@ -1,5 +1,6 @@
 // State
 let appState = {
+  viewMode: 'full',
   magicNodes: [
     { id: 'm0', label: 'Thermal', icon: 'gi-fire', color: '#ff4500', opposite: 'Hydro', slider: 'Injecting kinetic heat (ignition) ↔ siphoning it (absolute zero).' },
     { id: 'm1', label: 'Aero', icon: 'gi-tornado', color: '#87ceeb', opposite: 'Geo', slider: 'High pressure and gales ↔ suffocating vacuums.' },
@@ -188,9 +189,10 @@ function renderSidebarTables() {
     const dc = firstNode.dc || '—';
     const dice = firstNode.dice || '—';
     
+    const labelText = (appState.viewMode === 'clean-bottom' || appState.viewMode === 'bottom-dice') ? `T${tIdx}` : `Tier${tIdx}`;
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><strong>Tier${tIdx}</strong></td>
+      <td><strong>${labelText}</strong></td>
       <td>${dc}</td>
       <td>${dice}</td>
     `;
@@ -354,8 +356,22 @@ function renderScaledMandala() {
     const diceText = firstNode.dice || '—';
     const dcText = firstNode.dc || '—';
 
-    // R_label is in the center of the ring for T0 (where the modifier goes), and outerR - 45 for T1-T5
-    const R_label = tIndex === 0 ? (innerR + ringWidth * 0.5) : (outerR - 45);
+    let R_label;
+    let labelText;
+    const showDiceDc = appState.viewMode === 'full' || appState.viewMode === 'bottom-dice';
+
+    if (appState.viewMode === 'clean-bottom' || appState.viewMode === 'bottom-dice') {
+      R_label = innerR + 45;
+      labelText = "T" + tIndex;
+    } else if (appState.viewMode === 'clean-top') {
+      R_label = outerR - 45;
+      labelText = "Tier" + tIndex;
+    } else {
+      // Default / Full View
+      R_label = tIndex === 0 ? (innerR + ringWidth * 0.5) : (outerR - 45);
+      labelText = "Tier" + tIndex;
+    }
+
     // R_dice_dc is always at the top line of the ring (outerR - 45) for all tiers, including T0
     const R_dice_dc = outerR - 45;
 
@@ -368,7 +384,7 @@ function renderScaledMandala() {
     const tierText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     tierText.setAttribute("x", posC.x);
     tierText.setAttribute("y", posC.y);
-    tierText.textContent = "Tier" + tIndex;
+    tierText.textContent = labelText;
     tierText.setAttribute("fill", "#ffffff");
     tierText.setAttribute("opacity", "0.5");
     tierText.setAttribute("font-size", "50px");
@@ -377,35 +393,37 @@ function renderScaledMandala() {
     tierText.style.pointerEvents = "none";
     svg.appendChild(tierText);
 
-    // Dice (xdy) on the left side of the pie (rotated to curve along the circle)
-    const posL = polarToCartesian(cx, cy, R_dice_dc, -angleOffset);
-    const diceTextEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    diceTextEl.setAttribute("x", posL.x);
-    diceTextEl.setAttribute("y", posL.y);
-    diceTextEl.textContent = diceText;
-    diceTextEl.setAttribute("fill", "#ffffff");
-    diceTextEl.setAttribute("opacity", "0.5");
-    diceTextEl.setAttribute("font-size", "45px");
-    diceTextEl.setAttribute("font-weight", "bold");
-    diceTextEl.setAttribute("text-anchor", "middle");
-    diceTextEl.setAttribute("transform", `rotate(${-angleOffset}, ${posL.x}, ${posL.y})`);
-    diceTextEl.style.pointerEvents = "none";
-    svg.appendChild(diceTextEl);
+    if (showDiceDc) {
+      // Dice (xdy) on the left side of the pie (rotated to curve along the circle)
+      const posL = polarToCartesian(cx, cy, R_dice_dc, -angleOffset);
+      const diceTextEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      diceTextEl.setAttribute("x", posL.x);
+      diceTextEl.setAttribute("y", posL.y);
+      diceTextEl.textContent = diceText;
+      diceTextEl.setAttribute("fill", "#ffffff");
+      diceTextEl.setAttribute("opacity", "0.5");
+      diceTextEl.setAttribute("font-size", "45px");
+      diceTextEl.setAttribute("font-weight", "bold");
+      diceTextEl.setAttribute("text-anchor", "middle");
+      diceTextEl.setAttribute("transform", `rotate(${-angleOffset}, ${posL.x}, ${posL.y})`);
+      diceTextEl.style.pointerEvents = "none";
+      svg.appendChild(diceTextEl);
 
-    // DC on the right side of the pie (rotated to curve along the circle)
-    const posR = polarToCartesian(cx, cy, R_dice_dc, angleOffset);
-    const dcTextEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    dcTextEl.setAttribute("x", posR.x);
-    dcTextEl.setAttribute("y", posR.y);
-    dcTextEl.textContent = dcText;
-    dcTextEl.setAttribute("fill", "#ffffff");
-    dcTextEl.setAttribute("opacity", "0.5");
-    dcTextEl.setAttribute("font-size", "45px");
-    dcTextEl.setAttribute("font-weight", "bold");
-    dcTextEl.setAttribute("text-anchor", "middle");
-    dcTextEl.setAttribute("transform", `rotate(${angleOffset}, ${posR.x}, ${posR.y})`);
-    dcTextEl.style.pointerEvents = "none";
-    svg.appendChild(dcTextEl);
+      // DC on the right side of the pie (rotated to curve along the circle)
+      const posR = polarToCartesian(cx, cy, R_dice_dc, angleOffset);
+      const dcTextEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      dcTextEl.setAttribute("x", posR.x);
+      dcTextEl.setAttribute("y", posR.y);
+      dcTextEl.textContent = dcText;
+      dcTextEl.setAttribute("fill", "#ffffff");
+      dcTextEl.setAttribute("opacity", "0.5");
+      dcTextEl.setAttribute("font-size", "45px");
+      dcTextEl.setAttribute("font-weight", "bold");
+      dcTextEl.setAttribute("text-anchor", "middle");
+      dcTextEl.setAttribute("transform", `rotate(${angleOffset}, ${posR.x}, ${posR.y})`);
+      dcTextEl.style.pointerEvents = "none";
+      svg.appendChild(dcTextEl);
+    }
   });
 
   // Center circle and icon
@@ -725,8 +743,13 @@ document.getElementById('file-input').addEventListener('change', (e) => {
         if (!appState.scaledTiers) {
            appState.scaledTiers = [];
         }
+        if (!appState.viewMode) {
+          appState.viewMode = appState.hideDiceDc ? 'clean-top' : 'full';
+        }
+        syncViewModeButtons();
         renderTierControls();
         renderScaledMandala();
+        renderSidebarTables();
       } else {
         alert('Invalid save file format.');
       }
@@ -736,6 +759,16 @@ document.getElementById('file-input').addEventListener('change', (e) => {
   };
   reader.readAsText(file);
 });
+
+function syncViewModeButtons() {
+  document.querySelectorAll('.btn-segment').forEach(btn => {
+    if (btn.getAttribute('data-view') === appState.viewMode) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+}
 
 // Init / Startup Flow
 async function init() {
@@ -755,6 +788,21 @@ async function init() {
   } catch (err) {
     console.error("Error loading or parsing mishap_config.md:", err);
   }
+
+  // Set up view mode segmented control
+  document.querySelectorAll('.btn-segment').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      appState.viewMode = e.currentTarget.getAttribute('data-view');
+      syncViewModeButtons();
+      renderScaledMandala();
+      renderSidebarTables();
+    });
+  });
+
+  if (!appState.viewMode) {
+    appState.viewMode = appState.hideDiceDc ? 'clean-top' : 'full';
+  }
+  syncViewModeButtons();
 
   // Update input values and render views
   const msInitEl = document.getElementById('magic-slots');

@@ -14,6 +14,12 @@
     <header>
       <h1>Arcane Weave</h1>
       <div class="controls">
+        <div class="segmented-control">
+          <button id="btn-view-full" class="btn-segment active" data-view="full">Full View</button>
+          <button id="btn-view-clean-top" class="btn-segment" data-view="clean-top">Clean Top</button>
+          <button id="btn-view-clean-bottom" class="btn-segment" data-view="clean-bottom">Clean Bottom</button>
+          <button id="btn-view-bottom-dice" class="btn-segment" data-view="bottom-dice">Bottom + Dice</button>
+        </div>
         <button id="save-btn" class="btn primary">Save State</button>
         <button id="load-btn" class="btn secondary">Load State</button>
         <input type="file" id="file-input" accept=".json" style="display: none;" />
