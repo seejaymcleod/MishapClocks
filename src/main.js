@@ -1,6 +1,10 @@
 // State
 let appState = {
   viewMode: 'curved-text',
+  centerOuterText: false,
+  outerPinOffset: 11,
+  bottomShift: 65,
+  bottomIconShift: 0,
   magicNodes: [
     { id: 'm0', label: 'Thermal', icon: 'gi-fire', color: '#ff4500', opposite: 'Hydro', slider: 'Injecting kinetic heat (ignition) ↔ siphoning it (absolute zero).' },
     { id: 'm1', label: 'Aero', icon: 'gi-tornado', color: '#87ceeb', opposite: 'Geo', slider: 'High pressure and gales ↔ suffocating vacuums.' },
@@ -676,8 +680,8 @@ function renderScaledMandala() {
           createCurvedLine(`curved-path-${tIndex}-r1`, rRow1, modifierText, "#ffffff", calculatedFontSize + 2, "scaled-text effect-name-text");
           // Row 2: dice   DC (standard size 45px, 3 spaces, drop shadow)
           createCurvedLine(`curved-path-${tIndex}-r2`, rRow2, `${diceText}   ${dcText}`, "#fbbf24", 45, "scaled-text");
-          // Row 3: TX (size: calculated, drop shadow, Montserrat/Small-Caps)
-          createCurvedLine(`curved-path-${tIndex}-r3`, rRow3, `T${tIndex}`, "rgba(255, 255, 255, 0.7)", calculatedFontSize, "scaled-text tier-label-text");
+          // Row 3: TX (size: 56px, drop shadow, Montserrat/Small-Caps)
+          createCurvedLine(`curved-path-${tIndex}-r3`, rRow3, `T${tIndex}`, "rgba(255, 255, 255, 0.7)", 56, "scaled-text tier-label-text");
         }
       }
     }
@@ -734,75 +738,76 @@ function renderScaledMandala() {
       numberText.textContent = (i + 1).toString();
       svg.appendChild(numberText);
 
-      // 2. School Name (Curved Left Path) - Extended to 26 degrees to prevent clipping
-      let schoolPathData;
-      let schoolTextAnchor;
-      let schoolStartOffset;
-      const schoolPathId = `outer-school-path-${i}`;
-      const pathSpan = 26; // Expanded path span to prevent text clipping for long labels
-
-      if (isBottomHalf) {
-        // Left is angle + pathSpan, goes counter-clockwise to angle + 2.5
-        const pathStart = polarToCartesian(cx, cy, outerTextRadius, angle + pathSpan);
-        const pathEnd = polarToCartesian(cx, cy, outerTextRadius, angle + 2.5);
-        schoolPathData = [
-          "M", pathStart.x, pathStart.y,
-          "A", outerTextRadius, outerTextRadius, 0, 0, 0, pathEnd.x, pathEnd.y
-        ].join(" ");
-        schoolTextAnchor = "end";
-        schoolStartOffset = "100%";
+      // Left/Right center angle calculations based on the centerOuterText toggle and outerPinOffset
+      let leftCenterAngle;
+      let rightCenterAngle;
+      const offsetVal = Number(appState.outerPinOffset ?? 9);
+      if (appState.centerOuterText) {
+        leftCenterAngle = isBottomHalf ? (angle + 12.5) : (angle - 12.5);
+        rightCenterAngle = isBottomHalf ? (angle - 12.5) : (angle + 12.5);
       } else {
-        // Left is angle - pathSpan, goes clockwise to angle - 2.5
-        const pathStart = polarToCartesian(cx, cy, outerTextRadius, angle - pathSpan);
-        const pathEnd = polarToCartesian(cx, cy, outerTextRadius, angle - 2.5);
-        schoolPathData = [
-          "M", pathStart.x, pathStart.y,
-          "A", outerTextRadius, outerTextRadius, 0, 0, 1, pathEnd.x, pathEnd.y
-        ].join(" ");
-        schoolTextAnchor = "end";
-        schoolStartOffset = "100%";
+        leftCenterAngle = isBottomHalf ? (angle + offsetVal) : (angle - offsetVal);
+        rightCenterAngle = isBottomHalf ? (angle - offsetVal) : (angle + offsetVal);
       }
 
-      const schoolDefsPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      schoolDefsPath.setAttribute("id", schoolPathId);
-      schoolDefsPath.setAttribute("d", schoolPathData);
-      schoolDefsPath.setAttribute("fill", "none");
-      svg.appendChild(schoolDefsPath);
-
-      const schoolTextEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      schoolTextEl.setAttribute("class", "scaled-text outer-ring-text");
-      schoolTextEl.setAttribute("font-size", "70px");
-      schoolTextEl.setAttribute("font-weight", "bold");
-      schoolTextEl.setAttribute("filter", "url(#text-shadow-filter)");
-      schoolTextEl.style.pointerEvents = "none";
-
-      const schoolTextPath = document.createElementNS("http://www.w3.org/2000/svg", "textPath");
-      schoolTextPath.setAttribute("href", `#${schoolPathId}`);
-      schoolTextPath.setAttribute("startOffset", schoolStartOffset);
-      schoolTextPath.setAttribute("text-anchor", schoolTextAnchor);
-      schoolTextPath.setAttribute("fill", school.color);
-      schoolTextPath.textContent = school.label;
-
-      schoolTextEl.appendChild(schoolTextPath);
-      svg.appendChild(schoolTextEl);
-
-      // 3. School Icon (on the left of School Name) - Resized to 180px, precisely positioned & vertically aligned
-      if (school.icon) {
-        // Calculate label angle span using Montserrat character span (1.4 degrees per character)
-        const labelAngleSpan = school.label.length * 1.4;
-        const halfIconAngleSpan = 2.6; // half of 180px icon angular width at radius 1980
-        const padding = 3.5;
-        let iconAngle;
+      // Helper to draw centered text along a circular path segment
+      const drawCenteredText = (text, radius, centerAngle, pathId, isSchool) => {
+        let pathStart, pathEnd, pathData;
+        const halfSpan = 15; // 30-degree path segment span to prevent clipping
+        
         if (isBottomHalf) {
-          iconAngle = angle + 2.5 + labelAngleSpan + padding + halfIconAngleSpan;
+          pathStart = polarToCartesian(cx, cy, radius, centerAngle + halfSpan);
+          pathEnd = polarToCartesian(cx, cy, radius, centerAngle - halfSpan);
+          pathData = [
+            "M", pathStart.x, pathStart.y,
+            "A", radius, radius, 0, 0, 0, pathEnd.x, pathEnd.y
+          ].join(" ");
         } else {
-          iconAngle = angle - 2.5 - labelAngleSpan - padding - halfIconAngleSpan;
+          pathStart = polarToCartesian(cx, cy, radius, centerAngle - halfSpan);
+          pathEnd = polarToCartesian(cx, cy, radius, centerAngle + halfSpan);
+          pathData = [
+            "M", pathStart.x, pathStart.y,
+            "A", radius, radius, 0, 0, 1, pathEnd.x, pathEnd.y
+          ].join(" ");
         }
 
-        // Align icon vertically by matching the text shift direction (inwards in bottom, outwards in top)
-        const iconRadius = isBottomHalf ? (outerTextRadius - 40) : (outerTextRadius + 40);
-        const iconPos = polarToCartesian(cx, cy, iconRadius, iconAngle);
-        let iconRot = iconAngle;
+        const defsPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        defsPath.setAttribute("id", pathId);
+        defsPath.setAttribute("d", pathData);
+        defsPath.setAttribute("fill", "none");
+        svg.appendChild(defsPath);
+
+        const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        textEl.setAttribute("class", "scaled-text outer-ring-text");
+        textEl.setAttribute("font-size", "70px");
+        textEl.setAttribute("font-weight", isSchool ? "bold" : "normal");
+        textEl.setAttribute("dominant-baseline", "middle");
+        textEl.setAttribute("filter", "url(#text-shadow-filter)");
+        textEl.style.pointerEvents = "none";
+
+        const textPath = document.createElementNS("http://www.w3.org/2000/svg", "textPath");
+        textPath.setAttribute("href", `#${pathId}`);
+        textPath.setAttribute("startOffset", "50%");
+        textPath.setAttribute("text-anchor", "middle");
+        textPath.setAttribute("fill", isSchool ? school.color : "#e2e8f0");
+        textPath.textContent = text;
+
+        textEl.appendChild(textPath);
+        svg.appendChild(textEl);
+      };
+
+      // 2. School Name (Curved Left Path) - Stacked layout (Inner relative to circle half to keep icon on top)
+      const schoolPathId = `outer-school-path-${i}`;
+      const bottomShift = Number(appState.bottomShift ?? 65);
+      const bottomIconShift = Number(appState.bottomIconShift ?? 0);
+      const schoolRadius = isBottomHalf ? (outerTextRadius + 35 + bottomShift) : (outerTextRadius - 35);
+      drawCenteredText(school.label, schoolRadius, leftCenterAngle, schoolPathId, true);
+
+      // 3. School Icon (stacked vertically to always sit physically on top of the School Name)
+      if (school.icon) {
+        const iconRadius = isBottomHalf ? (outerTextRadius - 115 + bottomShift + bottomIconShift) : (outerTextRadius + 115); // Icon is always further UP on screen
+        const iconPos = polarToCartesian(cx, cy, iconRadius, leftCenterAngle);
+        let iconRot = leftCenterAngle;
         if (isBottomHalf) {
           iconRot += 180;
         }
@@ -810,8 +815,8 @@ function renderScaledMandala() {
         const iconGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
         iconGroup.setAttribute("transform", `rotate(${iconRot}, ${iconPos.x}, ${iconPos.y})`);
 
-        const iconSize = 180; // Resized to 2x bigger (previously 90px)
-        const containerSize = iconSize * 2; // 360px container to support larger icon without clipping
+        const iconSize = 180;
+        const containerSize = iconSize * 2; // 360px
         const fObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
         fObj.setAttribute("x", iconPos.x - containerSize / 2);
         fObj.setAttribute("y", iconPos.y - containerSize / 2);
@@ -822,56 +827,20 @@ function renderScaledMandala() {
         svg.appendChild(iconGroup);
       }
 
-      // 4. Effect Name (Curved Right Path) - Extended to 26 degrees to prevent clipping
-      let effectPathData;
-      let effectTextAnchor;
-      let effectStartOffset;
+      // 4. Effect Name (Curved Right Path) - Dynamic wrapping for 2-word labels
       const effectPathId = `outer-effect-path-${i}`;
-
-      if (isBottomHalf) {
-        // Right is angle - 2.5, goes counter-clockwise to angle - pathSpan
-        const pathStart = polarToCartesian(cx, cy, outerTextRadius, angle - 2.5);
-        const pathEnd = polarToCartesian(cx, cy, outerTextRadius, angle - pathSpan);
-        effectPathData = [
-          "M", pathStart.x, pathStart.y,
-          "A", outerTextRadius, outerTextRadius, 0, 0, 0, pathEnd.x, pathEnd.y
-        ].join(" ");
-        effectTextAnchor = "start";
-        effectStartOffset = "0%";
+      const words = effectName.split(" ");
+      if (words.length === 2) {
+        const word1 = words[0];
+        const word2 = words[1];
+        const r1 = isBottomHalf ? (outerTextRadius - 38) : (outerTextRadius + 38);
+        const r2 = isBottomHalf ? (outerTextRadius + 38) : (outerTextRadius - 38);
+        
+        drawCenteredText(word1, r1, rightCenterAngle, `${effectPathId}-w1`, false);
+        drawCenteredText(word2, r2, rightCenterAngle, `${effectPathId}-w2`, false);
       } else {
-        // Right is angle + 2.5, goes clockwise to angle + pathSpan
-        const pathStart = polarToCartesian(cx, cy, outerTextRadius, angle + 2.5);
-        const pathEnd = polarToCartesian(cx, cy, outerTextRadius, angle + pathSpan);
-        effectPathData = [
-          "M", pathStart.x, pathStart.y,
-          "A", outerTextRadius, outerTextRadius, 0, 0, 1, pathEnd.x, pathEnd.y
-        ].join(" ");
-        effectTextAnchor = "start";
-        effectStartOffset = "0%";
+        drawCenteredText(effectName, outerTextRadius, rightCenterAngle, effectPathId, false);
       }
-
-      const effectDefsPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      effectDefsPath.setAttribute("id", effectPathId);
-      effectDefsPath.setAttribute("d", effectPathData);
-      effectDefsPath.setAttribute("fill", "none");
-      svg.appendChild(effectDefsPath);
-
-      const effectTextEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      effectTextEl.setAttribute("class", "scaled-text outer-ring-text");
-      effectTextEl.setAttribute("font-size", "70px"); // Put back to match school name size (70px)
-      effectTextEl.setAttribute("font-weight", "normal");
-      effectTextEl.setAttribute("filter", "url(#text-shadow-filter)");
-      effectTextEl.style.pointerEvents = "none";
-
-      const effectTextPath = document.createElementNS("http://www.w3.org/2000/svg", "textPath");
-      effectTextPath.setAttribute("href", `#${effectPathId}`);
-      effectTextPath.setAttribute("startOffset", effectStartOffset);
-      effectTextPath.setAttribute("text-anchor", effectTextAnchor);
-      effectTextPath.setAttribute("fill", "#e2e8f0");
-      effectTextPath.textContent = effectName;
-
-      effectTextEl.appendChild(effectTextPath);
-      svg.appendChild(effectTextEl);
     } else {
       const textRadius = outerRadius + 180;
       const textPos = polarToCartesian(cx, cy, textRadius, angle);
@@ -1175,10 +1144,17 @@ document.getElementById('file-input').addEventListener('change', (e) => {
         if (!appState.scaledTiers) {
            appState.scaledTiers = [];
         }
-        if (!appState.viewMode) {
+         if (!appState.viewMode) {
           appState.viewMode = 'curved-text';
         }
+        if (appState.bottomShift === undefined) {
+          appState.bottomShift = 65;
+        }
+        if (appState.bottomIconShift === undefined) {
+          appState.bottomIconShift = 0;
+        }
         syncViewModeButtons();
+        syncOuterCenteringButton();
         renderTierControls();
         renderScaledMandala();
         renderSidebarTables();
@@ -1200,6 +1176,72 @@ function syncViewModeButtons() {
       btn.classList.remove('active');
     }
   });
+
+  const isCurved = (appState.viewMode === 'curved-text');
+  const curvedControls = [
+    document.getElementById('outer-centering-btn'),
+    document.getElementById('outer-offset-container'),
+    document.getElementById('bottom-shift-container'),
+    document.getElementById('bottom-icon-container')
+  ];
+  curvedControls.forEach(el => {
+    if (el) {
+      el.style.display = isCurved ? '' : 'none';
+    }
+  });
+}
+
+function syncOuterCenteringButton() {
+  const outerCenteringBtn = document.getElementById('outer-centering-btn');
+  if (outerCenteringBtn) {
+    outerCenteringBtn.textContent = appState.centerOuterText ? "Outer Ring: Centered" : "Outer Ring: Pinned";
+    if (appState.centerOuterText) {
+      outerCenteringBtn.classList.add('active');
+    } else {
+      outerCenteringBtn.classList.remove('active');
+    }
+  }
+  syncOuterOffsetSlider();
+  syncBottomSliders();
+}
+
+function syncOuterOffsetSlider() {
+  const outerOffsetSlider = document.getElementById('outer-offset-slider');
+  const outerOffsetVal = document.getElementById('outer-offset-val');
+  const outerOffsetContainer = document.getElementById('outer-offset-container');
+  if (outerOffsetSlider && outerOffsetVal) {
+    outerOffsetSlider.value = appState.outerPinOffset ?? 11;
+    outerOffsetVal.textContent = (appState.outerPinOffset ?? 11) + "°";
+    
+    // Dim the slider container if in centered mode since offset is disabled
+    if (outerOffsetContainer) {
+      if (appState.centerOuterText) {
+        outerOffsetContainer.style.opacity = '0.4';
+        outerOffsetContainer.style.pointerEvents = 'none';
+      } else {
+        outerOffsetContainer.style.opacity = '1';
+        outerOffsetContainer.style.pointerEvents = 'auto';
+      }
+    }
+  }
+}
+
+function syncBottomSliders() {
+  const bottomShiftSlider = document.getElementById('bottom-shift-slider');
+  const bottomShiftVal = document.getElementById('bottom-shift-val');
+  const bottomIconSlider = document.getElementById('bottom-icon-slider');
+  const bottomIconVal = document.getElementById('bottom-icon-val');
+  
+  if (bottomShiftSlider && bottomShiftVal) {
+    const val = appState.bottomShift ?? 65;
+    bottomShiftSlider.value = val;
+    bottomShiftVal.textContent = val + "px";
+  }
+  if (bottomIconSlider && bottomIconVal) {
+    const val = appState.bottomIconShift ?? 0;
+    bottomIconSlider.value = val;
+    bottomIconVal.textContent = val + "px";
+  }
 }
 
 // Init / Startup Flow
@@ -1231,10 +1273,54 @@ async function init() {
     });
   });
 
+  // Set up outer centering toggle
+  const outerCenteringBtn = document.getElementById('outer-centering-btn');
+  if (outerCenteringBtn) {
+    outerCenteringBtn.addEventListener('click', () => {
+      appState.centerOuterText = !appState.centerOuterText;
+      syncOuterCenteringButton();
+      renderScaledMandala();
+      renderSidebarTables();
+    });
+  }
+
+  // Set up pin offset slider listener
+  const outerOffsetSlider = document.getElementById('outer-offset-slider');
+  const outerOffsetVal = document.getElementById('outer-offset-val');
+  if (outerOffsetSlider && outerOffsetVal) {
+    outerOffsetSlider.addEventListener('input', (e) => {
+      appState.outerPinOffset = parseFloat(e.target.value);
+      outerOffsetVal.textContent = appState.outerPinOffset + "°";
+      renderScaledMandala();
+    });
+  }
+
+  // Set up bottom shift sliders listeners
+  const bottomShiftSlider = document.getElementById('bottom-shift-slider');
+  const bottomShiftVal = document.getElementById('bottom-shift-val');
+  if (bottomShiftSlider && bottomShiftVal) {
+    bottomShiftSlider.addEventListener('input', (e) => {
+      appState.bottomShift = parseInt(e.target.value, 10);
+      bottomShiftVal.textContent = appState.bottomShift + "px";
+      renderScaledMandala();
+    });
+  }
+
+  const bottomIconSlider = document.getElementById('bottom-icon-slider');
+  const bottomIconVal = document.getElementById('bottom-icon-val');
+  if (bottomIconSlider && bottomIconVal) {
+    bottomIconSlider.addEventListener('input', (e) => {
+      appState.bottomIconShift = parseInt(e.target.value, 10);
+      bottomIconVal.textContent = appState.bottomIconShift + "px";
+      renderScaledMandala();
+    });
+  }
+
   if (!appState.viewMode) {
     appState.viewMode = 'curved-text';
   }
   syncViewModeButtons();
+  syncOuterCenteringButton();
 
   // Update input values and render views
   const msInitEl = document.getElementById('magic-slots');

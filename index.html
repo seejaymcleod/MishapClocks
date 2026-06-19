@@ -23,6 +23,22 @@
           <button id="btn-view-stacked-pill" class="btn-segment" data-view="stacked-pill">Stacked Badge</button>
           <button id="btn-view-curved-text" class="btn-segment active" data-view="curved-text">Curved Text</button>
         </div>
+        <button id="outer-centering-btn" class="btn secondary">Outer Ring: Pinned</button>
+        <div id="outer-offset-container" class="btn" style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; padding: 0.4rem 0.8rem;">
+          <span style="opacity: 0.7;">Pin Offset:</span>
+          <input type="range" id="outer-offset-slider" min="3" max="20" step="0.5" value="11" style="cursor: pointer; width: 120px;" />
+          <span id="outer-offset-val" style="font-weight: bold; min-width: 35px; text-align: right; color: #fbbf24;">11°</span>
+        </div>
+        <div id="bottom-shift-container" class="btn" style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; padding: 0.4rem 0.8rem;">
+          <span style="opacity: 0.7;">Bottom Combo:</span>
+          <input type="range" id="bottom-shift-slider" min="-100" max="150" step="5" value="65" style="cursor: pointer; width: 120px;" />
+          <span id="bottom-shift-val" style="font-weight: bold; min-width: 35px; text-align: right; color: #fbbf24;">65px</span>
+        </div>
+        <div id="bottom-icon-container" class="btn" style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; padding: 0.4rem 0.8rem;">
+          <span style="opacity: 0.7;">Bottom Icon:</span>
+          <input type="range" id="bottom-icon-slider" min="-100" max="150" step="5" value="0" style="cursor: pointer; width: 120px;" />
+          <span id="bottom-icon-val" style="font-weight: bold; min-width: 35px; text-align: right; color: #fbbf24;">0px</span>
+        </div>
         <button id="save-btn" class="btn primary">Save State</button>
         <button id="load-btn" class="btn secondary">Load State</button>
         <input type="file" id="file-input" accept=".json" style="display: none;" />
