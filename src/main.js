@@ -1800,6 +1800,37 @@ async function init() {
   renderTierControls();
   renderScaledMandala();
   renderSidebarTables();
+
+  // Set up header visibility toggle
+  const header = document.querySelector('header');
+  const headerToggleBtn = document.getElementById('header-toggle-btn');
+  if (header && headerToggleBtn) {
+    const updateHeaderHeight = () => {
+      document.documentElement.style.setProperty('--header-height', `${header.offsetHeight}px`);
+    };
+
+    // Initialize height measurement
+    updateHeaderHeight();
+
+    // Listen for resize to update height variable dynamically
+    window.addEventListener('resize', updateHeaderHeight);
+
+    // Toggle button click listener
+    headerToggleBtn.addEventListener('click', () => {
+      const isCollapsed = header.classList.toggle('collapsed');
+      localStorage.setItem('header-collapsed', isCollapsed);
+    });
+
+    // Apply initial state from local storage on load
+    const isCollapsedSaved = localStorage.getItem('header-collapsed') === 'true';
+    if (isCollapsedSaved) {
+      header.classList.add('no-transition');
+      header.classList.add('collapsed');
+      // Trigger a force reflow to ensure styles are applied without transition
+      header.offsetHeight;
+      header.classList.remove('no-transition');
+    }
+  }
 }
 
 let cachedGameIconsBase64 = null;
