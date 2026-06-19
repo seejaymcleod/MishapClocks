@@ -20,10 +20,89 @@
       </div>
     </header>
 
-    <main class="mandala-container" style="flex-direction: column; align-items: center;">
-      <div class="mandala-wrapper" style="width: 100%; max-width: 1200px;">
-        <div id="target-mandala" class="svg-container"></div>
-        <div id="tier-controls" class="tier-controls-container" style="display: none;"></div>
+    <main class="mandala-container">
+      <div class="dashboard-grid">
+        <div class="clock-panel">
+          <div id="target-mandala" class="svg-container"></div>
+          <div id="tier-controls" class="tier-controls-container" style="display: none;"></div>
+        </div>
+        
+        <div class="info-sidebar">
+          <div class="info-card">
+            <h3>Mishap Tier Parameters</h3>
+            <table class="dashboard-table">
+              <thead>
+                <tr>
+                  <th>Tier</th>
+                  <th>DC</th>
+                  <th>Feedback Formula</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>T0</strong></td>
+                  <td>DC 9</td>
+                  <td>1d4</td>
+                </tr>
+                <tr>
+                  <td><strong>T1</strong></td>
+                  <td>DC 11</td>
+                  <td>1d6</td>
+                </tr>
+                <tr>
+                  <td><strong>T2</strong></td>
+                  <td>DC 13</td>
+                  <td>2d6</td>
+                </tr>
+                <tr>
+                  <td><strong>T3</strong></td>
+                  <td>DC 15</td>
+                  <td>3d6</td>
+                </tr>
+                <tr>
+                  <td><strong>T4</strong></td>
+                  <td>DC 17</td>
+                  <td>4d8</td>
+                </tr>
+                <tr>
+                  <td><strong>T5</strong></td>
+                  <td>DC 19</td>
+                  <td>5d8</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div class="info-card">
+            <h3>Mishap School Roll</h3>
+            <table class="dashboard-table">
+              <thead>
+                <tr>
+                  <th>d8 Roll</th>
+                  <th>School Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>6 - 8</strong></td>
+                  <td>Original School</td>
+                </tr>
+                <tr>
+                  <td><strong>4 - 5</strong></td>
+                  <td>Opposite School</td>
+                </tr>
+                <tr>
+                  <td><strong>2 - 3</strong></td>
+                  <td>Opposite Effect</td>
+                </tr>
+                <tr>
+                  <td><strong>1</strong></td>
+                  <td>Original School + d8 random school</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </main>
 
