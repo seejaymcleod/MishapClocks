@@ -26,59 +26,64 @@ let appState = {
   ],
   scaledTiers: [
     { offset: 0, nodes: [
-      { span: 3, type: 'Self-Harm', dc: 'DC 9', dice: 'd4' },
-      { span: 3, type: 'Mistarget', dc: 'DC 9', dice: '—' },
-      { span: 3, type: 'Multi-Target', dc: 'DC 9', dice: '—' },
-      { span: 3, type: 'Close Range', dc: 'DC 9', dice: 'd4' }
+      { type: 'Self-Harm', dc: 'DC 9', dice: 'd4' },
+      { type: 'Mistarget', dc: 'DC 9', dice: '—' },
+      { type: 'Multi-Target', dc: 'DC 9', dice: '—' },
+      { type: 'Close Range', dc: 'DC 9', dice: 'd4' },
+      { type: 'Anti-School', dc: 'DC 9', dice: '—' },
+      { type: 'Alter Environment', dc: 'DC 9', dice: '—' },
+      { type: 'Zone', dc: 'DC 9', dice: '—' },
+      { type: 'Materia Leak', dc: 'DC 9', dice: '—' }
     ]},
     { offset: 0, nodes: [
-      { span: 3, type: 'Self-Harm', dc: 'DC 11', dice: 'd6' },
-      { span: 3, type: 'Mistarget', dc: 'DC 11', dice: '—' },
-      { span: 3, type: 'Multi-Target', dc: 'DC 11', dice: 'd4' },
-      { span: 3, type: 'Close Range', dc: 'DC 11', dice: 'd6' }
+      { type: 'Self-Harm', dc: 'DC 11', dice: 'd6' },
+      { type: 'Mistarget', dc: 'DC 11', dice: '—' },
+      { type: 'Multi-Target', dc: 'DC 11', dice: 'd4' },
+      { type: 'Close Range', dc: 'DC 11', dice: 'd6' },
+      { type: 'Anti-School', dc: 'DC 11', dice: '—' },
+      { type: 'Alter Environment', dc: 'DC 11', dice: '—' },
+      { type: 'Zone', dc: 'DC 11', dice: '—' },
+      { type: 'Materia Leak', dc: 'DC 11', dice: '—' }
     ]},
     { offset: 0, nodes: [
-      { span: 2, type: 'Self-Harm', dc: 'DC 13', dice: 'd8' },
-      { span: 2, type: 'Mistarget', dc: 'DC 13', dice: '—' },
-      { span: 2, type: 'Multi-Target', dc: 'DC 13', dice: 'd6' },
-      { span: 2, type: 'Close Range', dc: 'DC 13', dice: 'd8' },
-      { span: 2, type: 'Anti-School', dc: 'DC 13', dice: '—' },
-      { span: 2, type: 'Alter Environment', dc: 'DC 13', dice: 'd4' }
+      { type: 'Self-Harm', dc: 'DC 13', dice: 'd8' },
+      { type: 'Mistarget', dc: 'DC 13', dice: '—' },
+      { type: 'Multi-Target', dc: 'DC 13', dice: 'd6' },
+      { type: 'Close Range', dc: 'DC 13', dice: 'd8' },
+      { type: 'Anti-School', dc: 'DC 13', dice: '—' },
+      { type: 'Alter Environment', dc: 'DC 13', dice: 'd4' },
+      { type: 'Zone', dc: 'DC 13', dice: '—' },
+      { type: 'Materia Leak', dc: 'DC 13', dice: '—' }
     ]},
     { offset: 0, nodes: [
-      { span: 2, type: 'Self-Harm', dc: 'DC 15', dice: 'd10' },
-      { span: 2, type: 'Mistarget', dc: 'DC 15', dice: 'd4' },
-      { span: 2, type: 'Multi-Target', dc: 'DC 15', dice: 'd8' },
-      { span: 2, type: 'Close Range', dc: 'DC 15', dice: 'd10' },
-      { span: 2, type: 'Anti-School', dc: 'DC 15', dice: 'd6' },
-      { span: 2, type: 'Alter Environment', dc: 'DC 15', dice: 'd6' }
+      { type: 'Self-Harm', dc: 'DC 15', dice: 'd10' },
+      { type: 'Mistarget', dc: 'DC 15', dice: 'd4' },
+      { type: 'Multi-Target', dc: 'DC 15', dice: 'd8' },
+      { type: 'Close Range', dc: 'DC 15', dice: 'd10' },
+      { type: 'Anti-School', dc: 'DC 15', dice: 'd6' },
+      { type: 'Alter Environment', dc: 'DC 15', dice: 'd6' },
+      { type: 'Zone', dc: 'DC 15', dice: '—' },
+      { type: 'Materia Leak', dc: 'DC 15', dice: '—' }
     ]},
     { offset: 0, nodes: [
-      { span: 1, type: 'Self-Harm', dc: 'DC 17', dice: 'd12' },
-      { span: 1, type: 'Mistarget', dc: 'DC 17', dice: '—' },
-      { span: 1, type: 'Multi-Target', dc: 'DC 17', dice: 'd10' },
-      { span: 1, type: 'Close Range', dc: 'DC 17', dice: 'd12' },
-      { span: 1, type: 'Anti-School', dc: 'DC 17', dice: '—' },
-      { span: 1, type: 'Alter Environment', dc: 'DC 17', dice: 'd8' },
-      { span: 1, type: 'Zone', dc: 'DC 17', dice: 'd4' },
-      { span: 1, type: 'Permanent Self-Harm', dc: 'DC 17', dice: 'd3' },
-      { span: 1, type: 'Materia Leak', dc: 'DC 17', dice: 'd4' },
-      { span: 1, type: 'Permanent Zone', dc: 'DC 17', dice: '—' },
-      { span: 2, type: '[Outer Shift]', dc: '—', dice: '—' }
+      { type: 'Self-Harm', dc: 'DC 17', dice: 'd12' },
+      { type: 'Mistarget', dc: 'DC 17', dice: '—' },
+      { type: 'Multi-Target', dc: 'DC 17', dice: 'd10' },
+      { type: 'Close Range', dc: 'DC 17', dice: 'd12' },
+      { type: 'Anti-School', dc: 'DC 17', dice: '—' },
+      { type: 'Alter Environment', dc: 'DC 17', dice: 'd8' },
+      { type: 'Zone', dc: 'DC 17', dice: 'd4' },
+      { type: 'Materia Leak', dc: 'DC 17', dice: 'd4' }
     ]},
     { offset: 0, nodes: [
-      { span: 1, type: 'Self-Harm', dc: 'DC 19', dice: 'd20' },
-      { span: 1, type: 'Mistarget', dc: 'DC 19', dice: '—' },
-      { span: 1, type: 'Multi-Target', dc: 'DC 19', dice: 'd12' },
-      { span: 1, type: 'Close Range', dc: 'DC 19', dice: 'd20' },
-      { span: 1, type: 'Anti-School', dc: 'DC 19', dice: '—' },
-      { span: 1, type: 'Alter Environment', dc: 'DC 19', dice: 'd10' },
-      { span: 1, type: 'Zone', dc: 'DC 19', dice: 'd6' },
-      { span: 1, type: 'Permanent Self-Harm', dc: 'DC 19', dice: 'd6' },
-      { span: 1, type: 'Materia Leak', dc: 'DC 19', dice: 'd8' },
-      { span: 1, type: 'Permanent Zone', dc: 'DC 19', dice: '—' },
-      { span: 1, type: 'Personal Lockout', dc: 'DC 19', dice: '—' },
-      { span: 1, type: 'Hex', dc: 'DC 19', dice: '—' }
+      { type: 'Self-Harm', dc: 'DC 19', dice: 'd20' },
+      { type: 'Mistarget', dc: 'DC 19', dice: '—' },
+      { type: 'Multi-Target', dc: 'DC 19', dice: 'd12' },
+      { type: 'Close Range', dc: 'DC 19', dice: 'd20' },
+      { type: 'Anti-School', dc: 'DC 19', dice: '—' },
+      { type: 'Alter Environment', dc: 'DC 19', dice: 'd10' },
+      { type: 'Zone', dc: 'DC 19', dice: 'd6' },
+      { type: 'Materia Leak', dc: 'DC 19', dice: 'd8' }
     ]}
   ]
 };
@@ -119,10 +124,10 @@ function renderMagicMandala() {
   const container = document.getElementById('magic-mandala');
   container.innerHTML = '';
   
-  const size = 700;
+  const size = 4000;
   const cx = size / 2;
   const cy = size / 2;
-  const outerRadius = 240;
+  const outerRadius = 1800;
   
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
@@ -144,6 +149,8 @@ function renderMagicMandala() {
     path.setAttribute("d", describeArc(cx, cy, outerRadius, shiftedStart, shiftedEnd));
     path.setAttribute("fill", node.color);
     path.setAttribute("class", "node-path segment-line");
+    path.setAttribute("stroke", "var(--bg-color)");
+    path.setAttribute("stroke-width", "24");
     path.style.color = node.color; // for currentcolor in hover
     
     path.addEventListener('click', () => openModal(node, 'magic'));
@@ -153,7 +160,7 @@ function renderMagicMandala() {
     // Add text label
     const textAngle = startAngle;
     // Place text outside the circle, further out
-    const textPos = polarToCartesian(cx, cy, outerRadius + 55, textAngle);
+    const textPos = polarToCartesian(cx, cy, outerRadius + 140, textAngle);
     
     let rot = textAngle;
     if (rot > 90 && rot < 270) {
@@ -168,18 +175,19 @@ function renderMagicMandala() {
 
     const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
     text.setAttribute("x", textPos.x);
-    text.setAttribute("y", textPos.y + (node.icon ? 18 : 0));
+    text.setAttribute("y", textPos.y + (node.icon ? 80 : 0));
     text.setAttribute("class", "node-text");
+    text.setAttribute("font-size", "70px");
     text.textContent = node.label;
     g.appendChild(text);
 
     if (node.icon) {
       const fObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
-      fObj.setAttribute("x", textPos.x - 15);
-      fObj.setAttribute("y", textPos.y - 28);
-      fObj.setAttribute("width", 30);
-      fObj.setAttribute("height", 30);
-      fObj.innerHTML = `<i class="gi ${node.icon}" style="font-size: 26px; color: var(--text-color); display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
+      fObj.setAttribute("x", textPos.x - 85);
+      fObj.setAttribute("y", textPos.y - 120);
+      fObj.setAttribute("width", 170);
+      fObj.setAttribute("height", 170);
+      fObj.innerHTML = `<i class="gi ${node.icon}" style="font-size: 130px; color: var(--text-color); display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
       g.appendChild(fObj);
     }
     
@@ -194,6 +202,7 @@ function renderMagicMandala() {
     circle.setAttribute("cy", cy);
     circle.setAttribute("r", rRadius);
     circle.setAttribute("class", "tier-line");
+    circle.setAttribute("stroke-width", "8");
     svg.appendChild(circle);
   }
   
@@ -225,7 +234,7 @@ function renderScaledMandala() {
 
   // Draw 6 Tiers
   
-  const outerNumbers = appState.outerClockNumbers || 12;
+  const outerNumbers = 8;
   const outerAngleStep = 360 / Math.max(outerNumbers, 1);
   const baseOffset = outerAngleStep / 2;
 
@@ -300,28 +309,21 @@ function renderScaledMandala() {
       text.setAttribute("fill", "#ffffff");
       text.setAttribute("text-anchor", "middle");
       text.setAttribute("dominant-baseline", "middle");
-      text.setAttribute("font-size", "36px");
-      text.setAttribute("font-weight", "600");
+      text.setAttribute("font-size", "52px");
+      text.setAttribute("font-weight", "700");
 
-      // Multiple lines
-      const typeSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      typeSpan.setAttribute("x", textPos.x);
-      typeSpan.setAttribute("dy", "-0.8em");
-      typeSpan.textContent = node.type;
-      
       const diceSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
       diceSpan.setAttribute("x", textPos.x);
-      diceSpan.setAttribute("dy", "1.4em");
+      diceSpan.setAttribute("dy", "-0.2em");
       diceSpan.textContent = node.dice !== '—' ? node.dice : '';
       diceSpan.setAttribute("fill", "#ff9800"); // highlight dice
       
       const dcSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
       dcSpan.setAttribute("x", textPos.x);
-      dcSpan.setAttribute("dy", "1.4em");
+      dcSpan.setAttribute("dy", node.dice !== '—' ? "1.2em" : "0.4em");
       dcSpan.textContent = node.dc;
       dcSpan.setAttribute("fill", "#a78bfa");
       
-      text.appendChild(typeSpan);
       text.appendChild(diceSpan);
       text.appendChild(dcSpan);
       
@@ -344,23 +346,47 @@ function renderScaledMandala() {
   });
 
   // Clock numbers centered evenly
-  for (let i = 1; i <= outerNumbers; i++) {
-    const angle = i * outerAngleStep; // Outer numbers drawn at exact angle
+  for (let i = 0; i < outerNumbers; i++) {
+    const angle = (i + 1) * outerAngleStep; // Center of the slice
+    const effectName = appState.scaledTiers[0].nodes[i]?.type || `Effect ${i+1}`;
     
-    const textPos = polarToCartesian(cx, cy, outerRadius + 80, angle);
+    const textPos = polarToCartesian(cx, cy, outerRadius + 140, angle);
     const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
     text.setAttribute("x", textPos.x);
     text.setAttribute("y", textPos.y);
-    text.textContent = i.toString();
-    text.setAttribute("fill", "#fbbf24");
-    text.setAttribute("font-size", "80px");
-    text.setAttribute("font-weight", "bold");
+
+    let rot = angle;
+    if (rot > 90 && rot < 270) {
+      rot += 180;
+    }
+    text.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
+
     text.setAttribute("text-anchor", "middle");
     text.setAttribute("dominant-baseline", "middle");
+
+    const numberSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+    numberSpan.setAttribute("x", textPos.x);
+    numberSpan.setAttribute("dy", "-0.3em");
+    numberSpan.textContent = (i + 1).toString();
+    numberSpan.setAttribute("fill", "#fbbf24");
+    numberSpan.setAttribute("font-size", "100px");
+    numberSpan.setAttribute("font-weight", "bold");
+
+    const nameSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+    nameSpan.setAttribute("x", textPos.x);
+    nameSpan.setAttribute("dy", "1.5em");
+    nameSpan.textContent = effectName;
+    nameSpan.setAttribute("fill", "#e2e8f0");
+    nameSpan.setAttribute("font-size", "50px");
+    nameSpan.setAttribute("font-weight", "normal");
+    
+    text.appendChild(numberSpan);
+    text.appendChild(nameSpan);
+    
     svg.appendChild(text);
     
-    // Optional tick mark (shifted by baseOffset so it aligns with boundaries)
-    const tickAngle = angle + baseOffset;
+    // tick mark
+    const tickAngle = angle - baseOffset; // boundary
     const tickStart = polarToCartesian(cx, cy, outerRadius, tickAngle);
     const tickEnd = polarToCartesian(cx, cy, outerRadius + 30, tickAngle);
     const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
