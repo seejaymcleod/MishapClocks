@@ -26,64 +26,64 @@ let appState = {
   ],
   scaledTiers: [
     { offset: 0, nodes: [
-      { type: 'Self-Harm', dc: 'DC 9', dice: 'd4' },
-      { type: 'Mistarget', dc: 'DC 9', dice: '—' },
-      { type: 'Multi-Target', dc: 'DC 9', dice: '—' },
-      { type: 'Close Range', dc: 'DC 9', dice: 'd4' },
-      { type: 'Anti-School', dc: 'DC 9', dice: '—' },
-      { type: 'Alter Environment', dc: 'DC 9', dice: '—' },
-      { type: 'Zone', dc: 'DC 9', dice: '—' },
-      { type: 'Materia Leak', dc: 'DC 9', dice: '—' }
+      { type: 'Self-Harm', dc: 'DC 9', dice: '1d4' },
+      { type: 'Mistarget', modifier: 'Glancing Veer' },
+      { type: 'Multi-Target', modifier: 'Dual Fork' },
+      { type: 'Close Range', modifier: 'Proximal Buzz' },
+      { type: 'Anti-School', modifier: 'Minor Damp' },
+      { type: 'Alter Environment', modifier: 'Surface Tilt' },
+      { type: 'Zone', modifier: 'Minor Ripple' },
+      { type: 'Materia Leak', modifier: 'Ether Drip' }
     ]},
     { offset: 0, nodes: [
-      { type: 'Self-Harm', dc: 'DC 11', dice: 'd6' },
-      { type: 'Mistarget', dc: 'DC 11', dice: '—' },
-      { type: 'Multi-Target', dc: 'DC 11', dice: 'd4' },
-      { type: 'Close Range', dc: 'DC 11', dice: 'd6' },
-      { type: 'Anti-School', dc: 'DC 11', dice: '—' },
-      { type: 'Alter Environment', dc: 'DC 11', dice: '—' },
-      { type: 'Zone', dc: 'DC 11', dice: '—' },
-      { type: 'Materia Leak', dc: 'DC 11', dice: '—' }
+      { type: 'Self-Harm', dc: 'DC 11', dice: '1d6' },
+      { type: 'Mistarget', modifier: 'Wide Yaw' },
+      { type: 'Multi-Target', modifier: 'Triple Cleave' },
+      { type: 'Close Range', modifier: 'Aura Cling' },
+      { type: 'Anti-School', modifier: 'Ward Tear' },
+      { type: 'Alter Environment', modifier: 'Ground Shake' },
+      { type: 'Zone', modifier: 'Static Field' },
+      { type: 'Materia Leak', modifier: 'Mana Bleed' }
     ]},
     { offset: 0, nodes: [
-      { type: 'Self-Harm', dc: 'DC 13', dice: 'd8' },
-      { type: 'Mistarget', dc: 'DC 13', dice: '—' },
-      { type: 'Multi-Target', dc: 'DC 13', dice: 'd6' },
-      { type: 'Close Range', dc: 'DC 13', dice: 'd8' },
-      { type: 'Anti-School', dc: 'DC 13', dice: '—' },
-      { type: 'Alter Environment', dc: 'DC 13', dice: 'd4' },
-      { type: 'Zone', dc: 'DC 13', dice: '—' },
-      { type: 'Materia Leak', dc: 'DC 13', dice: '—' }
+      { type: 'Self-Harm', dc: 'DC 13', dice: '2d6' },
+      { type: 'Mistarget', modifier: 'Stray Vector' },
+      { type: 'Multi-Target', modifier: 'Quad Splinter' },
+      { type: 'Close Range', modifier: 'Tactile Shock' },
+      { type: 'Anti-School', modifier: 'Spell Dissolve' },
+      { type: 'Alter Environment', modifier: 'Terrain Warp' },
+      { type: 'Zone', modifier: 'Vortex Pull' },
+      { type: 'Materia Leak', modifier: 'Essence Drain' }
     ]},
     { offset: 0, nodes: [
-      { type: 'Self-Harm', dc: 'DC 15', dice: 'd10' },
-      { type: 'Mistarget', dc: 'DC 15', dice: 'd4' },
-      { type: 'Multi-Target', dc: 'DC 15', dice: 'd8' },
-      { type: 'Close Range', dc: 'DC 15', dice: 'd10' },
-      { type: 'Anti-School', dc: 'DC 15', dice: 'd6' },
-      { type: 'Alter Environment', dc: 'DC 15', dice: 'd6' },
-      { type: 'Zone', dc: 'DC 15', dice: '—' },
-      { type: 'Materia Leak', dc: 'DC 15', dice: '—' }
+      { type: 'Self-Harm', dc: 'DC 15', dice: '3d6' },
+      { type: 'Mistarget', modifier: 'Inverse Arc' },
+      { type: 'Multi-Target', modifier: 'Chain Cascade' },
+      { type: 'Close Range', modifier: 'Melee Bind' },
+      { type: 'Anti-School', modifier: 'Inverse Surge' },
+      { type: 'Alter Environment', modifier: 'Flora Spasm' },
+      { type: 'Zone', modifier: 'Gravity Well' },
+      { type: 'Materia Leak', modifier: 'Spell Fracture' }
     ]},
     { offset: 0, nodes: [
-      { type: 'Self-Harm', dc: 'DC 17', dice: 'd12' },
-      { type: 'Mistarget', dc: 'DC 17', dice: '—' },
-      { type: 'Multi-Target', dc: 'DC 17', dice: 'd10' },
-      { type: 'Close Range', dc: 'DC 17', dice: 'd12' },
-      { type: 'Anti-School', dc: 'DC 17', dice: '—' },
-      { type: 'Alter Environment', dc: 'DC 17', dice: 'd8' },
-      { type: 'Zone', dc: 'DC 17', dice: 'd4' },
-      { type: 'Materia Leak', dc: 'DC 17', dice: 'd4' }
+      { type: 'Self-Harm', dc: 'DC 17', dice: '4d8' },
+      { type: 'Mistarget', modifier: 'Mirror Target' },
+      { type: 'Multi-Target', modifier: 'Omnipresence' },
+      { type: 'Close Range', modifier: 'Point-Blank' },
+      { type: 'Anti-School', modifier: 'School Nullify' },
+      { type: 'Alter Environment', modifier: 'Weather Flare' },
+      { type: 'Zone', modifier: 'Time Warp' },
+      { type: 'Materia Leak', modifier: 'Conduit Rupture' }
     ]},
     { offset: 0, nodes: [
-      { type: 'Self-Harm', dc: 'DC 19', dice: 'd20' },
-      { type: 'Mistarget', dc: 'DC 19', dice: '—' },
-      { type: 'Multi-Target', dc: 'DC 19', dice: 'd12' },
-      { type: 'Close Range', dc: 'DC 19', dice: 'd20' },
-      { type: 'Anti-School', dc: 'DC 19', dice: '—' },
-      { type: 'Alter Environment', dc: 'DC 19', dice: 'd10' },
-      { type: 'Zone', dc: 'DC 19', dice: 'd6' },
-      { type: 'Materia Leak', dc: 'DC 19', dice: 'd8' }
+      { type: 'Self-Harm', dc: 'DC 19', dice: '5d8' },
+      { type: 'Mistarget', modifier: 'Chaos Drift' },
+      { type: 'Multi-Target', modifier: 'Cataclysmic Split' },
+      { type: 'Close Range', modifier: 'Absolute Proximity' },
+      { type: 'Anti-School', modifier: 'Antimagic Collapse' },
+      { type: 'Alter Environment', modifier: 'Planar Rupture' },
+      { type: 'Zone', modifier: 'Singularity' },
+      { type: 'Materia Leak', modifier: 'Void Siphon' }
     ]}
   ]
 };
@@ -210,44 +210,87 @@ function renderScaledMandala() {
       svg.appendChild(path);
       
       // Add text label
-      const textAngle = centerAngle;
       const textRadius = innerR + ringWidth * 0.5;
-      const textPos = polarToCartesian(cx, cy, textRadius, textAngle);
       
-      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      text.setAttribute("x", textPos.x);
-      text.setAttribute("y", textPos.y);
-      text.setAttribute("class", "scaled-text");
-      text.style.pointerEvents = "none";
-      
-      let rot = textAngle;
-      if (rot > 90 && rot < 270) {
-        rot += 180;
+      if (i === 0) {
+        // Thermal section: DC on left, Dice/Feedback on right
+        const dcText = node.dc || '—';
+        const diceText = node.dice || '—';
+
+        // 1. DC on the left
+        const leftAngle = centerAngle - 11;
+        const leftPos = polarToCartesian(cx, cy, textRadius, leftAngle);
+        const leftText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        leftText.setAttribute("x", leftPos.x);
+        leftText.setAttribute("y", leftPos.y);
+        leftText.setAttribute("class", "scaled-text");
+        leftText.style.pointerEvents = "none";
+        
+        let rotLeft = leftAngle;
+        if (rotLeft > 90 && rotLeft < 270) {
+          rotLeft += 180;
+        }
+        leftText.setAttribute("transform", `rotate(${rotLeft}, ${leftPos.x}, ${leftPos.y})`);
+        leftText.setAttribute("fill", "rgba(255, 255, 255, 0.95)");
+        leftText.setAttribute("text-anchor", "middle");
+        leftText.setAttribute("dominant-baseline", "middle");
+        leftText.setAttribute("font-size", "56px");
+        leftText.setAttribute("font-weight", "700");
+        leftText.textContent = dcText;
+        svg.appendChild(leftText);
+
+        // 2. Feedback Formula (Dice) on the right
+        const rightAngle = centerAngle + 11;
+        const rightPos = polarToCartesian(cx, cy, textRadius, rightAngle);
+        const rightText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        rightText.setAttribute("x", rightPos.x);
+        rightText.setAttribute("y", rightPos.y);
+        rightText.setAttribute("class", "scaled-text");
+        rightText.style.pointerEvents = "none";
+        
+        let rotRight = rightAngle;
+        if (rotRight > 90 && rotRight < 270) {
+          rotRight += 180;
+        }
+        rightText.setAttribute("transform", `rotate(${rotRight}, ${rightPos.x}, ${rightPos.y})`);
+        rightText.setAttribute("fill", "#ff9800");
+        rightText.setAttribute("text-anchor", "middle");
+        rightText.setAttribute("dominant-baseline", "middle");
+        rightText.setAttribute("font-size", "56px");
+        rightText.setAttribute("font-weight", "700");
+        rightText.textContent = diceText;
+        svg.appendChild(rightText);
+      } else {
+        // All other sections: Effect modifier in the middle
+        const modText = node.modifier || node.dc || '—';
+        const textPos = polarToCartesian(cx, cy, textRadius, centerAngle);
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", textPos.x);
+        text.setAttribute("y", textPos.y);
+        text.setAttribute("class", "scaled-text");
+        text.style.pointerEvents = "none";
+        
+        let rot = centerAngle;
+        if (rot > 90 && rot < 270) {
+          rot += 180;
+        }
+        text.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
+        text.setAttribute("fill", "#ffffff");
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("dominant-baseline", "middle");
+
+        // Dynamic Font Size to prevent boundary overlap in inner tiers
+        const arcLength = textRadius * (angleStep * Math.PI / 180);
+        const maxChars = modText.length || 1;
+        const targetWidth = arcLength * 0.85; // 85% safety margin
+        const fontSize = Math.min(56, targetWidth / (maxChars * 0.55));
+
+        text.setAttribute("font-size", `${fontSize}px`);
+        text.setAttribute("font-weight", "600");
+        text.textContent = modText;
+        svg.appendChild(text);
       }
-
-      text.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
-      text.setAttribute("fill", "#ffffff");
-      text.setAttribute("text-anchor", "middle");
-      text.setAttribute("dominant-baseline", "middle");
-      text.setAttribute("font-size", "52px");
-      text.setAttribute("font-weight", "700");
-
-      const diceSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      diceSpan.setAttribute("x", textPos.x);
-      diceSpan.setAttribute("dy", "-0.2em");
-      diceSpan.textContent = node.dice !== '—' ? node.dice : '';
-      diceSpan.setAttribute("fill", "#ff9800"); 
-      
-      const dcSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      dcSpan.setAttribute("x", textPos.x);
-      dcSpan.setAttribute("dy", node.dice !== '—' ? "1.2em" : "0.4em");
-      dcSpan.textContent = node.dc;
-      dcSpan.setAttribute("fill", "rgba(255,255,255,0.9)");
-      
-      text.appendChild(diceSpan);
-      text.appendChild(dcSpan);
-      
-      svg.appendChild(text);
     });
     
     // Tier Label
@@ -257,7 +300,7 @@ function renderScaledMandala() {
     tierText.textContent = "T" + tIndex;
     tierText.setAttribute("fill", "#ffffff");
     tierText.setAttribute("opacity", "0.5");
-    tierText.setAttribute("font-size", "40px");
+    tierText.setAttribute("font-size", "50px");
     tierText.setAttribute("font-weight", "bold");
     tierText.setAttribute("text-anchor", "middle");
     tierText.style.pointerEvents = "none";
@@ -269,7 +312,7 @@ function renderScaledMandala() {
     const angle = i * angleStep;
     const effectName = appState.scaledTiers[0].nodes[i]?.type || `Effect ${i+1}`;
     
-    const textRadius = outerRadius + 160;
+    const textRadius = outerRadius + 180;
     const textPos = polarToCartesian(cx, cy, textRadius, angle);
     
     const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -287,13 +330,13 @@ function renderScaledMandala() {
     numberText.setAttribute("text-anchor", "middle");
     numberText.setAttribute("dominant-baseline", "middle");
     numberText.setAttribute("fill", "#fbbf24");
-    numberText.setAttribute("font-size", "100px");
+    numberText.setAttribute("font-size", "110px");
     numberText.setAttribute("font-weight", "bold");
     numberText.textContent = (i + 1).toString();
     group.appendChild(numberText);
     
     // Left of center: Name and Icon
-    const leftX = textPos.x - 80;
+    const leftX = textPos.x - 90;
     
     const schoolText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     schoolText.setAttribute("x", leftX);
@@ -301,14 +344,14 @@ function renderScaledMandala() {
     schoolText.setAttribute("text-anchor", "end");
     schoolText.setAttribute("dominant-baseline", "middle");
     schoolText.setAttribute("fill", school.color);
-    schoolText.setAttribute("font-size", "60px");
+    schoolText.setAttribute("font-size", "70px");
     schoolText.setAttribute("font-weight", "bold");
     schoolText.textContent = school.label;
     group.appendChild(schoolText);
 
     if (school.icon) {
-      const iconSize = 80;
-      const iconX = leftX - (school.label.length * 35) - iconSize - 20; 
+      const iconSize = 90;
+      const iconX = leftX - (school.label.length * 40) - iconSize - 25; 
       
       const fObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
       fObj.setAttribute("x", iconX);
@@ -320,14 +363,14 @@ function renderScaledMandala() {
     }
 
     // Right of center: Scale Type
-    const rightX = textPos.x + 80;
+    const rightX = textPos.x + 90;
     const effectText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     effectText.setAttribute("x", rightX);
     effectText.setAttribute("y", textPos.y);
     effectText.setAttribute("text-anchor", "start");
     effectText.setAttribute("dominant-baseline", "middle");
     effectText.setAttribute("fill", "#e2e8f0");
-    effectText.setAttribute("font-size", "60px");
+    effectText.setAttribute("font-size", "70px");
     effectText.setAttribute("font-weight", "normal");
     effectText.textContent = effectName;
     group.appendChild(effectText);
