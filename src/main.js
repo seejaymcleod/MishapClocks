@@ -124,7 +124,7 @@ function renderMagicMandala() {
   const container = document.getElementById('magic-mandala');
   container.innerHTML = '';
   
-  const size = 4000;
+  const size = 4300;
   const cx = size / 2;
   const cy = size / 2;
   const outerRadius = 1800;
@@ -177,7 +177,7 @@ function renderMagicMandala() {
     text.setAttribute("x", textPos.x);
     text.setAttribute("y", textPos.y + (node.icon ? 80 : 0));
     text.setAttribute("class", "node-text");
-    text.setAttribute("font-size", "70px");
+    text.style.fontSize = "70px";
     text.textContent = node.label;
     g.appendChild(text);
 
@@ -213,7 +213,7 @@ function renderScaledMandala() {
   const container = document.getElementById('target-mandala');
   container.innerHTML = '';
   
-  const size = 4000;
+  const size = 4300;
   const cx = size / 2;
   const cy = size / 2;
   
