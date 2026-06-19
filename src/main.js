@@ -90,6 +90,114 @@ let appState = {
 
 let activeNodeId = null;
 
+// Markdown Table Parser & Configuration Mapper
+function parseMarkdownTables(markdownText) {
+  const lines = markdownText.split(/\r?\n/);
+  const tables = [];
+  let currentTable = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line.startsWith('|') && line.endsWith('|')) {
+      const cells = line.slice(1, -1).split('|').map(c => c.trim());
+      
+      // Skip separator lines like |---|---|
+      if (cells.every(cell => cell.match(/^:?-+:?$/))) {
+        continue;
+      }
+      
+      if (!currentTable) {
+        currentTable = {
+          headers: cells,
+          rows: []
+        };
+      } else {
+        currentTable.rows.push(cells);
+      }
+    } else {
+      if (currentTable) {
+        tables.push(currentTable);
+        currentTable = null;
+      }
+    }
+  }
+  if (currentTable) {
+    tables.push(currentTable);
+  }
+  return tables;
+}
+
+function mapTablesToState(tables) {
+  if (tables.length < 2) return null;
+  
+  const schoolsTable = tables[0];
+  const tiersTable = tables[1];
+  
+  // Parse magic nodes
+  const magicNodes = schoolsTable.rows.map((row, idx) => {
+    return {
+      id: `m${idx}`,
+      label: row[0] || `School ${idx + 1}`,
+      color: row[1] || '#888888',
+      icon: row[2] || 'gi-help',
+      opposite: row[3] || '',
+      slider: row[4] || ''
+    };
+  });
+  
+  // Parse mishap tiers
+  // Headers starting from index 3 are the mishap types
+  const mishapTypes = tiersTable.headers.slice(3);
+  
+  const scaledTiers = tiersTable.rows.map((row, tIdx) => {
+    const dc = row[1] || '';
+    const dice = row[2] || '';
+    
+    const nodes = mishapTypes.map((type, i) => {
+      const modifier = row[3 + i] || '—';
+      const node = {
+        type,
+        modifier
+      };
+      if (i === 0) {
+        node.dc = dc;
+        node.dice = dice;
+      }
+      return node;
+    });
+    
+    return {
+      offset: 0,
+      nodes
+    };
+  });
+  
+  return {
+    magicNodes,
+    scaledTiers
+  };
+}
+
+function renderSidebarTables() {
+  const tbody = document.getElementById('tier-parameters-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  
+  appState.scaledTiers.forEach((tier, tIdx) => {
+    const firstNode = tier.nodes[0] || {};
+    const dc = firstNode.dc || '—';
+    const dice = firstNode.dice || '—';
+    
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>T${tIdx}</strong></td>
+      <td>${dc}</td>
+      <td>${dice}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
 // Drawing Utilities
 function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
   const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
@@ -584,9 +692,33 @@ document.getElementById('file-input').addEventListener('change', (e) => {
   reader.readAsText(file);
 });
 
-// Init
-const msInitEl = document.getElementById('magic-slots');
-if (msInitEl) msInitEl.value = appState.magicNodes.length;
-renderMagicMandala();
-renderTierControls();
-renderScaledMandala();
+// Init / Startup Flow
+async function init() {
+  try {
+    const response = await fetch('/mishap_config.md');
+    if (response.ok) {
+      const markdownText = await response.text();
+      const tables = parseMarkdownTables(markdownText);
+      const loadedState = mapTablesToState(tables);
+      if (loadedState) {
+        appState.magicNodes = loadedState.magicNodes;
+        appState.scaledTiers = loadedState.scaledTiers;
+      }
+    } else {
+      console.warn("Could not fetch mishap_config.md, using default config.");
+    }
+  } catch (err) {
+    console.error("Error loading or parsing mishap_config.md:", err);
+  }
+
+  // Update input values and render views
+  const msInitEl = document.getElementById('magic-slots');
+  if (msInitEl) msInitEl.value = appState.magicNodes.length;
+  
+  renderMagicMandala();
+  renderTierControls();
+  renderScaledMandala();
+  renderSidebarTables();
+}
+
+init();
