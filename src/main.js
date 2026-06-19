@@ -119,98 +119,30 @@ function describeArc(x, y, radius, startAngle, endAngle) {
   return d;
 }
 
-// Render Magic Mandala
+// Gradient Helper function
+function getGradientColor(hexColor, tIndex, isAlt) {
+  let factor = 0.3 + (tIndex * 0.1); 
+  if (isAlt) factor -= 0.05;
+
+  let r = parseInt(hexColor.slice(1, 3), 16);
+  let g = parseInt(hexColor.slice(3, 5), 16);
+  let b = parseInt(hexColor.slice(5, 7), 16);
+  
+  r = Math.min(255, Math.floor(r * factor));
+  g = Math.min(255, Math.floor(g * factor));
+  b = Math.min(255, Math.floor(b * factor));
+  
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
+// Render Magic Mandala (Merged with Scaled Mandala)
 function renderMagicMandala() {
-  const container = document.getElementById('magic-mandala');
-  container.innerHTML = '';
-  
-  const size = 4300;
-  const cx = size / 2;
-  const cy = size / 2;
-  const outerRadius = 1800;
-  
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
-  
-  const numNodes = appState.magicNodes.length;
-  if (numNodes === 0) return;
-  const angleStep = 360 / numNodes;
-
-  // Draw slices
-  appState.magicNodes.forEach((node, i) => {
-    const startAngle = i * angleStep;
-    const endAngle = (i + 1) * angleStep;
-    
-    // We want the slices to be centered on the angle, so we shift by -angleStep/2
-    const shiftedStart = startAngle - angleStep / 2;
-    const shiftedEnd = endAngle - angleStep / 2;
-
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("d", describeArc(cx, cy, outerRadius, shiftedStart, shiftedEnd));
-    path.setAttribute("fill", node.color);
-    path.setAttribute("class", "node-path segment-line");
-    path.setAttribute("stroke", "var(--bg-color)");
-    path.setAttribute("stroke-width", "24");
-    path.style.color = node.color; // for currentcolor in hover
-    
-    path.addEventListener('click', () => openModal(node, 'magic'));
-    
-    svg.appendChild(path);
-    
-    // Add text label
-    const textAngle = startAngle;
-    // Place text outside the circle, further out
-    const textPos = polarToCartesian(cx, cy, outerRadius + 140, textAngle);
-    
-    let rot = textAngle;
-    if (rot > 90 && rot < 270) {
-      rot += 180;
-    }
-    // If only 1 node, no rotation needed
-    if (numNodes === 1) rot = 0;
-
-    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    g.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
-    g.style.pointerEvents = "none"; // let clicks pass through to the slice
-
-    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    text.setAttribute("x", textPos.x);
-    text.setAttribute("y", textPos.y + (node.icon ? 80 : 0));
-    text.setAttribute("class", "node-text");
-    text.style.fontSize = "70px";
-    text.textContent = node.label;
-    g.appendChild(text);
-
-    if (node.icon) {
-      const fObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
-      fObj.setAttribute("x", textPos.x - 85);
-      fObj.setAttribute("y", textPos.y - 120);
-      fObj.setAttribute("width", 170);
-      fObj.setAttribute("height", 170);
-      fObj.innerHTML = `<i class="gi ${node.icon}" style="font-size: 130px; color: var(--text-color); display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
-      g.appendChild(fObj);
-    }
-    
-    svg.appendChild(g);
-  });
-  
-  // Draw 5 rings (Shadowdark tiers)
-  for (let r = 1; r <= 5; r++) {
-    const rRadius = (outerRadius / 5) * r;
-    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    circle.setAttribute("cx", cx);
-    circle.setAttribute("cy", cy);
-    circle.setAttribute("r", rRadius);
-    circle.setAttribute("class", "tier-line");
-    circle.setAttribute("stroke-width", "8");
-    svg.appendChild(circle);
-  }
-  
-  container.appendChild(svg);
+  renderScaledMandala(); // keep it as a proxy so existing listeners don't break
 }
 
 function renderScaledMandala() {
   const container = document.getElementById('target-mandala');
+  if (!container) return;
   container.innerHTML = '';
   
   const size = 4300;
@@ -232,32 +164,24 @@ function renderScaledMandala() {
   bg.setAttribute("fill", "#1e1e1e");
   svg.appendChild(bg);
 
-  // Draw 6 Tiers
-  
-  const outerNumbers = 8;
-  const outerAngleStep = 360 / Math.max(outerNumbers, 1);
-  const baseOffset = outerAngleStep / 2;
+  const numSlices = appState.magicNodes.length;
+  const angleStep = 360 / Math.max(numSlices, 1);
 
   appState.scaledTiers.forEach((tierData, tIndex) => {
     const tier = tierData.nodes;
     const innerR = holeRadius + tIndex * ringWidth;
     const outerR = innerR + ringWidth;
     
-    const numNodes = tier.length;
-    const anglePerUnit = 360 / Math.max(numNodes, 1);
-    
-    // Start at baseOffset degrees + the tier's custom rotation offset
-    let currentAngle = baseOffset + (tierData.offset || 0);
-    
     // Draw slices
-    tier.forEach((node, i) => {
-      const startAngle = currentAngle;
-      const endAngle = currentAngle + anglePerUnit;
-      const sliceAngle = anglePerUnit;
+    appState.magicNodes.forEach((school, i) => {
+      const node = tier[i] || { dc: '—', dice: '—' };
+      const centerAngle = i * angleStep;
+      const startAngle = centerAngle - angleStep / 2;
+      const endAngle = centerAngle + angleStep / 2;
+      const sliceAngle = angleStep;
       
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
       
-      // Calculate arc with inner and outer radius
       const startOuter = polarToCartesian(cx, cy, outerR, endAngle);
       const endOuter = polarToCartesian(cx, cy, outerR, startAngle);
       const startInner = polarToCartesian(cx, cy, innerR, startAngle);
@@ -272,26 +196,21 @@ function renderScaledMandala() {
         "Z"
       ].join(" ");
       
-      const tierColors = [
-        ['#1e1b4b', '#17153b'], // T0
-        ['#281b4f', '#1f1440'], // T1
-        ['#341b52', '#281541'], // T2
-        ['#411b54', '#321442'], // T3
-        ['#4f1a56', '#3e1344'], // T4
-        ['#5e1957', '#4a1244'], // T5
-      ];
-      
       path.setAttribute("d", d);
-      const brightness = tierColors[tIndex][i % 2];
-      path.setAttribute("fill", brightness);
-      path.setAttribute("stroke", "#ffffff");
-      path.setAttribute("stroke-opacity", "0.1");
-      path.setAttribute("stroke-width", "4");
       
+      const isAlt = (i % 2 !== 0);
+      const brightness = getGradientColor(school.color, tIndex, isAlt);
+      path.setAttribute("fill", brightness);
+      path.setAttribute("stroke", "var(--bg-color)");
+      path.setAttribute("stroke-opacity", "0.5");
+      path.setAttribute("stroke-width", "8");
+      
+      path.addEventListener('click', () => openModal(school, 'magic'));
+
       svg.appendChild(path);
       
       // Add text label
-      const textAngle = currentAngle + (sliceAngle / 2);
+      const textAngle = centerAngle;
       const textRadius = innerR + ringWidth * 0.5;
       const textPos = polarToCartesian(cx, cy, textRadius, textAngle);
       
@@ -299,6 +218,7 @@ function renderScaledMandala() {
       text.setAttribute("x", textPos.x);
       text.setAttribute("y", textPos.y);
       text.setAttribute("class", "scaled-text");
+      text.style.pointerEvents = "none";
       
       let rot = textAngle;
       if (rot > 90 && rot < 270) {
@@ -316,20 +236,18 @@ function renderScaledMandala() {
       diceSpan.setAttribute("x", textPos.x);
       diceSpan.setAttribute("dy", "-0.2em");
       diceSpan.textContent = node.dice !== '—' ? node.dice : '';
-      diceSpan.setAttribute("fill", "#ff9800"); // highlight dice
+      diceSpan.setAttribute("fill", "#ff9800"); 
       
       const dcSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
       dcSpan.setAttribute("x", textPos.x);
       dcSpan.setAttribute("dy", node.dice !== '—' ? "1.2em" : "0.4em");
       dcSpan.textContent = node.dc;
-      dcSpan.setAttribute("fill", "#a78bfa");
+      dcSpan.setAttribute("fill", "rgba(255,255,255,0.9)");
       
       text.appendChild(diceSpan);
       text.appendChild(dcSpan);
       
       svg.appendChild(text);
-      
-      currentAngle = endAngle;
     });
     
     // Tier Label
@@ -342,51 +260,82 @@ function renderScaledMandala() {
     tierText.setAttribute("font-size", "40px");
     tierText.setAttribute("font-weight", "bold");
     tierText.setAttribute("text-anchor", "middle");
+    tierText.style.pointerEvents = "none";
     svg.appendChild(tierText);
   });
 
-  // Clock numbers centered evenly
-  for (let i = 0; i < outerNumbers; i++) {
-    const angle = (i + 1) * outerAngleStep; // Center of the slice
+  // Outer Ring Section
+  appState.magicNodes.forEach((school, i) => {
+    const angle = i * angleStep;
     const effectName = appState.scaledTiers[0].nodes[i]?.type || `Effect ${i+1}`;
     
-    const textPos = polarToCartesian(cx, cy, outerRadius + 140, angle);
-    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    text.setAttribute("x", textPos.x);
-    text.setAttribute("y", textPos.y);
-
+    const textRadius = outerRadius + 160;
+    const textPos = polarToCartesian(cx, cy, textRadius, angle);
+    
+    const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    
     let rot = angle;
     if (rot > 90 && rot < 270) {
       rot += 180;
     }
-    text.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
+    group.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
 
-    text.setAttribute("text-anchor", "middle");
-    text.setAttribute("dominant-baseline", "middle");
+    // Number in the middle
+    const numberText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    numberText.setAttribute("x", textPos.x);
+    numberText.setAttribute("y", textPos.y);
+    numberText.setAttribute("text-anchor", "middle");
+    numberText.setAttribute("dominant-baseline", "middle");
+    numberText.setAttribute("fill", "#fbbf24");
+    numberText.setAttribute("font-size", "100px");
+    numberText.setAttribute("font-weight", "bold");
+    numberText.textContent = (i + 1).toString();
+    group.appendChild(numberText);
+    
+    // Left of center: Name and Icon
+    const leftX = textPos.x - 80;
+    
+    const schoolText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    schoolText.setAttribute("x", leftX);
+    schoolText.setAttribute("y", textPos.y);
+    schoolText.setAttribute("text-anchor", "end");
+    schoolText.setAttribute("dominant-baseline", "middle");
+    schoolText.setAttribute("fill", school.color);
+    schoolText.setAttribute("font-size", "60px");
+    schoolText.setAttribute("font-weight", "bold");
+    schoolText.textContent = school.label;
+    group.appendChild(schoolText);
 
-    const numberSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-    numberSpan.setAttribute("x", textPos.x);
-    numberSpan.setAttribute("dy", "-0.3em");
-    numberSpan.textContent = (i + 1).toString();
-    numberSpan.setAttribute("fill", "#fbbf24");
-    numberSpan.setAttribute("font-size", "100px");
-    numberSpan.setAttribute("font-weight", "bold");
+    if (school.icon) {
+      const iconSize = 80;
+      const iconX = leftX - (school.label.length * 35) - iconSize - 20; 
+      
+      const fObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+      fObj.setAttribute("x", iconX);
+      fObj.setAttribute("y", textPos.y - iconSize / 2);
+      fObj.setAttribute("width", iconSize);
+      fObj.setAttribute("height", iconSize);
+      fObj.innerHTML = `<i class="gi ${school.icon}" style="font-size: ${iconSize}px; color: ${school.color}; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
+      group.appendChild(fObj);
+    }
 
-    const nameSpan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-    nameSpan.setAttribute("x", textPos.x);
-    nameSpan.setAttribute("dy", "1.5em");
-    nameSpan.textContent = effectName;
-    nameSpan.setAttribute("fill", "#e2e8f0");
-    nameSpan.setAttribute("font-size", "50px");
-    nameSpan.setAttribute("font-weight", "normal");
+    // Right of center: Scale Type
+    const rightX = textPos.x + 80;
+    const effectText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    effectText.setAttribute("x", rightX);
+    effectText.setAttribute("y", textPos.y);
+    effectText.setAttribute("text-anchor", "start");
+    effectText.setAttribute("dominant-baseline", "middle");
+    effectText.setAttribute("fill", "#e2e8f0");
+    effectText.setAttribute("font-size", "60px");
+    effectText.setAttribute("font-weight", "normal");
+    effectText.textContent = effectName;
+    group.appendChild(effectText);
+
+    svg.appendChild(group);
     
-    text.appendChild(numberSpan);
-    text.appendChild(nameSpan);
-    
-    svg.appendChild(text);
-    
-    // tick mark
-    const tickAngle = angle - baseOffset; // boundary
+    // tick mark on the boundary
+    const tickAngle = angle - angleStep / 2; 
     const tickStart = polarToCartesian(cx, cy, outerRadius, tickAngle);
     const tickEnd = polarToCartesian(cx, cy, outerRadius + 30, tickAngle);
     const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
@@ -397,24 +346,11 @@ function renderScaledMandala() {
     line.setAttribute("stroke", "#fbbf24");
     line.setAttribute("stroke-width", "6");
     svg.appendChild(line);
-  }
+  });
   
-  // Center Label
-  const centerText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  centerText.setAttribute("x", cx);
-  centerText.setAttribute("y", cy);
-  centerText.textContent = "SCALED";
-  centerText.setAttribute("fill", "#ffffff");
-  centerText.setAttribute("opacity", "0.8");
-  centerText.setAttribute("font-size", "70px");
-  centerText.setAttribute("font-weight", "bold");
-  centerText.setAttribute("text-anchor", "middle");
-  centerText.setAttribute("dominant-baseline", "middle");
-  centerText.setAttribute("letter-spacing", "4px");
-  svg.appendChild(centerText);
-
   container.appendChild(svg);
 }
+
 
 
 // Modal Logic
@@ -472,13 +408,16 @@ function resizeNodes(nodeArray, newSize, prefix) {
   }
 }
 
-document.getElementById('magic-slots').addEventListener('change', (e) => {
-  const newSize = parseInt(e.target.value, 10);
-  if (newSize > 0) {
-    resizeNodes(appState.magicNodes, newSize, 'm');
-    renderMagicMandala();
-  }
-});
+const magicSlotsEl = document.getElementById('magic-slots');
+if (magicSlotsEl) {
+  magicSlotsEl.addEventListener('change', (e) => {
+    const newSize = parseInt(e.target.value, 10);
+    if (newSize > 0) {
+      resizeNodes(appState.magicNodes, newSize, 'm');
+      renderMagicMandala();
+    }
+  });
+}
 
 function renderTierControls() {
   const container = document.getElementById('tier-controls');
@@ -615,7 +554,8 @@ document.getElementById('file-input').addEventListener('change', (e) => {
       if (loadedState.magicNodes && loadedState.targetNodes) {
         appState = loadedState;
         // Update input values
-        document.getElementById('magic-slots').value = appState.magicNodes.length;
+        const msEl = document.getElementById('magic-slots');
+        if (msEl) msEl.value = appState.magicNodes.length;
         renderMagicMandala();
         
         // Ensure old saves have scaledTiers
@@ -635,7 +575,8 @@ document.getElementById('file-input').addEventListener('change', (e) => {
 });
 
 // Init
-document.getElementById('magic-slots').value = appState.magicNodes.length;
+const msInitEl = document.getElementById('magic-slots');
+if (msInitEl) msInitEl.value = appState.magicNodes.length;
 renderMagicMandala();
 renderTierControls();
 renderScaledMandala();
