@@ -190,7 +190,7 @@ function renderSidebarTables() {
     
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><strong>T${tIdx}</strong></td>
+      <td><strong>Tier${tIdx}</strong></td>
       <td>${dc}</td>
       <td>${dice}</td>
     `;
@@ -350,10 +350,25 @@ function renderScaledMandala() {
     });
     
     // Tier Label
+    const firstNode = tierData.nodes[0] || {};
+    const diceText = firstNode.dice || '—';
+    const dcText = firstNode.dc || '—';
+
+    // R_label is in the center of the ring for T0 (where the modifier goes), and outerR - 45 for T1-T5
+    const R_label = tIndex === 0 ? (innerR + ringWidth * 0.5) : (outerR - 45);
+    // R_dice_dc is always at the top line of the ring (outerR - 45) for all tiers, including T0
+    const R_dice_dc = outerR - 45;
+
+    const paddingPixels = 80;
+    const anglePadding = (paddingPixels / R_dice_dc) * (180 / Math.PI);
+    const angleOffset = Math.max(10, 22.5 - anglePadding);
+
+    // Center TX label
+    const posC = polarToCartesian(cx, cy, R_label, 0);
     const tierText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    tierText.setAttribute("x", cx);
-    tierText.setAttribute("y", cy - outerR + 45);
-    tierText.textContent = "T" + tIndex;
+    tierText.setAttribute("x", posC.x);
+    tierText.setAttribute("y", posC.y);
+    tierText.textContent = "Tier" + tIndex;
     tierText.setAttribute("fill", "#ffffff");
     tierText.setAttribute("opacity", "0.5");
     tierText.setAttribute("font-size", "50px");
@@ -361,6 +376,36 @@ function renderScaledMandala() {
     tierText.setAttribute("text-anchor", "middle");
     tierText.style.pointerEvents = "none";
     svg.appendChild(tierText);
+
+    // Dice (xdy) on the left side of the pie (rotated to curve along the circle)
+    const posL = polarToCartesian(cx, cy, R_dice_dc, -angleOffset);
+    const diceTextEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    diceTextEl.setAttribute("x", posL.x);
+    diceTextEl.setAttribute("y", posL.y);
+    diceTextEl.textContent = diceText;
+    diceTextEl.setAttribute("fill", "#ffffff");
+    diceTextEl.setAttribute("opacity", "0.5");
+    diceTextEl.setAttribute("font-size", "45px");
+    diceTextEl.setAttribute("font-weight", "bold");
+    diceTextEl.setAttribute("text-anchor", "middle");
+    diceTextEl.setAttribute("transform", `rotate(${-angleOffset}, ${posL.x}, ${posL.y})`);
+    diceTextEl.style.pointerEvents = "none";
+    svg.appendChild(diceTextEl);
+
+    // DC on the right side of the pie (rotated to curve along the circle)
+    const posR = polarToCartesian(cx, cy, R_dice_dc, angleOffset);
+    const dcTextEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    dcTextEl.setAttribute("x", posR.x);
+    dcTextEl.setAttribute("y", posR.y);
+    dcTextEl.textContent = dcText;
+    dcTextEl.setAttribute("fill", "#ffffff");
+    dcTextEl.setAttribute("opacity", "0.5");
+    dcTextEl.setAttribute("font-size", "45px");
+    dcTextEl.setAttribute("font-weight", "bold");
+    dcTextEl.setAttribute("text-anchor", "middle");
+    dcTextEl.setAttribute("transform", `rotate(${angleOffset}, ${posR.x}, ${posR.y})`);
+    dcTextEl.style.pointerEvents = "none";
+    svg.appendChild(dcTextEl);
   });
 
   // Center circle and icon
@@ -583,7 +628,7 @@ function renderTierControls() {
     row.className = 'tier-control-row';
     
     const label = document.createElement('label');
-    label.textContent = `T${tIndex}`;
+    label.textContent = `Tier${tIndex}`;
     row.appendChild(label);
     
     // Slices control
