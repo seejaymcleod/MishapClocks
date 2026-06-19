@@ -24,6 +24,13 @@
         <button id="btn-view-radial-vector" class="btn-segment" data-view="radial-vector">Radial Vector</button>
         <button id="btn-view-minimal-rune" class="btn-segment" data-view="minimal-rune">Minimal Rune</button>
       </div>
+      <div class="segmented-control" id="polarity-style-container" style="display: flex; align-items: center;">
+        <span style="opacity: 0.7; font-size: 0.9rem; padding: 0 0.6rem; border-right: 1px solid var(--border-color); margin-right: 4px;">Polarity Style</span>
+        <button id="btn-polarity-gap" class="btn-segment active" data-polarity="gap">Gap</button>
+        <button id="btn-polarity-above" class="btn-segment" data-polarity="above">Above</button>
+        <button id="btn-polarity-flanking" class="btn-segment" data-polarity="flanking">Flanking</button>
+        <button id="btn-polarity-watermark" class="btn-segment" data-polarity="watermark">Watermark</button>
+      </div>
       <button id="outer-centering-btn" class="btn secondary">Outer Ring: Pinned</button>
       <div id="outer-offset-container" class="btn"
         style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; padding: 0.4rem 0.8rem;">
@@ -105,6 +112,14 @@
         <span id="wrap-dist-val"
           style="font-weight: bold; min-width: 35px; text-align: right; color: #fbbf24;">25px</span>
       </div>
+      <div id="polarity-gap-container" class="btn"
+        style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; padding: 0.4rem 0.8rem;">
+        <span style="opacity: 0.7;">Polarity Offset:</span>
+        <input type="range" id="polarity-gap-slider" min="1" max="10" step="0.1" value="3.2"
+          style="cursor: pointer; width: 120px;" />
+        <span id="polarity-gap-val"
+          style="font-weight: bold; min-width: 35px; text-align: right; color: #fbbf24;">3.2°</span>
+      </div>
       <button id="save-btn" class="btn primary">Save State</button>
       <button id="load-btn" class="btn secondary">Load State</button>
       <button id="export-png-btn" class="btn secondary" style="background: #047857; color: white; border-color: #059669;">Export PNG</button>
@@ -137,19 +152,23 @@
             <tbody>
               <tr>
                 <td><strong>6 - 8</strong></td>
-                <td>Original School</td>
+                <td>Cast school <em>(same polarity)</em></td>
               </tr>
               <tr>
                 <td><strong>4 - 5</strong></td>
-                <td>Opposite School</td>
+                <td>Cast school <em>(inverted polarity)</em></td>
               </tr>
               <tr>
-                <td><strong>2 - 3</strong></td>
-                <td>Opposite Effect</td>
+                <td><strong>3</strong></td>
+                <td>Circle-opposite School (positive)</td>
+              </tr>
+              <tr>
+                <td><strong>2</strong></td>
+                <td>Circle-opposite School (negative)</td>
               </tr>
               <tr>
                 <td><strong>1</strong></td>
-                <td>Original School<br>+ d8 random school</td>
+                <td>Cast school <em>(same)</em><br>+ Random <strong>d8</strong> school <em>(inverted)</em></td>
               </tr>
             </tbody>
           </table>

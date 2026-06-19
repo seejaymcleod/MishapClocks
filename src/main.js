@@ -1,6 +1,8 @@
 // State
 let appState = {
   viewMode: 'curved-axis',
+  polarityMode: 'gap',
+  polarityGap: 4,
   centerOuterText: false,
   outerPinOffset: 11,
   iconSeparation: 15,
@@ -850,13 +852,13 @@ function renderScaledMandala() {
       // 2. School Name above the number (curved)
       const schoolPathId = `outer-school-path-${i}`;
       // Add bottom/top label offset directly for perfect symmetry and adjustment
-      const schoolRadius = isBottomHalf ? (centerRadius - labelSep + labelOffsetBottom) : (centerRadius + labelSep + labelOffsetTop);
+      const schoolRadius = isBottomHalf ? (centerRadius + labelSep + labelOffsetBottom) : (centerRadius + labelSep + labelOffsetTop);
       drawCenteredText(school.label, schoolRadius, angle, schoolPathId, true);
 
       // 3. Effect Name below the number (curved)
       const effectPathId = `outer-effect-path-${i}`;
       // Add bottom/top label offset directly for perfect symmetry and adjustment
-      const effectRadius = isBottomHalf ? (centerRadius + labelSep + labelOffsetBottom) : (centerRadius - labelSep + labelOffsetTop);
+      const effectRadius = isBottomHalf ? (centerRadius - labelSep + labelOffsetBottom) : (centerRadius - labelSep + labelOffsetTop);
       drawCenteredText(effectName, effectRadius, angle, effectPathId, false);
 
       // 4. Positive and Negative Icons (aligned horizontally along the same arc, swapped positions)
@@ -884,12 +886,128 @@ function renderScaledMandala() {
         svg.appendChild(iconGroup);
       };
 
+      // Render Polarity Indicators based on appState.polarityMode
+      const drawPolarity = (symbolText, targetAngle) => {
+        let radius = iconRadius;
+        let finalAngle = targetAngle;
+        let fontSize = "110px";
+        let opacity = "0.45";
+        let isWatermark = false;
+
+        // Use true Unicode mathematical minus sign to match plus sign height and stroke weight
+        const text = symbolText === '-' ? '\u2212' : symbolText;
+        const mode = appState.polarityMode || 'gap';
+
+        if (mode === 'gap') {
+          const gapVal = Number(appState.polarityGap ?? 3.2);
+          const isLeft = (symbolText === '-');
+          if (isLeft) {
+            finalAngle = leftCenterAngle + (isBottomHalf ? -gapVal : gapVal);
+          } else {
+            finalAngle = rightCenterAngle + (isBottomHalf ? gapVal : -gapVal);
+          }
+          fontSize = "110px";
+          opacity = "0.55";
+        } else if (mode === 'above') {
+          const schoolRadius = isBottomHalf ? (centerRadius + labelSep + labelOffsetBottom) : (centerRadius + labelSep + labelOffsetTop);
+          radius = schoolRadius;
+          fontSize = "95px";
+          opacity = "0.6";
+        } else if (mode === 'flanking') {
+          const gapVal = Number(appState.polarityGap ?? 3.2);
+          const isLeft = (symbolText === '-');
+          if (isLeft) {
+            finalAngle = leftCenterAngle + (isBottomHalf ? gapVal : -gapVal);
+          } else {
+            finalAngle = rightCenterAngle + (isBottomHalf ? -gapVal : gapVal);
+          }
+          fontSize = "110px";
+          opacity = "0.55";
+        } else if (mode === 'watermark') {
+          isWatermark = true;
+        }
+
+        if (isWatermark) {
+          const iconPos = polarToCartesian(cx, cy, iconRadius, targetAngle);
+          let rot = targetAngle;
+          if (isBottomHalf) {
+            rot += 180;
+          }
+
+          const watermarkGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+          watermarkGroup.setAttribute("transform", `rotate(${rot}, ${iconPos.x}, ${iconPos.y})`);
+
+          const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+          circle.setAttribute("cx", iconPos.x);
+          circle.setAttribute("cy", iconPos.y);
+          circle.setAttribute("r", "110");
+          circle.setAttribute("stroke", school.color);
+          circle.setAttribute("stroke-width", "4");
+          circle.setAttribute("fill", "none");
+          circle.setAttribute("opacity", "0.18");
+          watermarkGroup.appendChild(circle);
+
+          const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          textEl.setAttribute("x", iconPos.x);
+          textEl.setAttribute("y", iconPos.y);
+          textEl.setAttribute("text-anchor", "middle");
+          textEl.setAttribute("dominant-baseline", "central");
+          textEl.setAttribute("fill", school.color);
+          textEl.setAttribute("font-size", "145px");
+          textEl.setAttribute("font-weight", "bold");
+          textEl.setAttribute("opacity", "0.22");
+          textEl.textContent = text;
+          watermarkGroup.appendChild(textEl);
+
+          svg.appendChild(watermarkGroup);
+        } else {
+          const pos = polarToCartesian(cx, cy, radius, finalAngle);
+          let rot = finalAngle;
+          if (isBottomHalf) {
+            rot += 180;
+          }
+
+          const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          textEl.setAttribute("x", pos.x);
+          textEl.setAttribute("y", pos.y);
+          textEl.setAttribute("text-anchor", "middle");
+          textEl.setAttribute("dominant-baseline", "central");
+          textEl.setAttribute("fill", school.color);
+          textEl.setAttribute("font-size", fontSize);
+          textEl.setAttribute("font-weight", "bold");
+          textEl.setAttribute("opacity", opacity);
+          textEl.setAttribute("transform", `rotate(${rot}, ${pos.x}, ${pos.y})`);
+          textEl.textContent = text;
+          svg.appendChild(textEl);
+        }
+      };
+
+      // Draw watermarks BEFORE icons so they sit in the background
+      if (appState.polarityMode === 'watermark') {
+        if (school.negativeIcon) {
+          drawPolarity('-', leftCenterAngle);
+        }
+        if (school.icon) {
+          drawPolarity('+', rightCenterAngle);
+        }
+      }
+
       // Swapped: Negative on left, Positive on right
       if (school.negativeIcon) {
         renderIcon(school.negativeIcon, leftCenterAngle, school.color);
       }
       if (school.icon) {
         renderIcon(school.icon, rightCenterAngle, school.color);
+      }
+
+      // Draw other polarity label styles AFTER icons
+      if (appState.polarityMode && appState.polarityMode !== 'watermark') {
+        if (school.negativeIcon) {
+          drawPolarity('-', leftCenterAngle);
+        }
+        if (school.icon) {
+          drawPolarity('+', rightCenterAngle);
+        }
       }
 
       // 5. Draw Minimalistic Translucent Curved Line Arrows pointing OUTWARDS (no arrowheads)
@@ -1481,6 +1599,12 @@ document.getElementById('file-input').addEventListener('change', (e) => {
         if (!appState.viewMode) {
           appState.viewMode = 'curved-axis';
         }
+        if (!appState.polarityMode) {
+          appState.polarityMode = 'gap';
+        }
+        if (appState.polarityGap === undefined) {
+          appState.polarityGap = 3.2;
+        }
         if (appState.labelOffsetTop === undefined) appState.labelOffsetTop = appState.labelOffsetTop !== undefined ? appState.labelOffsetTop : 0;
         if (appState.labelOffsetBottom === undefined) appState.labelOffsetBottom = appState.bottomShift !== undefined ? appState.bottomShift : 65;
         if (appState.bottomIconShift === undefined) appState.bottomIconShift = 0;
@@ -1491,6 +1615,7 @@ document.getElementById('file-input').addEventListener('change', (e) => {
         if (appState.iconSeparation === undefined) appState.iconSeparation = appState.outerPinOffset !== undefined ? appState.outerPinOffset : 15;
         if (appState.wrapDistance === undefined) appState.wrapDistance = 25;
         syncViewModeButtons();
+        syncPolarityModeButtons();
         syncOuterCenteringButton();
         renderTierControls();
         renderScaledMandala();
@@ -1506,8 +1631,19 @@ document.getElementById('file-input').addEventListener('change', (e) => {
 });
 
 function syncViewModeButtons() {
-  document.querySelectorAll('.btn-segment').forEach(btn => {
+  document.querySelectorAll('.btn-segment[data-view]').forEach(btn => {
     if (btn.getAttribute('data-view') === appState.viewMode) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+  syncPolarityModeButtons();
+}
+
+function syncPolarityModeButtons() {
+  document.querySelectorAll('.btn-segment[data-polarity]').forEach(btn => {
+    if (btn.getAttribute('data-polarity') === appState.polarityMode) {
       btn.classList.add('active');
     } else {
       btn.classList.remove('active');
@@ -1515,6 +1651,14 @@ function syncViewModeButtons() {
   });
 
   const isCurved = ['curved-axis', 'curved-text'].includes(appState.viewMode);
+
+  // Update visibility of polarity gap offset slider
+  const polarityGapContainer = document.getElementById('polarity-gap-container');
+  if (polarityGapContainer) {
+    const showGapOffset = isCurved && ['gap', 'flanking'].includes(appState.polarityMode);
+    polarityGapContainer.style.display = showGapOffset ? '' : 'none';
+  }
+
   const curvedControls = [
     document.getElementById('outer-centering-btn'),
     document.getElementById('outer-offset-container'),
@@ -1626,6 +1770,8 @@ function syncBottomSliders() {
   const iconSepVal = document.getElementById('icon-sep-val');
   const wrapDistSlider = document.getElementById('wrap-dist-slider');
   const wrapDistVal = document.getElementById('wrap-dist-val');
+  const polarityGapSlider = document.getElementById('polarity-gap-slider');
+  const polarityGapVal = document.getElementById('polarity-gap-val');
 
   if (iconSepSlider && iconSepVal) {
     const val = appState.iconSeparation ?? 15;
@@ -1636,6 +1782,11 @@ function syncBottomSliders() {
     const val = appState.wrapDistance ?? 25;
     wrapDistSlider.value = val;
     wrapDistVal.textContent = val + "px";
+  }
+  if (polarityGapSlider && polarityGapVal) {
+    const val = appState.polarityGap ?? 3.2;
+    polarityGapSlider.value = val;
+    polarityGapVal.textContent = val + "°";
   }
 }
 
@@ -1659,12 +1810,21 @@ async function init() {
   }
 
   // Set up view mode segmented control
-  document.querySelectorAll('.btn-segment').forEach(btn => {
+  document.querySelectorAll('.btn-segment[data-view]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       appState.viewMode = e.currentTarget.getAttribute('data-view');
       syncViewModeButtons();
       renderScaledMandala();
       renderSidebarTables();
+    });
+  });
+
+  // Set up polarity style segmented control
+  document.querySelectorAll('.btn-segment[data-polarity]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      appState.polarityMode = e.currentTarget.getAttribute('data-polarity');
+      syncPolarityModeButtons();
+      renderScaledMandala();
     });
   });
 
@@ -1781,6 +1941,16 @@ async function init() {
     });
   }
 
+  const polarityGapSlider = document.getElementById('polarity-gap-slider');
+  const polarityGapVal = document.getElementById('polarity-gap-val');
+  if (polarityGapSlider && polarityGapVal) {
+    polarityGapSlider.addEventListener('input', (e) => {
+      appState.polarityGap = parseFloat(e.target.value);
+      polarityGapVal.textContent = appState.polarityGap + "°";
+      renderScaledMandala();
+    });
+  }
+
   const exportPngBtn = document.getElementById('export-png-btn');
   if (exportPngBtn) {
     exportPngBtn.addEventListener('click', exportToPNG);
@@ -1789,7 +1959,11 @@ async function init() {
   if (!appState.viewMode) {
     appState.viewMode = 'curved-axis';
   }
+  if (!appState.polarityMode) {
+    appState.polarityMode = 'gap';
+  }
   syncViewModeButtons();
+  syncPolarityModeButtons();
   syncOuterCenteringButton();
 
   // Update input values and render views
