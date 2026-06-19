@@ -3,13 +3,15 @@ let appState = {
   viewMode: 'curved-axis',
   centerOuterText: false,
   outerPinOffset: 11,
-  labelOffsetTop: 10,
-  labelOffsetBottom: 10,
+  iconSeparation: 15,
+  wrapDistance: 35,
+  labelOffsetTop: 0,
+  labelOffsetBottom: 0,
   bottomIconShift: 0,
   rollFontSize: 180,
-  labelSeparation: 145,
-  outerDistTop: 240,
-  outerDistBottom: 240,
+  labelSeparation: 160,
+  outerDistTop: 280,
+  outerDistBottom: 280,
   magicNodes: [
     { id: 'm0', label: 'Thermal', icon: 'gi-fire', negativeIcon: 'gi-snowflake-1', color: '#ff4500', opposite: 'Hydro', slider: 'Injecting kinetic heat (ignition) ↔ siphoning it (absolute zero).' },
     { id: 'm1', label: 'Aero', icon: 'gi-tornado', negativeIcon: 'gi-sound-off', color: '#87ceeb', opposite: 'Geo', slider: 'High pressure and gales ↔ suffocating vacuums.' },
@@ -35,66 +37,78 @@ let appState = {
     { id: 't11', label: 'All @ Far', color: '#eab308' },
   ],
   scaledTiers: [
-    { offset: 0, nodes: [
-      { type: 'Self-Harm', modifier: 'Singe', dc: 'DC 9', dice: '1d4' },
-      { type: 'Mistarget', modifier: 'Glancing Veer' },
-      { type: 'Multi-Target', modifier: 'Dual Fork' },
-      { type: 'Close Range', modifier: 'Proximal Buzz' },
-      { type: 'Anti-School', modifier: 'Minor Damp' },
-      { type: 'Alter Environment', modifier: 'Surface Tilt' },
-      { type: 'Zone', modifier: 'Minor Ripple' },
-      { type: 'Materia Leak', modifier: 'Ether Drip' }
-    ]},
-    { offset: 0, nodes: [
-      { type: 'Self-Harm', modifier: 'Blister', dc: 'DC 11', dice: '1d6' },
-      { type: 'Mistarget', modifier: 'Wide Yaw' },
-      { type: 'Multi-Target', modifier: 'Triple Cleave' },
-      { type: 'Close Range', modifier: 'Aura Cling' },
-      { type: 'Anti-School', modifier: 'Ward Tear' },
-      { type: 'Alter Environment', modifier: 'Ground Shake' },
-      { type: 'Zone', modifier: 'Static Field' },
-      { type: 'Materia Leak', modifier: 'Mana Bleed' }
-    ]},
-    { offset: 0, nodes: [
-      { type: 'Self-Harm', modifier: 'Searing Flash', dc: 'DC 13', dice: '2d6' },
-      { type: 'Mistarget', modifier: 'Stray Vector' },
-      { type: 'Multi-Target', modifier: 'Quad Splinter' },
-      { type: 'Close Range', modifier: 'Tactile Shock' },
-      { type: 'Anti-School', modifier: 'Spell Dissolve' },
-      { type: 'Alter Environment', modifier: 'Terrain Warp' },
-      { type: 'Zone', modifier: 'Vortex Pull' },
-      { type: 'Materia Leak', modifier: 'Essence Drain' }
-    ]},
-    { offset: 0, nodes: [
-      { type: 'Self-Harm', modifier: 'Searing Wave', dc: 'DC 15', dice: '3d6' },
-      { type: 'Mistarget', modifier: 'Inverse Arc' },
-      { type: 'Multi-Target', modifier: 'Chain Cascade' },
-      { type: 'Close Range', modifier: 'Melee Bind' },
-      { type: 'Anti-School', modifier: 'Inverse Surge' },
-      { type: 'Alter Environment', modifier: 'Flora Spasm' },
-      { type: 'Zone', modifier: 'Gravity Well' },
-      { type: 'Materia Leak', modifier: 'Spell Fracture' }
-    ]},
-    { offset: 0, nodes: [
-      { type: 'Self-Harm', modifier: 'Meltdown', dc: 'DC 17', dice: '4d8' },
-      { type: 'Mistarget', modifier: 'Mirror Target' },
-      { type: 'Multi-Target', modifier: 'Omnipresence' },
-      { type: 'Close Range', modifier: 'Point-Blank' },
-      { type: 'Anti-School', modifier: 'School Nullify' },
-      { type: 'Alter Environment', modifier: 'Weather Flare' },
-      { type: 'Zone', modifier: 'Time Warp' },
-      { type: 'Materia Leak', modifier: 'Conduit Rupture' }
-    ]},
-    { offset: 0, nodes: [
-      { type: 'Self-Harm', modifier: 'Inferno Rupture', dc: 'DC 19', dice: '5d8' },
-      { type: 'Mistarget', modifier: 'Chaos Drift' },
-      { type: 'Multi-Target', modifier: 'Cataclysmic Split' },
-      { type: 'Close Range', modifier: 'Absolute Proximity' },
-      { type: 'Anti-School', modifier: 'Antimagic Collapse' },
-      { type: 'Alter Environment', modifier: 'Planar Rupture' },
-      { type: 'Zone', modifier: 'Singularity' },
-      { type: 'Materia Leak', modifier: 'Void Siphon' }
-    ]}
+    {
+      offset: 0, nodes: [
+        { type: 'Self-Harm', modifier: 'Singe', dc: 'DC 9', dice: '1d4' },
+        { type: 'Mistarget', modifier: 'Glancing Veer' },
+        { type: 'Multi-Target', modifier: 'Dual Fork' },
+        { type: 'Close Range', modifier: 'Proximal Buzz' },
+        { type: 'Anti-School', modifier: 'Minor Damp' },
+        { type: 'Alter Environment', modifier: 'Surface Tilt' },
+        { type: 'Zone', modifier: 'Minor Ripple' },
+        { type: 'Materia Leak', modifier: 'Ether Drip' }
+      ]
+    },
+    {
+      offset: 0, nodes: [
+        { type: 'Self-Harm', modifier: 'Blister', dc: 'DC 11', dice: '1d6' },
+        { type: 'Mistarget', modifier: 'Wide Yaw' },
+        { type: 'Multi-Target', modifier: 'Triple Cleave' },
+        { type: 'Close Range', modifier: 'Aura Cling' },
+        { type: 'Anti-School', modifier: 'Ward Tear' },
+        { type: 'Alter Environment', modifier: 'Ground Shake' },
+        { type: 'Zone', modifier: 'Static Field' },
+        { type: 'Materia Leak', modifier: 'Mana Bleed' }
+      ]
+    },
+    {
+      offset: 0, nodes: [
+        { type: 'Self-Harm', modifier: 'Searing Flash', dc: 'DC 13', dice: '2d6' },
+        { type: 'Mistarget', modifier: 'Stray Vector' },
+        { type: 'Multi-Target', modifier: 'Quad Splinter' },
+        { type: 'Close Range', modifier: 'Tactile Shock' },
+        { type: 'Anti-School', modifier: 'Spell Dissolve' },
+        { type: 'Alter Environment', modifier: 'Terrain Warp' },
+        { type: 'Zone', modifier: 'Vortex Pull' },
+        { type: 'Materia Leak', modifier: 'Essence Drain' }
+      ]
+    },
+    {
+      offset: 0, nodes: [
+        { type: 'Self-Harm', modifier: 'Searing Wave', dc: 'DC 15', dice: '3d6' },
+        { type: 'Mistarget', modifier: 'Inverse Arc' },
+        { type: 'Multi-Target', modifier: 'Chain Cascade' },
+        { type: 'Close Range', modifier: 'Melee Bind' },
+        { type: 'Anti-School', modifier: 'Inverse Surge' },
+        { type: 'Alter Environment', modifier: 'Flora Spasm' },
+        { type: 'Zone', modifier: 'Gravity Well' },
+        { type: 'Materia Leak', modifier: 'Spell Fracture' }
+      ]
+    },
+    {
+      offset: 0, nodes: [
+        { type: 'Self-Harm', modifier: 'Meltdown', dc: 'DC 17', dice: '4d8' },
+        { type: 'Mistarget', modifier: 'Mirror Target' },
+        { type: 'Multi-Target', modifier: 'Omnipresence' },
+        { type: 'Close Range', modifier: 'Point-Blank' },
+        { type: 'Anti-School', modifier: 'School Nullify' },
+        { type: 'Alter Environment', modifier: 'Weather Flare' },
+        { type: 'Zone', modifier: 'Time Warp' },
+        { type: 'Materia Leak', modifier: 'Conduit Rupture' }
+      ]
+    },
+    {
+      offset: 0, nodes: [
+        { type: 'Self-Harm', modifier: 'Inferno Rupture', dc: 'DC 19', dice: '5d8' },
+        { type: 'Mistarget', modifier: 'Chaos Drift' },
+        { type: 'Multi-Target', modifier: 'Cataclysmic Split' },
+        { type: 'Close Range', modifier: 'Absolute Proximity' },
+        { type: 'Anti-School', modifier: 'Antimagic Collapse' },
+        { type: 'Alter Environment', modifier: 'Planar Rupture' },
+        { type: 'Zone', modifier: 'Singularity' },
+        { type: 'Materia Leak', modifier: 'Void Siphon' }
+      ]
+    }
   ]
 };
 
@@ -110,12 +124,12 @@ function parseMarkdownTables(markdownText) {
     const line = lines[i].trim();
     if (line.startsWith('|') && line.endsWith('|')) {
       const cells = line.slice(1, -1).split('|').map(c => c.trim());
-      
+
       // Skip separator lines like |---|---|
       if (cells.every(cell => cell.match(/^:?-+:?$/))) {
         continue;
       }
-      
+
       if (!currentTable) {
         currentTable = {
           headers: cells,
@@ -139,10 +153,10 @@ function parseMarkdownTables(markdownText) {
 
 function mapTablesToState(tables) {
   if (tables.length < 2) return null;
-  
+
   const schoolsTable = tables[0];
   const tiersTable = tables[1];
-  
+
   // Parse magic nodes
   const magicNodes = schoolsTable.rows.map((row, idx) => {
     return {
@@ -155,15 +169,15 @@ function mapTablesToState(tables) {
       slider: row[5] || ''
     };
   });
-  
+
   // Parse mishap tiers
   // Headers starting from index 3 are the mishap types
   const mishapTypes = tiersTable.headers.slice(3);
-  
+
   const scaledTiers = tiersTable.rows.map((row, tIdx) => {
     const dc = row[1] || '';
     const dice = row[2] || '';
-    
+
     const nodes = mishapTypes.map((type, i) => {
       const modifier = row[3 + i] || '—';
       const node = {
@@ -176,13 +190,13 @@ function mapTablesToState(tables) {
       }
       return node;
     });
-    
+
     return {
       offset: 0,
       nodes
     };
   });
-  
+
   return {
     magicNodes,
     scaledTiers
@@ -193,12 +207,12 @@ function renderSidebarTables() {
   const tbody = document.getElementById('tier-parameters-tbody');
   if (!tbody) return;
   tbody.innerHTML = '';
-  
+
   appState.scaledTiers.forEach((tier, tIdx) => {
     const firstNode = tier.nodes[0] || {};
     const dc = firstNode.dc || '—';
     const dice = firstNode.dice || '—';
-    
+
     const labelText = (appState.viewMode === 'clean-bottom' || appState.viewMode === 'bottom-dice') ? `T${tIdx}` : `Tier${tIdx}`;
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -230,7 +244,7 @@ function describeArc(x, y, radius, startAngle, endAngle) {
   const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
 
   const d = [
-    "M", start.x, start.y, 
+    "M", start.x, start.y,
     "A", radius, radius, 0, largeArcFlag, 0, end.x, end.y,
     "L", x, y,
     "Z"
@@ -241,17 +255,17 @@ function describeArc(x, y, radius, startAngle, endAngle) {
 
 // Gradient Helper function
 function getGradientColor(hexColor, tIndex, isAlt) {
-  let factor = 0.3 + (tIndex * 0.1); 
+  let factor = 0.3 + (tIndex * 0.1);
   if (isAlt) factor -= 0.05;
 
   let r = parseInt(hexColor.slice(1, 3), 16);
   let g = parseInt(hexColor.slice(3, 5), 16);
   let b = parseInt(hexColor.slice(5, 7), 16);
-  
+
   r = Math.min(255, Math.floor(r * factor));
   g = Math.min(255, Math.floor(g * factor));
   b = Math.min(255, Math.floor(b * factor));
-  
+
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
 
@@ -264,18 +278,18 @@ function renderScaledMandala() {
   const container = document.getElementById('target-mandala');
   if (!container) return;
   container.innerHTML = '';
-  
+
   const size = 5200;
   const cx = size / 2;
   const cy = size / 2;
-  
+
   const holeRadius = 120;
   const outerRadius = 1800;
   const ringWidth = (outerRadius - holeRadius) / 6;
-  
+
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
-  
+
   // Add defs for text shadow filter
   const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
   const filter = document.createElementNS("http://www.w3.org/2000/svg", "filter");
@@ -284,18 +298,18 @@ function renderScaledMandala() {
   filter.setAttribute("y", "-20%");
   filter.setAttribute("width", "140%");
   filter.setAttribute("height", "140%");
-  
+
   const dropShadow = document.createElementNS("http://www.w3.org/2000/svg", "feDropShadow");
   dropShadow.setAttribute("dx", "0");
   dropShadow.setAttribute("dy", "4");
   dropShadow.setAttribute("stdDeviation", "8");
   dropShadow.setAttribute("flood-color", "#000000");
   dropShadow.setAttribute("flood-opacity", "0.95");
-  
+
   filter.appendChild(dropShadow);
   defs.appendChild(filter);
   svg.appendChild(defs);
-  
+
   // Background
   const bg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
   bg.setAttribute("cx", cx);
@@ -311,7 +325,7 @@ function renderScaledMandala() {
     const tier = tierData.nodes;
     const innerR = holeRadius + tIndex * ringWidth;
     const outerR = innerR + ringWidth;
-    
+
     // Draw slices
     appState.magicNodes.forEach((school, i) => {
       const node = tier[i] || { dc: '—', dice: '—' };
@@ -319,36 +333,36 @@ function renderScaledMandala() {
       const startAngle = centerAngle - angleStep / 2;
       const endAngle = centerAngle + angleStep / 2;
       const sliceAngle = angleStep;
-      
+
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      
+
       const startOuter = polarToCartesian(cx, cy, outerR, endAngle);
       const endOuter = polarToCartesian(cx, cy, outerR, startAngle);
       const startInner = polarToCartesian(cx, cy, innerR, startAngle);
       const endInner = polarToCartesian(cx, cy, innerR, endAngle);
       const largeArcFlag = sliceAngle <= 180 ? "0" : "1";
-      
+
       const d = [
-        "M", startOuter.x, startOuter.y, 
+        "M", startOuter.x, startOuter.y,
         "A", outerR, outerR, 0, largeArcFlag, 0, endOuter.x, endOuter.y,
         "L", startInner.x, startInner.y,
         "A", innerR, innerR, 0, largeArcFlag, 1, endInner.x, endInner.y,
         "Z"
       ].join(" ");
-      
+
       path.setAttribute("d", d);
-      
+
       const isAlt = (i % 2 !== 0);
       const brightness = getGradientColor(school.color, tIndex, isAlt);
       path.setAttribute("fill", brightness);
       path.setAttribute("stroke", "var(--bg-color)");
       path.setAttribute("stroke-opacity", "0.5");
       path.setAttribute("stroke-width", "8");
-      
+
       path.addEventListener('click', () => openModal(school, 'magic'));
 
       svg.appendChild(path);
-      
+
       // Add text label
       const isThermalSlice = (i === 0);
       const hideModText = isThermalSlice;
@@ -386,12 +400,12 @@ function renderScaledMandala() {
           const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
           textEl.setAttribute("class", "scaled-text effect-name-text");
           textEl.setAttribute("fill", "#ffffff");
-          
+
           const arcLength = textRadius * (angleStep * Math.PI / 180);
           const maxChars = modText.length || 1;
           const targetWidth = arcLength * 0.85;
           const fontSize = Math.min(75, targetWidth / (maxChars * 0.50)); // Increased limit and font scaling
-          
+
           textEl.setAttribute("font-size", `${fontSize}px`);
           textEl.setAttribute("font-weight", "bold");
           textEl.style.pointerEvents = "none";
@@ -401,7 +415,7 @@ function renderScaledMandala() {
           textPath.setAttribute("startOffset", "50%");
           textPath.setAttribute("text-anchor", "middle");
           textPath.textContent = modText;
-          
+
           textEl.appendChild(textPath);
           svg.appendChild(textEl);
         } else {
@@ -412,7 +426,7 @@ function renderScaledMandala() {
           text.setAttribute("y", textPos.y);
           text.setAttribute("class", "scaled-text effect-name-text");
           text.style.pointerEvents = "none";
-          
+
           let rot = centerAngle;
           if (rot > 90 && rot < 270) {
             rot += 180;
@@ -435,7 +449,7 @@ function renderScaledMandala() {
         }
       }
     });
-    
+
     // Tier Label
     const firstNode = tierData.nodes[0] || {};
     const diceText = firstNode.dice || '—';
@@ -519,7 +533,7 @@ function renderScaledMandala() {
         // Draw divider line at -22.5 degrees as the gauge axis
         const axisStart = polarToCartesian(cx, cy, innerR, axisAngle);
         const axisEnd = polarToCartesian(cx, cy, outerR, axisAngle);
-        
+
         const axisLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
         axisLine.setAttribute("x1", axisStart.x);
         axisLine.setAttribute("y1", axisStart.y);
@@ -558,7 +572,7 @@ function renderScaledMandala() {
         const textAngle = axisAngle + 3.5;
         const textR = innerR + ringWidth * 0.5;
         const textPos = polarToCartesian(cx, cy, textR, textAngle);
-        
+
         const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
         textEl.setAttribute("x", textPos.x);
         textEl.setAttribute("y", textPos.y);
@@ -568,7 +582,7 @@ function renderScaledMandala() {
         textEl.setAttribute("font-weight", "bold");
         textEl.setAttribute("text-anchor", "start");
         textEl.setAttribute("dominant-baseline", "middle");
-        
+
         let rot = textAngle;
         if (rot > 90 && rot < 270) {
           rot += 180;
@@ -638,7 +652,7 @@ function renderScaledMandala() {
             "M", pathStart.x, pathStart.y,
             "A", radius, radius, 0, 0, 1, pathEnd.x, pathEnd.y
           ].join(" ");
-          
+
           const defsPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
           defsPath.setAttribute("id", id);
           defsPath.setAttribute("d", pathData);
@@ -658,7 +672,7 @@ function renderScaledMandala() {
           textPath.setAttribute("startOffset", "50%");
           textPath.setAttribute("text-anchor", "middle");
           textPath.textContent = textContent;
-          
+
           textEl.appendChild(textPath);
           svg.appendChild(textEl);
         };
@@ -670,7 +684,7 @@ function renderScaledMandala() {
 
           // Row 1: dice   DC (standard size 45px, 3 spaces, drop shadow)
           createCurvedLine(`curved-path-${tIndex}-r1`, rRow1, `${diceText}   ${dcText}`, "#fbbf24", 45, "scaled-text");
-          
+
           // Row 2: T0 (has the same size as T1-T5 tier labels, i.e., 56px)
           createCurvedLine(`curved-path-${tIndex}-r2`, rRow2, "T0", "rgba(255, 255, 255, 0.7)", 56, "scaled-text tier-label-text");
         } else {
@@ -717,8 +731,8 @@ function renderScaledMandala() {
   // Outer Ring Section
   appState.magicNodes.forEach((school, i) => {
     const angle = i * angleStep;
-    const effectName = appState.scaledTiers[0].nodes[i]?.type || `Effect ${i+1}`;
-    
+    const effectName = appState.scaledTiers[0].nodes[i]?.type || `Effect ${i + 1}`;
+
     // Retrieve opposite school color dynamically
     const oppositeNode = appState.magicNodes.find(n => n.label === school.opposite);
     const negativeColor = oppositeNode ? oppositeNode.color : school.color;
@@ -754,10 +768,10 @@ function renderScaledMandala() {
       numberText.textContent = (i + 1).toString();
       svg.appendChild(numberText);
 
-      // Left/Right center angle calculations based on the centerOuterText toggle and outerPinOffset
+      // Left/Right center angle calculations based on the centerOuterText toggle and iconSeparation/outerPinOffset
       let leftCenterAngle;
       let rightCenterAngle;
-      const offsetVal = Number(appState.outerPinOffset ?? 15); // Default to 15 degrees for horizontal spacing
+      const offsetVal = Number(appState.iconSeparation ?? appState.outerPinOffset ?? 15); // Default to 15 degrees for horizontal spacing
       if (appState.centerOuterText) {
         leftCenterAngle = isBottomHalf ? (angle + 15) : (angle - 15);
         rightCenterAngle = isBottomHalf ? (angle - 15) : (angle + 15);
@@ -770,7 +784,7 @@ function renderScaledMandala() {
       const drawSingleLineText = (text, radius, centerAngle, pathId, isSchool) => {
         let pathStart, pathEnd, pathData;
         const halfSpan = 15; // 30-degree path segment span to prevent clipping
-        
+
         if (isBottomHalf) {
           pathStart = polarToCartesian(cx, cy, radius, centerAngle + halfSpan);
           pathEnd = polarToCartesian(cx, cy, radius, centerAngle - halfSpan);
@@ -823,8 +837,9 @@ function renderScaledMandala() {
             const idx = text.indexOf("-");
             parts = [text.substring(0, idx), text.substring(idx + 1)];
           }
-          const radius1 = isBottomHalf ? (radius - 25) : (radius + 25);
-          const radius2 = isBottomHalf ? (radius + 25) : (radius - 25);
+          const wrapDist = Number(appState.wrapDistance ?? 25);
+          const radius1 = isBottomHalf ? (radius - wrapDist) : (radius + wrapDist);
+          const radius2 = isBottomHalf ? (radius + wrapDist) : (radius - wrapDist);
           drawSingleLineText(parts[0], radius1, centerAngle, `${pathId}-line1`, isSchool);
           drawSingleLineText(parts[1], radius2, centerAngle, `${pathId}-line2`, isSchool);
         } else {
@@ -949,7 +964,7 @@ function renderScaledMandala() {
       rightArrowLine.setAttribute("stroke-width", "8");
       rightArrowLine.setAttribute("stroke-linecap", "round");
       svg.appendChild(rightArrowLine);
-     } else if (appState.viewMode === 'horizontal-hud') {
+    } else if (appState.viewMode === 'horizontal-hud') {
       const isBottomHalf = (angle > 90 && angle < 270);
       const outerDistTop = Number(appState.outerDistTop ?? 320);
       const outerDistBottom = Number(appState.outerDistBottom ?? 320);
@@ -1062,7 +1077,7 @@ function renderScaledMandala() {
       hudGroup.appendChild(rightIconFObj);
 
       svg.appendChild(hudGroup);
-     } else if (appState.viewMode === 'radial-vector') {
+    } else if (appState.viewMode === 'radial-vector') {
       const isBottomHalf = (angle > 90 && angle < 270);
       const outerDistTop = Number(appState.outerDistTop ?? 320);
       const outerDistBottom = Number(appState.outerDistBottom ?? 320);
@@ -1132,7 +1147,7 @@ function renderScaledMandala() {
 
       // Radial Rays Labels
       let leftAngle, rightAngle;
-      const offsetVal = Number(appState.outerPinOffset ?? 11);
+      const offsetVal = Number(appState.iconSeparation ?? appState.outerPinOffset ?? 11);
       leftAngle = isBottomHalf ? (angle + offsetVal) : (angle - offsetVal);
       rightAngle = isBottomHalf ? (angle - offsetVal) : (angle + offsetVal);
 
@@ -1163,7 +1178,7 @@ function renderScaledMandala() {
       // Swapped side labels to match swapped icons
       drawRadialRayText(effectName, leftAngle, false);
       drawRadialRayText(school.label, rightAngle, true);
-     } else if (appState.viewMode === 'minimal-rune') {
+    } else if (appState.viewMode === 'minimal-rune') {
       const isBottomHalf = (angle > 90 && angle < 270);
       const outerDistTop = Number(appState.outerDistTop ?? 320);
       const outerDistBottom = Number(appState.outerDistBottom ?? 320);
@@ -1178,9 +1193,13 @@ function renderScaledMandala() {
       const runeGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
       runeGroup.setAttribute("transform", `translate(${centerPos.x}, ${centerPos.y}) rotate(${rot})`);
 
+      // Let iconSeparation determine the coordinate multiplier (default 15 -> 165px center offset)
+      const iconSep = Number(appState.iconSeparation ?? 15);
+      const shiftX = iconSep * 11;
+
       // Swapped: Negative Icon (Left)
       const negIconFObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
-      negIconFObj.setAttribute("x", "-240");
+      negIconFObj.setAttribute("x", (-shiftX - 75).toString());
       negIconFObj.setAttribute("y", "-75");
       negIconFObj.setAttribute("width", "150");
       negIconFObj.setAttribute("height", "150");
@@ -1189,7 +1208,7 @@ function renderScaledMandala() {
 
       // Left transition arrow
       const arrowLeftFObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
-      arrowLeftFObj.setAttribute("x", "-80");
+      arrowLeftFObj.setAttribute("x", (-shiftX / 2 - 35).toString());
       arrowLeftFObj.setAttribute("y", "-55");
       arrowLeftFObj.setAttribute("width", "70");
       arrowLeftFObj.setAttribute("height", "70");
@@ -1198,7 +1217,7 @@ function renderScaledMandala() {
 
       // Right transition arrow
       const arrowRightFObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
-      arrowRightFObj.setAttribute("x", "10");
+      arrowRightFObj.setAttribute("x", (shiftX / 2 - 35).toString());
       arrowRightFObj.setAttribute("y", "-55");
       arrowRightFObj.setAttribute("width", "70");
       arrowRightFObj.setAttribute("height", "70");
@@ -1207,7 +1226,7 @@ function renderScaledMandala() {
 
       // Swapped: Positive Icon (Right)
       const posIconFObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
-      posIconFObj.setAttribute("x", "90");
+      posIconFObj.setAttribute("x", (shiftX - 75).toString());
       posIconFObj.setAttribute("y", "-75");
       posIconFObj.setAttribute("width", "150");
       posIconFObj.setAttribute("height", "150");
@@ -1230,9 +1249,9 @@ function renderScaledMandala() {
 
       svg.appendChild(runeGroup);
     }
-    
+
     // tick mark on the boundary
-    const tickAngle = angle - angleStep / 2; 
+    const tickAngle = angle - angleStep / 2;
     const tickStart = polarToCartesian(cx, cy, outerRadius, tickAngle);
     const tickEnd = polarToCartesian(cx, cy, outerRadius + 30, tickAngle);
     const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
@@ -1244,7 +1263,7 @@ function renderScaledMandala() {
     line.setAttribute("stroke-width", "6");
     svg.appendChild(line);
   });
-  
+
   container.appendChild(svg);
 }
 
@@ -1267,10 +1286,10 @@ document.getElementById('modal-cancel').addEventListener('click', closeModal);
 
 document.getElementById('modal-save').addEventListener('click', () => {
   if (!activeNodeId) return;
-  
+
   const newLabel = document.getElementById('node-label').value;
   const newColor = document.getElementById('node-color').value;
-  
+
   let node = appState.magicNodes.find(n => n.id === activeNodeId);
   if (node) {
     node.label = newLabel;
@@ -1285,7 +1304,7 @@ document.getElementById('modal-save').addEventListener('click', () => {
       // But we should just keep this block for safety.
     }
   }
-  
+
   closeModal();
 });
 
@@ -1320,7 +1339,7 @@ function renderTierControls() {
   const container = document.getElementById('tier-controls');
   if (!container) return;
   container.innerHTML = '';
-  
+
   if (!appState.scaledTiers) return;
 
   // Outer Clock Numbers control
@@ -1329,18 +1348,18 @@ function renderTierControls() {
   globalRow.style.marginBottom = '1rem';
   globalRow.style.paddingBottom = '1rem';
   globalRow.style.borderBottom = '1px solid var(--border-color)';
-  
+
   const globalLabel = document.createElement('label');
   globalLabel.textContent = 'Outer Clock:';
   globalLabel.style.fontWeight = 'bold';
   globalRow.appendChild(globalLabel);
-  
+
   const globalGroup = document.createElement('div');
   globalGroup.className = 'tier-control-group';
-  
+
   const numLabel = document.createElement('label');
   numLabel.textContent = 'Numbers:';
-  
+
   const numInput = document.createElement('input');
   numInput.type = 'number';
   numInput.min = '1';
@@ -1350,28 +1369,28 @@ function renderTierControls() {
     appState.outerClockNumbers = parseInt(e.target.value, 10);
     renderScaledMandala();
   });
-  
+
   globalGroup.appendChild(numLabel);
   globalGroup.appendChild(numInput);
   globalRow.appendChild(globalGroup);
-  
+
   container.appendChild(globalRow);
-  
+
   appState.scaledTiers.forEach((tierData, tIndex) => {
     const row = document.createElement('div');
     row.className = 'tier-control-row';
-    
+
     const label = document.createElement('label');
     label.textContent = `Tier${tIndex}`;
     row.appendChild(label);
-    
+
     // Slices control
     const sliceGroup = document.createElement('div');
     sliceGroup.className = 'tier-control-group';
-    
+
     const sliceLabel = document.createElement('label');
     sliceLabel.textContent = 'Slices:';
-    
+
     const sliceInput = document.createElement('input');
     sliceInput.type = 'number';
     sliceInput.min = '1';
@@ -1394,16 +1413,16 @@ function renderTierControls() {
         renderScaledMandala();
       }
     });
-    
+
     sliceGroup.appendChild(sliceLabel);
     sliceGroup.appendChild(sliceInput);
     row.appendChild(sliceGroup);
-    
+
     // Rotation control
     const rotGroup = document.createElement('div');
     rotGroup.className = 'tier-control-group';
     rotGroup.style.flexGrow = '1';
-    
+
     const rotInput = document.createElement('input');
     rotInput.type = 'range';
     rotInput.min = '-180';
@@ -1414,10 +1433,10 @@ function renderTierControls() {
       tierData.offset = parseInt(e.target.value, 10);
       renderScaledMandala();
     });
-    
+
     rotGroup.appendChild(rotInput);
     row.appendChild(rotGroup);
-    
+
     container.appendChild(row);
   });
 }
@@ -1427,12 +1446,12 @@ document.getElementById('save-btn').addEventListener('click', () => {
   const dataStr = JSON.stringify(appState, null, 2);
   const blob = new Blob([dataStr], { type: "application/json" });
   const url = URL.createObjectURL(blob);
-  
+
   const a = document.createElement('a');
   a.href = url;
   a.download = 'mandalas.json';
   a.click();
-  
+
   URL.revokeObjectURL(url);
 });
 
@@ -1443,7 +1462,7 @@ document.getElementById('load-btn').addEventListener('click', () => {
 document.getElementById('file-input').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
-  
+
   const reader = new FileReader();
   reader.onload = (event) => {
     try {
@@ -1454,12 +1473,12 @@ document.getElementById('file-input').addEventListener('change', (e) => {
         const msEl = document.getElementById('magic-slots');
         if (msEl) msEl.value = appState.magicNodes.length;
         renderMagicMandala();
-        
+
         // Ensure old saves have scaledTiers
         if (!appState.scaledTiers) {
-           appState.scaledTiers = [];
+          appState.scaledTiers = [];
         }
-         if (!appState.viewMode) {
+        if (!appState.viewMode) {
           appState.viewMode = 'curved-axis';
         }
         if (appState.labelOffsetTop === undefined) appState.labelOffsetTop = appState.labelOffsetTop !== undefined ? appState.labelOffsetTop : 0;
@@ -1469,6 +1488,8 @@ document.getElementById('file-input').addEventListener('change', (e) => {
         if (appState.labelSeparation === undefined) appState.labelSeparation = 100;
         if (appState.outerDistTop === undefined) appState.outerDistTop = appState.outerDistance !== undefined ? appState.outerDistance : 320;
         if (appState.outerDistBottom === undefined) appState.outerDistBottom = (appState.outerDistance !== undefined && appState.bottomOuterShift !== undefined) ? (appState.outerDistance + appState.bottomOuterShift) : 320;
+        if (appState.iconSeparation === undefined) appState.iconSeparation = appState.outerPinOffset !== undefined ? appState.outerPinOffset : 15;
+        if (appState.wrapDistance === undefined) appState.wrapDistance = 25;
         syncViewModeButtons();
         syncOuterCenteringButton();
         renderTierControls();
@@ -1503,7 +1524,9 @@ function syncViewModeButtons() {
     document.getElementById('roll-size-container'),
     document.getElementById('label-sep-container'),
     document.getElementById('outer-dist-top-container'),
-    document.getElementById('outer-dist-bottom-container')
+    document.getElementById('outer-dist-bottom-container'),
+    document.getElementById('icon-sep-container'),
+    document.getElementById('wrap-dist-container')
   ];
   curvedControls.forEach(el => {
     if (el) {
@@ -1533,7 +1556,7 @@ function syncOuterOffsetSlider() {
   if (outerOffsetSlider && outerOffsetVal) {
     outerOffsetSlider.value = appState.outerPinOffset ?? 11;
     outerOffsetVal.textContent = (appState.outerPinOffset ?? 11) + "°";
-    
+
     // Dim the slider container if in centered mode since offset is disabled
     if (outerOffsetContainer) {
       if (appState.centerOuterText) {
@@ -1562,7 +1585,7 @@ function syncBottomSliders() {
   const outerDistTopVal = document.getElementById('outer-dist-top-val');
   const outerDistBottomSlider = document.getElementById('outer-dist-bottom-slider');
   const outerDistBottomVal = document.getElementById('outer-dist-bottom-val');
-  
+
   if (labelOffsetTopSlider && labelOffsetTopVal) {
     const val = appState.labelOffsetTop ?? 0;
     labelOffsetTopSlider.value = val;
@@ -1597,6 +1620,22 @@ function syncBottomSliders() {
     const val = appState.outerDistBottom ?? 320;
     outerDistBottomSlider.value = val;
     outerDistBottomVal.textContent = val + "px";
+  }
+
+  const iconSepSlider = document.getElementById('icon-sep-slider');
+  const iconSepVal = document.getElementById('icon-sep-val');
+  const wrapDistSlider = document.getElementById('wrap-dist-slider');
+  const wrapDistVal = document.getElementById('wrap-dist-val');
+
+  if (iconSepSlider && iconSepVal) {
+    const val = appState.iconSeparation ?? 15;
+    iconSepSlider.value = val;
+    iconSepVal.textContent = val + "°";
+  }
+  if (wrapDistSlider && wrapDistVal) {
+    const val = appState.wrapDistance ?? 25;
+    wrapDistSlider.value = val;
+    wrapDistVal.textContent = val + "px";
   }
 }
 
@@ -1722,6 +1761,26 @@ async function init() {
     });
   }
 
+  const iconSepSlider = document.getElementById('icon-sep-slider');
+  const iconSepVal = document.getElementById('icon-sep-val');
+  if (iconSepSlider && iconSepVal) {
+    iconSepSlider.addEventListener('input', (e) => {
+      appState.iconSeparation = parseInt(e.target.value, 10);
+      iconSepVal.textContent = appState.iconSeparation + "°";
+      renderScaledMandala();
+    });
+  }
+
+  const wrapDistSlider = document.getElementById('wrap-dist-slider');
+  const wrapDistVal = document.getElementById('wrap-dist-val');
+  if (wrapDistSlider && wrapDistVal) {
+    wrapDistSlider.addEventListener('input', (e) => {
+      appState.wrapDistance = parseInt(e.target.value, 10);
+      wrapDistVal.textContent = appState.wrapDistance + "px";
+      renderScaledMandala();
+    });
+  }
+
   if (!appState.viewMode) {
     appState.viewMode = 'curved-axis';
   }
@@ -1731,7 +1790,7 @@ async function init() {
   // Update input values and render views
   const msInitEl = document.getElementById('magic-slots');
   if (msInitEl) msInitEl.value = appState.magicNodes.length;
-  
+
   renderMagicMandala();
   renderTierControls();
   renderScaledMandala();
