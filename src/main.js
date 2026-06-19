@@ -1781,6 +1781,11 @@ async function init() {
     });
   }
 
+  const exportPngBtn = document.getElementById('export-png-btn');
+  if (exportPngBtn) {
+    exportPngBtn.addEventListener('click', exportToPNG);
+  }
+
   if (!appState.viewMode) {
     appState.viewMode = 'curved-axis';
   }
@@ -1795,6 +1800,396 @@ async function init() {
   renderTierControls();
   renderScaledMandala();
   renderSidebarTables();
+}
+
+let cachedGameIconsBase64 = null;
+
+function arrayBufferToBase64(buffer) {
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  const len = bytes.byteLength;
+  const chunk = 8192;
+  for (let i = 0; i < len; i += chunk) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(i + chunk, len)));
+  }
+  return window.btoa(binary);
+}
+
+}
+
+  const iconSepSlider = document.getElementById('icon-sep-slider');
+  const iconSepVal = document.getElementById('icon-sep-val');
+  const wrapDistSlider = document.getElementById('wrap-dist-slider');
+  const wrapDistVal = document.getElementById('wrap-dist-val');
+
+  if (iconSepSlider && iconSepVal) {
+    const val = appState.iconSeparation ?? 15;
+    iconSepSlider.value = val;
+    iconSepVal.textContent = val + "°";
+  }
+  if (wrapDistSlider && wrapDistVal) {
+    const val = appState.wrapDistance ?? 25;
+    wrapDistSlider.value = val;
+    wrapDistVal.textContent = val + "px";
+  }
+}
+
+// Init / Startup Flow
+async function init() {
+  try {
+    const response = await fetch('/mishap_config.md');
+    if (response.ok) {
+      const markdownText = await response.text();
+      const tables = parseMarkdownTables(markdownText);
+      const loadedState = mapTablesToState(tables);
+      if (loadedState) {
+        appState.magicNodes = loadedState.magicNodes;
+        appState.scaledTiers = loadedState.scaledTiers;
+      }
+    } else {
+      console.warn("Could not fetch mishap_config.md, using default config.");
+    }
+  } catch (err) {
+    console.error("Error loading or parsing mishap_config.md:", err);
+  }
+
+  // Set up view mode segmented control
+  document.querySelectorAll('.btn-segment').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      appState.viewMode = e.currentTarget.getAttribute('data-view');
+      syncViewModeButtons();
+      renderScaledMandala();
+      renderSidebarTables();
+    });
+  });
+
+  // Set up outer centering toggle
+  const outerCenteringBtn = document.getElementById('outer-centering-btn');
+  if (outerCenteringBtn) {
+    outerCenteringBtn.addEventListener('click', () => {
+      appState.centerOuterText = !appState.centerOuterText;
+      syncOuterCenteringButton();
+      renderScaledMandala();
+      renderSidebarTables();
+    });
+  }
+
+  // Set up pin offset slider listener
+  const outerOffsetSlider = document.getElementById('outer-offset-slider');
+  const outerOffsetVal = document.getElementById('outer-offset-val');
+  if (outerOffsetSlider && outerOffsetVal) {
+    outerOffsetSlider.addEventListener('input', (e) => {
+      appState.outerPinOffset = parseFloat(e.target.value);
+      outerOffsetVal.textContent = appState.outerPinOffset + "°";
+      renderScaledMandala();
+    });
+  }
+
+  // Set up top/bottom label offset sliders listeners
+  const labelOffsetTopSlider = document.getElementById('label-offset-top-slider');
+  const labelOffsetTopVal = document.getElementById('label-offset-top-val');
+  if (labelOffsetTopSlider && labelOffsetTopVal) {
+    labelOffsetTopSlider.addEventListener('input', (e) => {
+      appState.labelOffsetTop = parseInt(e.target.value, 10);
+      labelOffsetTopVal.textContent = appState.labelOffsetTop + "px";
+      renderScaledMandala();
+    });
+  }
+
+  const labelOffsetBottomSlider = document.getElementById('label-offset-bottom-slider');
+  const labelOffsetBottomVal = document.getElementById('label-offset-bottom-val');
+  if (labelOffsetBottomSlider && labelOffsetBottomVal) {
+    labelOffsetBottomSlider.addEventListener('input', (e) => {
+      appState.labelOffsetBottom = parseInt(e.target.value, 10);
+      labelOffsetBottomVal.textContent = appState.labelOffsetBottom + "px";
+      renderScaledMandala();
+    });
+  }
+
+  const bottomIconSlider = document.getElementById('bottom-icon-slider');
+  const bottomIconVal = document.getElementById('bottom-icon-val');
+  if (bottomIconSlider && bottomIconVal) {
+    bottomIconSlider.addEventListener('input', (e) => {
+      appState.bottomIconShift = parseInt(e.target.value, 10);
+      bottomIconVal.textContent = appState.bottomIconShift + "px";
+      renderScaledMandala();
+    });
+  }
+
+  const rollSizeSlider = document.getElementById('roll-size-slider');
+  const rollSizeVal = document.getElementById('roll-size-val');
+  if (rollSizeSlider && rollSizeVal) {
+    rollSizeSlider.addEventListener('input', (e) => {
+      appState.rollFontSize = parseInt(e.target.value, 10);
+      rollSizeVal.textContent = appState.rollFontSize + "px";
+      renderScaledMandala();
+    });
+  }
+
+  const labelSepSlider = document.getElementById('label-sep-slider');
+  const labelSepVal = document.getElementById('label-sep-val');
+  if (labelSepSlider && labelSepVal) {
+    labelSepSlider.addEventListener('input', (e) => {
+      appState.labelSeparation = parseInt(e.target.value, 10);
+      labelSepVal.textContent = appState.labelSeparation + "px";
+      renderScaledMandala();
+    });
+  }
+
+  const outerDistTopSlider = document.getElementById('outer-dist-top-slider');
+  const outerDistTopVal = document.getElementById('outer-dist-top-val');
+  if (outerDistTopSlider && outerDistTopVal) {
+    outerDistTopSlider.addEventListener('input', (e) => {
+      appState.outerDistTop = parseInt(e.target.value, 10);
+      outerDistTopVal.textContent = appState.outerDistTop + "px";
+      renderScaledMandala();
+    });
+  }
+
+  const outerDistBottomSlider = document.getElementById('outer-dist-bottom-slider');
+  const outerDistBottomVal = document.getElementById('outer-dist-bottom-val');
+  if (outerDistBottomSlider && outerDistBottomVal) {
+    outerDistBottomSlider.addEventListener('input', (e) => {
+      appState.outerDistBottom = parseInt(e.target.value, 10);
+      outerDistBottomVal.textContent = appState.outerDistBottom + "px";
+      renderScaledMandala();
+    });
+  }
+
+  const iconSepSlider = document.getElementById('icon-sep-slider');
+  const iconSepVal = document.getElementById('icon-sep-val');
+  if (iconSepSlider && iconSepVal) {
+    iconSepSlider.addEventListener('input', (e) => {
+      appState.iconSeparation = parseInt(e.target.value, 10);
+      iconSepVal.textContent = appState.iconSeparation + "°";
+      renderScaledMandala();
+    });
+  }
+
+  const wrapDistSlider = document.getElementById('wrap-dist-slider');
+  const wrapDistVal = document.getElementById('wrap-dist-val');
+  if (wrapDistSlider && wrapDistVal) {
+    wrapDistSlider.addEventListener('input', (e) => {
+      appState.wrapDistance = parseInt(e.target.value, 10);
+      wrapDistVal.textContent = appState.wrapDistance + "px";
+      renderScaledMandala();
+    });
+  }
+
+  const exportPngBtn = document.getElementById('export-png-btn');
+  if (exportPngBtn) {
+    exportPngBtn.addEventListener('click', exportToPNG);
+  }
+
+  if (!appState.viewMode) {
+    appState.viewMode = 'curved-axis';
+  }
+  syncViewModeButtons();
+  syncOuterCenteringButton();
+
+  // Update input values and render views
+  const msInitEl = document.getElementById('magic-slots');
+  if (msInitEl) msInitEl.value = appState.magicNodes.length;
+
+  renderMagicMandala();
+  renderTierControls();
+  renderScaledMandala();
+  renderSidebarTables();
+}
+
+let cachedGameIconsBase64 = null;
+
+function arrayBufferToBase64(buffer) {
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  const len = bytes.byteLength;
+  const chunk = 8192;
+  for (let i = 0; i < len; i += chunk) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(i + chunk, len)));
+  }
+  return window.btoa(binary);
+}
+
+async function getGameIconsBase64() {
+  if (cachedGameIconsBase64) return cachedGameIconsBase64;
+  const response = await fetch('/fonts/rpgen-gameicons.ttf');
+  if (!response.ok) throw new Error(`Font fetch failed: ${response.status}`);
+  const buffer = await response.arrayBuffer();
+  cachedGameIconsBase64 = arrayBufferToBase64(buffer);
+  return cachedGameIconsBase64;
+}
+
+async function exportToPNG() {
+  const exportPngBtn = document.getElementById('export-png-btn');
+  const originalText = exportPngBtn.textContent;
+  exportPngBtn.textContent = "Exporting...";
+  exportPngBtn.disabled = true;
+
+  try {
+    const container = document.getElementById('target-mandala');
+    const svg = container ? container.querySelector('svg') : null;
+    if (!svg) {
+      alert("Mandala SVG not found!");
+      return;
+    }
+
+    // Load and base64 inline the game icons font to avoid tainting the canvas
+    const base64Font = await getGameIconsBase64();
+
+    // Clone the SVG
+    const svgClone = svg.cloneNode(true);
+    svgClone.setAttribute("width", "5200");
+    svgClone.setAttribute("height", "5200");
+
+    // ---------------------------------------------------------------
+    // Replace every <foreignObject> with a native SVG <text> glyph.
+    // Any foreignObject in an SVG taints the canvas, blocking toDataURL.
+    // ---------------------------------------------------------------
+    function getIconGlyph(iconClass) {
+      const probe = document.createElement('i');
+      probe.className = `gi ${iconClass}`;
+      probe.style.cssText = 'position:absolute;visibility:hidden;font-size:16px;';
+      document.body.appendChild(probe);
+      const glyph = window.getComputedStyle(probe, '::before').content;
+      document.body.removeChild(probe);
+      if (!glyph || glyph === 'none' || glyph === '""' || glyph === "''") return null;
+      return glyph.replace(/^["']|["']$/g, '');
+    }
+
+    function replaceForeignObjects(root) {
+      const fObjs = Array.from(root.querySelectorAll('foreignObject'));
+      for (const fObj of fObjs) {
+        const x = parseFloat(fObj.getAttribute('x') || '0');
+        const y = parseFloat(fObj.getAttribute('y') || '0');
+        const w = parseFloat(fObj.getAttribute('width') || '0');
+        const h = parseFloat(fObj.getAttribute('height') || '0');
+
+        const iEl = fObj.querySelector('i[class]');
+        if (!iEl) { fObj.parentNode.removeChild(fObj); continue; }
+
+        const classes = iEl.getAttribute('class').split(/\s+/);
+        const iconClass = classes.filter(c => c.startsWith('gi-') && c !== 'gi').join(' ');
+        const hasFlip = classes.includes('gi-flip-horizontal');
+
+        const styleStr = iEl.getAttribute('style') || '';
+        const colorMatch = styleStr.match(/color:\s*([^;]+)/);
+        const fontSizeMatch = styleStr.match(/font-size:\s*([\d.]+)px/);
+        const color = colorMatch ? colorMatch[1].trim() : '#ffffff';
+        const fontSize = fontSizeMatch ? parseFloat(fontSizeMatch[1]) : (Math.min(w, h) * 0.85);
+
+        const glyph = getIconGlyph(iconClass);
+        if (!glyph) { fObj.parentNode.removeChild(fObj); continue; }
+
+        const cx2 = x + w / 2;
+        const cy2 = y + h / 2;
+
+        const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        textEl.setAttribute("fill", color);
+        textEl.setAttribute("font-size", `${fontSize}px`);
+        textEl.setAttribute("text-anchor", "middle");
+        textEl.setAttribute("dominant-baseline", "central");
+        // Use inline style with !important so the broad .scaled-text/text CSS rule can't override
+        textEl.setAttribute("style", `font-family: rpgen-gameicons !important; pointer-events: none;`);
+
+        if (hasFlip) {
+          textEl.setAttribute("x", cx2.toString());
+          textEl.setAttribute("y", cy2.toString());
+          textEl.setAttribute("transform", `scale(-1,1) translate(${-(cx2 * 2)},0)`);
+        } else {
+          textEl.setAttribute("x", cx2.toString());
+          textEl.setAttribute("y", cy2.toString());
+        }
+
+        textEl.textContent = glyph;
+        fObj.parentNode.replaceChild(textEl, fObj);
+      }
+    }
+
+    replaceForeignObjects(svgClone);
+    // ---------------------------------------------------------------
+
+    // Build a custom style block to inject safe styles and fonts
+    const styleEl = document.createElementNS("http://www.w3.org/2000/svg", "style");
+
+    let cssContent = `
+      @font-face {
+        font-family: 'rpgen-gameicons';
+        src: url('data:font/truetype;base64,${base64Font}') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+      }
+
+      /* Only override fonts on labelled text, NOT all SVG text (which would break icon glyphs) */
+      .scaled-text {
+        font-family: 'Outfit', 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+      }
+    `;
+
+    // Grab styles from styleSheets, excluding rules that load external resources
+    for (const sheet of document.styleSheets) {
+      try {
+        if (sheet.href && sheet.href.includes('fonts.googleapis.com')) continue;
+        for (const rule of sheet.cssRules) {
+          if (rule.type === CSSRule.FONT_FACE_RULE) continue;
+          cssContent += rule.cssText + '\n';
+        }
+      } catch (e) {
+        console.warn("Could not read stylesheet rule:", e);
+      }
+    }
+
+    styleEl.textContent = cssContent;
+    svgClone.insertBefore(styleEl, svgClone.firstChild);
+
+    const serializer = new XMLSerializer();
+    const svgString = serializer.serializeToString(svgClone);
+
+    const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+
+    const img = new Image();
+    img.onload = () => {
+      setTimeout(() => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 5200;
+        canvas.height = 5200;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, 5200, 5200);
+
+        try {
+          const pngUrl = canvas.toDataURL('image/png');
+          const a = document.createElement('a');
+          a.href = pngUrl;
+          a.download = 'mandala_high_res.png';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        } catch (err) {
+          console.error("Failed to generate PNG:", err);
+          alert("Failed to export image due to security restrictions or error.");
+        } finally {
+          URL.revokeObjectURL(url);
+          exportPngBtn.textContent = originalText;
+          exportPngBtn.disabled = false;
+        }
+      }, 500);
+    };
+
+    img.onerror = (err) => {
+      console.error("Image loading error:", err);
+      alert("Failed to load SVG into image.");
+      URL.revokeObjectURL(url);
+      exportPngBtn.textContent = originalText;
+      exportPngBtn.disabled = false;
+    };
+
+    img.src = url;
+  } catch (err) {
+    console.error("Export process error:", err);
+    alert("Export process failed.");
+    exportPngBtn.textContent = originalText;
+    exportPngBtn.disabled = false;
+  }
 }
 
 init();
