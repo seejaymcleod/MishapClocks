@@ -93,9 +93,10 @@ h1 {
 }
 
 .svg-container {
-  width: 100%;
-  max-width: 800px;
-  aspect-ratio: 1 / 1;
+  width: 600px;
+  height: 600px;
+  max-width: 90vw;
+  max-height: 90vw;
   position: relative;
 }
 
