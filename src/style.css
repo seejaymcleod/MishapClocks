@@ -1072,3 +1072,148 @@ svg foreignObject i.gi:before {
   100% { opacity: 1; filter: drop-shadow(0 0 30px var(--glow-color, #fbbf24)) !important; }
 }
 
+/* Selection Rings for Selected School Polarity */
+.outer-icon-group .selection-ring-outer,
+.outer-icon-group .selection-ring-inner {
+  fill: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.outer-icon-group.selected-school-polarity .selection-ring-outer,
+.outer-icon-group.selected-school-polarity .selection-ring-inner {
+  opacity: 1;
+}
+
+.outer-icon-group .selection-ring-inner {
+  stroke: #ffffff;
+  stroke-width: 8px;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.95));
+}
+
+.outer-icon-group .selection-ring-outer {
+  stroke: rgba(255, 255, 255, 0.45);
+  stroke-width: 3px;
+  stroke-dasharray: 16 12;
+  animation: marqueeSelectionOuter 3s linear infinite;
+}
+
+@keyframes marqueeSelectionOuter {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: 28; /* sum of dash (16) and gap (12) */
+  }
+}
+
+/* OSR GM Adjudication / Resolution Guide Card */
+.mishap-gm-guide-box {
+  background: #191512;
+  border: 2px solid #b45309; /* Warm OSR bronze border */
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-top: 1.25rem;
+  box-shadow: inset 0 0 20px rgba(180, 83, 9, 0.08), 0 10px 25px rgba(0, 0, 0, 0.5);
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.mishap-gm-guide-box.axis-fracture {
+  border-color: #dc2626; /* Crimson border for Axis Fracture */
+  background: #1c1010;
+  box-shadow: inset 0 0 20px rgba(220, 38, 38, 0.08), 0 10px 25px rgba(0, 0, 0, 0.6);
+}
+
+.mishap-gm-guide-box h4 {
+  font-family: 'Outfit', sans-serif;
+  color: #fbbf24; /* Gold title */
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid rgba(251, 191, 36, 0.25);
+  padding-bottom: 0.5rem;
+}
+
+.mishap-gm-guide-box.axis-fracture h4 {
+  color: #ef4444; /* Crimson title */
+  border-bottom-color: rgba(239, 68, 68, 0.25);
+}
+
+.gm-guide-section {
+  margin-bottom: 1rem;
+}
+
+.gm-guide-section:last-child {
+  margin-bottom: 0;
+}
+
+.gm-guide-title {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+  margin-bottom: 0.35rem;
+  display: block;
+}
+
+.mishap-gm-guide-box.axis-fracture .gm-guide-title {
+  color: #f87171;
+}
+
+.gm-guide-content {
+  color: #e5e7eb;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.gm-guide-content ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.gm-guide-content li {
+  margin-bottom: 0.35rem;
+}
+
+.gm-guide-content li:last-child {
+  margin-bottom: 0;
+}
+
+.gm-guide-content p {
+  margin: 0 0 0.5rem 0;
+}
+
+.gm-guide-content p:last-child {
+  margin: 0;
+}
+
+.gm-fiction-prompt {
+  font-style: italic;
+  color: #f3f4f6;
+  border-left: 3px solid #b45309;
+  padding-left: 0.75rem;
+  margin: 0.5rem 0;
+}
+
+.mishap-gm-guide-box.axis-fracture .gm-fiction-prompt {
+  border-left-color: #ef4444;
+}
+
+.gm-rules-applied {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: #cbd5e1;
+}
+

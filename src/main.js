@@ -888,6 +888,28 @@ function renderScaledMandala() {
         iconGroup.setAttribute("data-polarity", polarity);
         iconGroup.setAttribute("transform", `rotate(${iconRot}, ${iconPos.x}, ${iconPos.y})`);
 
+        // Check if selected to preserve state on redraw
+        const isSelected = (mishapState.selectedSchoolIdx === i && mishapState.selectedPolarity === polarity);
+        if (isSelected) {
+          iconGroup.classList.add('selected-school-polarity');
+        }
+
+        // Draw selection outer ring (dashed marquee)
+        const selectionRingOuter = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        selectionRingOuter.setAttribute("class", "selection-ring-outer");
+        selectionRingOuter.setAttribute("cx", iconPos.x);
+        selectionRingOuter.setAttribute("cy", iconPos.y);
+        selectionRingOuter.setAttribute("r", "145");
+        iconGroup.appendChild(selectionRingOuter);
+
+        // Draw selection inner ring (glowing solid)
+        const selectionRingInner = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        selectionRingInner.setAttribute("class", "selection-ring-inner");
+        selectionRingInner.setAttribute("cx", iconPos.x);
+        selectionRingInner.setAttribute("cy", iconPos.y);
+        selectionRingInner.setAttribute("r", "120");
+        iconGroup.appendChild(selectionRingInner);
+
         const fObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
         fObj.setAttribute("x", iconPos.x - containerSize / 2);
         fObj.setAttribute("y", iconPos.y - containerSize / 2);
@@ -2463,29 +2485,43 @@ function setupMishapRoller() {
   });
 
   rollBtn.addEventListener('click', rollMishap);
+
+  // Set default selection display on load
+  selectMishapIconFromCircle(mishapState.selectedSchoolIdx, mishapState.selectedPolarity);
 }
 
 function selectMishapIconFromCircle(schoolIdx, polarity) {
-  const selectionContainer = document.getElementById('mishap-active-selection');
-  if (!selectionContainer) return;
-
-  const school = appState.magicNodes[schoolIdx];
-  const iconClass = polarity === 'positive' ? school.icon : school.negativeIcon;
-  const symbol = polarity === 'positive' ? '+' : '−';
-
-  selectionContainer.style.setProperty('--school-color-glow', school.color + '88');
-  selectionContainer.style.setProperty('--school-color', school.color);
-  
-  selectionContainer.innerHTML = `
-    <i class="gi ${iconClass}"></i>
-    <div class="selection-text">
-      <span class="selection-school">${school.label} (${symbol})</span>
-      <span class="selection-polarity">${polarity}</span>
-    </div>
-  `;
-
   mishapState.selectedSchoolIdx = parseInt(schoolIdx, 10);
   mishapState.selectedPolarity = polarity;
+
+  const selectionContainer = document.getElementById('mishap-active-selection');
+  if (selectionContainer) {
+    const school = appState.magicNodes[schoolIdx];
+    const iconClass = polarity === 'positive' ? school.icon : school.negativeIcon;
+    const symbol = polarity === 'positive' ? '+' : '−';
+
+    selectionContainer.style.setProperty('--school-color-glow', school.color + '88');
+    selectionContainer.style.setProperty('--school-color', school.color);
+    
+    selectionContainer.innerHTML = `
+      <i class="gi ${iconClass}"></i>
+      <div class="selection-text">
+        <span class="selection-school">${school.label} (${symbol})</span>
+        <span class="selection-polarity">${polarity}</span>
+      </div>
+    `;
+  }
+
+  // Update selection rings on the SVG mandala
+  document.querySelectorAll('.outer-icon-group').forEach(group => {
+    const sIdx = parseInt(group.getAttribute('data-school-idx'), 10);
+    const pol = group.getAttribute('data-polarity');
+    if (sIdx === mishapState.selectedSchoolIdx && pol === mishapState.selectedPolarity) {
+      group.classList.add('selected-school-polarity');
+    } else {
+      group.classList.remove('selected-school-polarity');
+    }
+  });
 }
 
 function clearMandalaHighlights() {
@@ -2520,27 +2556,31 @@ function rollMishap() {
 
   const resultsContainer = document.getElementById('mishap-results-container');
   const narrativeBox = document.getElementById('mishap-narrative');
+  const gmGuideBox = document.getElementById('mishap-gm-guide');
   const dieSchool = document.getElementById('die-container-mishap-school');
   const dieEffect = document.getElementById('die-container-mishap-effect');
   const dieChaos = document.getElementById('die-container-mishap-chaos');
 
-  resultsContainer.classList.remove('hidden');
-  narrativeBox.classList.remove('hidden');
+  if (resultsContainer) resultsContainer.classList.remove('hidden');
+  if (narrativeBox) narrativeBox.classList.remove('hidden');
+  if (gmGuideBox) gmGuideBox.classList.remove('hidden');
 
   // Reset dice animations
   [dieSchool, dieEffect, dieChaos].forEach(d => {
-    d.classList.remove('die-rolled');
-    void d.offsetWidth; // trigger reflow
-    d.classList.add('die-rolled');
+    if (d) {
+      d.classList.remove('die-rolled');
+      void d.offsetWidth; // trigger reflow
+      d.classList.add('die-rolled');
+    }
   });
 
-  dieChaos.classList.add('hidden');
+  if (dieChaos) dieChaos.classList.add('hidden');
 
   const d1 = Math.floor(Math.random() * 8) + 1; // Mishap School
   const d2 = Math.floor(Math.random() * 8) + 1; // Mishap Effect
 
-  dieSchool.querySelector('.die-val').textContent = d1;
-  dieEffect.querySelector('.die-val').textContent = d2;
+  if (dieSchool) dieSchool.querySelector('.die-val').textContent = d1;
+  if (dieEffect) dieEffect.querySelector('.die-val').textContent = d2;
 
   const initialTier = mishapState.selectedTier;
   const castSchoolIdx = mishapState.selectedSchoolIdx;
@@ -2559,21 +2599,95 @@ function rollMishap() {
     return `<strong>${node.type}</strong>: <em>${node.modifier}</em>`;
   };
 
+  const getSchoolFlavor = (idx, pol) => {
+    if (idx === 0) { // Thermal
+      return pol === 'positive' ? 'kinetic ignition and flash-fire heat' : 'kinetic absolute zero and freezing cold';
+    } else if (idx === 1) { // Aero
+      return pol === 'positive' ? 'gale-force wind shockwaves' : 'suffocating vacuums';
+    } else if (idx === 2) { // Electromagnetic
+      return pol === 'positive' ? 'crackling lightning arcs' : 'current grounding and magic dead zones';
+    } else if (idx === 3) { // Neural
+      return pol === 'positive' ? 'cognitive logic pressure' : 'screaming sensory psychosis';
+    } else if (idx === 4) { // Hydro
+      return pol === 'positive' ? 'torrential flooding water pressure' : 'parched desiccation and rapid drying';
+    } else if (idx === 5) { // Geo
+      return pol === 'positive' ? 'heavy crushing bedrock accretion' : 'rust, dust decay, and structural collapse';
+    } else if (idx === 6) { // Dimensional
+      return pol === 'positive' ? 'chrono-acceleration aging' : 'chrono-stasis momentum freezing';
+    } else if (idx === 7) { // Vital
+      return pol === 'positive' ? 'uncontrolled cellular hyper-regeneration' : 'immediate necrosis and tissue decay';
+    }
+    return appState.magicNodes[idx].label;
+  };
+
+  const getEffectFlavor = (idx) => {
+    const types = [
+      'direct self-infliction upon the caster',
+      'unintended redirection veering off-course',
+      'splitting and striking multiple targets',
+      'a close-range backlash shockwave',
+      'magical dampening interference',
+      'permanent environmental warping',
+      'a lingering localized vortex field',
+      'raw mana leakage and energy drainage'
+    ];
+    return types[idx] || 'mishap manifestation';
+  };
+
+  const getSuggestedSave = (idx) => {
+    const saves = [
+      'Constitution (vs. extreme temperature)',
+      'Dexterity (vs. gale winds or void pull)',
+      'Dexterity or Constitution (vs. shock/paralysis)',
+      'Wisdom (vs. mental overload/psychic shock)',
+      'Strength or Constitution (vs. pressure/dehydration)',
+      'Dexterity or Strength (vs. stone shards/decay)',
+      'Wisdom or Constitution (vs. temporal shift/rapid aging)',
+      'Constitution (vs. cellular necrosis/mutation)'
+    ];
+    return saves[idx] || 'Constitution';
+  };
+
+  const getDamageType = (idx, pol) => {
+    const types = [
+      pol === 'positive' ? 'Fire/Heat' : 'Cold',
+      pol === 'positive' ? 'Bludgeoning Wind' : 'Suffocating/Force',
+      pol === 'positive' ? 'Lightning/Electric' : 'Mana Grounding',
+      pol === 'positive' ? 'Psychic' : 'Psychic (Madness)',
+      pol === 'positive' ? 'Water/Pressure' : 'Desiccation/Dehydration',
+      pol === 'positive' ? 'Crushing Earth' : 'Erosion/Decay',
+      pol === 'positive' ? 'Chrono-Decay/Force' : 'Temporal Stasis',
+      pol === 'positive' ? 'Growth Mutation' : 'Necrotic'
+    ];
+    return types[idx] || 'Magical';
+  };
+
+  const getEffectRuling = (idx, modifier) => {
+    const rulings = [
+      `<li><strong>Epicenter Caster:</strong> The caster is the direct target. This damage/complication cannot be redirected or mitigated by magic armor. Describe a physical toll (e.g., frostbitten fingers, smoking robes, or blood dripping from ears).</li>`,
+      `<li><strong>Veering Path:</strong> The spell completely veers off course. Roll randomly among all nearby creatures (allies, enemies, and neutrals) to determine who is hit by the veered spell.</li>`,
+      `<li><strong>Violent Split:</strong> The mishap forks into multiple paths (<em>${modifier}</em>). If there are fewer targets than the fork amount, the extra paths strike the environment (creating hazards) or loop back to the caster.</li>`,
+      `<li><strong>Proximal Backlash:</strong> The spell collapses at the caster's feet. Every creature within Close range (5-10 ft) is caught in the radius and must make the saving throw.</li>`,
+      `<li><strong>Spell Dampening:</strong> The local magical frequency is jammed. Active spells of this school are dispelled, and casting of this school suffers a DC +4 penalty for the next 10 minutes.</li>`,
+      `<li><strong>Terrain Warping:</strong> The environment is permanently altered by the elements (<em>${modifier}</em>). This creates difficult terrain, blocks exits, or collapses structures.</li>`,
+      `<li><strong>Lingering Hazard:</strong> A persistent, unstable zone is created (30ft radius). Any creature entering or starting their turn in this zone must save or take damage/complications.</li>`,
+      `<li><strong>Ethereal Drain:</strong> Caster's mana reservoirs bleed out. The caster loses an additional spell slot, or magic items on their person lose 1 charge.</li>`
+    ];
+    return rulings[idx] || `<li><strong>Catastrophic Complication:</strong> Apply the custom effect <em>${modifier}</em> to the scene.</li>`;
+  };
+
   let narrativeHtml = `<h4>Roll Results</h4><p>Base Tier: T${initialTier} | Cast: ${formatSchool(castSchoolIdx, castPolarity)}</p><hr>`;
+  let gmGuideHtml = '';
 
   if (d1 === d2) {
     // AXIS FRACTURE (Doubles)
+    if (gmGuideBox) gmGuideBox.className = 'mishap-gm-guide-box axis-fracture';
     narrativeHtml += `<div class="axis-fracture-badge">⚠️ AXIS FRACTURE ⚠️</div>`;
-    dieChaos.classList.remove('hidden');
+    if (dieChaos) dieChaos.classList.remove('hidden');
 
     let currentTier = initialTier + 1;
     narrativeHtml += `<p>• <strong>Tier Spike</strong>: Tier escalated to T${currentTier}.</p>`;
 
-    const oppSchoolIdx = getOppositeSchoolIdx(castSchoolIdx);
-    
-    // Trigger School (Positive) and Opposed (Negative) -- using the rolled number's slice? Wait, "rolled school". 
-    // "Use the circle to trigger both the rolled school (Positive polarity) and opposed school (Negative polarity)."
-    // Let's use the slice D1 (index d1-1).
     const rolledSliceIdx = d1 - 1;
     const rolledSliceOppIdx = getOppositeSchoolIdx(rolledSliceIdx);
 
@@ -2584,10 +2698,11 @@ function rollMishap() {
     highlightMandalaElements(rolledSliceOppIdx, Math.min(currentTier, 5), false);
 
     let d3 = Math.floor(Math.random() * 8) + 1;
-    dieChaos.querySelector('.die-val').textContent = d3;
+    if (dieChaos) dieChaos.querySelector('.die-val').textContent = d3;
     
     let effectDiceBonus = 0;
     let effectDcBonus = 0;
+    let chaosLog = `Rolled ${d3}`;
 
     narrativeHtml += `<p>• <strong>Chaos Die</strong>: Rolled ${d3}.</p>`;
 
@@ -2596,14 +2711,17 @@ function rollMishap() {
       if (currentTier < 5) {
         currentTier++;
         narrativeHtml += `<p>• Tier escalated to T${currentTier}. Re-rolling Chaos Die...</p>`;
+        chaosLog += ` &rarr; 💥 <strong>Resonance!</strong> Escalated to T${currentTier}. Re-rolling`;
       } else {
         effectDiceBonus++;
         effectDcBonus += 2;
         narrativeHtml += `<p>• <strong>Critical Overload!</strong> (Past T5) Effect Dice instances +1, DC +2. Re-rolling Chaos Die...</p>`;
+        chaosLog += ` &rarr; 💥 <strong>Critical Overload!</strong> DC+2, Dice+1. Re-rolling`;
       }
       d3 = Math.floor(Math.random() * 8) + 1;
-      dieChaos.querySelector('.die-val').textContent = d3;
+      if (dieChaos) dieChaos.querySelector('.die-val').textContent = d3;
       narrativeHtml += `<p>• New Chaos Die: ${d3}.</p>`;
+      chaosLog += ` [New: ${d3}]`;
     }
 
     const finalSliceIdx = d3 - 1;
@@ -2614,24 +2732,85 @@ function rollMishap() {
     const finalTierClamp = Math.min(currentTier, 5);
     const nodeA = appState.scaledTiers[finalTierClamp].nodes[finalSliceIdx];
     const nodeB = appState.scaledTiers[finalTierClamp].nodes[finalOppSliceIdx];
-    const baseDc = appState.scaledTiers[finalTierClamp].nodes[0].dc;
-    const baseDice = appState.scaledTiers[finalTierClamp].nodes[0].dice;
+    const baseNode = appState.scaledTiers[finalTierClamp].nodes[0];
+    const baseDc = baseNode.dc || 'DC 11';
+    const baseDice = baseNode.dice || '1d6';
 
     narrativeHtml += `<p><strong>Final Escalated Effects (T${currentTier}):</strong></p>`;
     narrativeHtml += `<ul><li>${formatEffect(finalSliceIdx, finalTierClamp)}</li><li>${formatEffect(finalOppSliceIdx, finalTierClamp)}</li></ul>`;
     
-    if (effectDiceBonus > 0 || effectDcBonus > 0) {
-       narrativeHtml += `<p><em>Overload Adjustments:</em> Base DC (${baseDc}) + ${effectDcBonus}, Base Dice (${baseDice}) + ${effectDiceBonus} instance(s).</p>`;
+    let baseDcVal = 9 + finalTierClamp * 2;
+    if (baseDc.startsWith("DC ")) {
+      baseDcVal = parseInt(baseDc.replace("DC ", ""), 10);
+    }
+    const finalDcVal = baseDcVal + effectDcBonus;
+    const finalDcStr = `DC ${finalDcVal}`;
+
+    let finalDiceStr = baseDice;
+    if (effectDiceBonus > 0) {
+      narrativeHtml += `<p><em>Overload Adjustments:</em> Base DC (${baseDc}) + ${effectDcBonus}, Base Dice (${baseDice}) + ${effectDiceBonus} instance(s).</p>`;
+      finalDiceStr = `${baseDice} + ${effectDiceBonus} instance(s)`;
     }
 
     // Highlight effects
     highlightMandalaElements(finalSliceIdx, finalTierClamp, true);
     highlightMandalaElements(finalOppSliceIdx, finalTierClamp, true);
 
+    // OSR Guide Output
+    const schoolFlavorA = getSchoolFlavor(rolledSliceIdx, 'positive');
+    const schoolFlavorB = getSchoolFlavor(rolledSliceOppIdx, 'negative');
+    const shapeFlavorA = getEffectFlavor(finalSliceIdx);
+    const shapeFlavorB = getEffectFlavor(finalOppSliceIdx);
+
+    gmGuideHtml = `
+      <h4><i class="gi gi-skull"></i> OSR Resolution: Axis Fracture</h4>
+      
+      <div class="gm-guide-section">
+        <span class="gm-guide-title">1. Rules Parsing Breakdown</span>
+        <div class="gm-guide-content gm-rules-applied">
+          <strong>Catastrophic Doubles:</strong> Rolled ${d1} and ${d1} &rarr; Axis Fracture snapped the cosmic circuit.<br>
+          <strong>Tier Escalation:</strong> Base T${initialTier} spiked to T${currentTier} (clamped at T${finalTierClamp} for table lookup).<br>
+          <strong>Dual Schools Triggered:</strong> Rolled School ${formatSchool(rolledSliceIdx, 'positive')} AND Opposed School ${formatSchool(rolledSliceOppIdx, 'negative')}.<br>
+          <strong>Chaos Geometry:</strong> ${chaosLog} &rarr; Settled on unique ${d3}.<br>
+          <strong>Dual Shapes Triggered:</strong> Slice ${d3}: <strong>${nodeA.type}</strong> AND Opposite Slice ${finalOppSliceIdx + 1}: <strong>${nodeB.type}</strong>.
+        </div>
+      </div>
+
+      <div class="gm-guide-section">
+        <span class="gm-guide-title">2. Environmental & Thematic Fiction</span>
+        <div class="gm-guide-content gm-fiction-prompt">
+          "The cosmic circuit shatters under a catastrophic collision of opposing forces! Eruptions of <strong>${schoolFlavorA}</strong> and <strong>${schoolFlavorB}</strong> clash violently, tearing the fabric of reality with both <strong>${shapeFlavorA}</strong> and <strong>${shapeFlavorB}</strong>."
+        </div>
+      </div>
+
+      <div class="gm-guide-section">
+        <span class="gm-guide-title">3. Mechanical Adjudication (GM Checklist)</span>
+        <div class="gm-guide-content">
+          <ul>
+            <li><strong>Double Threat Saving Throw:</strong> Targets must choose their defense: make a <strong>${getSuggestedSave(rolledSliceIdx)} Save</strong> OR a <strong>${getSuggestedSave(rolledSliceOppIdx)} Save</strong> at <strong>${finalDcStr}</strong> to resist.</li>
+            <li><strong>Dual-Elemental Damage:</strong> On a failed save, inflict <strong>${finalDiceStr} ${getDamageType(rolledSliceIdx, 'positive')} damage</strong> AND <strong>${finalDiceStr} ${getDamageType(rolledSliceOppIdx, 'negative')} damage</strong>.</li>
+            <li><strong>Apply Shape A Complication — ${nodeA.type} (${nodeA.modifier}):</strong>
+              <ul>
+                ${getEffectRuling(finalSliceIdx, nodeA.modifier)}
+              </ul>
+            </li>
+            <li><strong>Apply Shape B Complication — ${nodeB.type} (${nodeB.modifier}):</strong>
+              <ul>
+                ${getEffectRuling(finalOppSliceIdx, nodeB.modifier)}
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    `;
+
   } else {
     // STANDARD ROLL
+    if (gmGuideBox) gmGuideBox.className = 'mishap-gm-guide-box';
     let resultSchoolIdx = castSchoolIdx;
     let resultPolarity = castPolarity;
+    let secondarySchoolIdx = null;
+    let secondaryPolarity = null;
     
     let rollTypeStr = "";
 
@@ -2653,14 +2832,13 @@ function rollMishap() {
       resultPolarity = 'negative';
     } else if (d1 === 1) {
       rollTypeStr = "Cast school (same) + Random school (inverted)";
-      // First result
       resultSchoolIdx = castSchoolIdx;
       resultPolarity = castPolarity;
       
-      const randSchoolIdx = Math.floor(Math.random() * 8);
-      const randPolarity = getInvertedPolarity(castPolarity);
-      narrativeHtml += `<p><strong>Mishap School (Secondary)</strong>: ${formatSchool(randSchoolIdx, randPolarity)}</p>`;
-      highlightMandalaElements(randSchoolIdx, initialTier, false);
+      secondarySchoolIdx = Math.floor(Math.random() * 8);
+      secondaryPolarity = getInvertedPolarity(castPolarity);
+      narrativeHtml += `<p><strong>Mishap School (Secondary)</strong>: ${formatSchool(secondarySchoolIdx, secondaryPolarity)}</p>`;
+      highlightMandalaElements(secondarySchoolIdx, initialTier, false);
     }
 
     narrativeHtml += `<p><strong>Mishap School</strong> (Roll ${d1}): ${rollTypeStr} ➔ ${formatSchool(resultSchoolIdx, resultPolarity)}</p>`;
@@ -2668,11 +2846,91 @@ function rollMishap() {
 
     const effectSliceIdx = d2 - 1;
     narrativeHtml += `<p><strong>Mishap Effect</strong> (Roll ${d2}): ${formatEffect(effectSliceIdx, initialTier)}</p>`;
-    
     highlightMandalaElements(effectSliceIdx, initialTier, true);
+
+    // OSR Guide Output
+    const schoolFlavorA = getSchoolFlavor(resultSchoolIdx, resultPolarity);
+    const effectFlavor = getEffectFlavor(effectSliceIdx);
+    const baseNode = appState.scaledTiers[initialTier].nodes[0];
+    const dcStr = baseNode.dc || `DC ${9 + initialTier * 2}`;
+    const diceStr = baseNode.dice || `1d${4 + initialTier * 2}`;
+    const effectNode = appState.scaledTiers[initialTier].nodes[effectSliceIdx];
+    const modifier = effectNode.modifier;
+    const effectType = effectNode.type;
+
+    let fictionText = `The local magical field buckles as a surge of <strong>${schoolFlavorA}</strong> manifests as <strong>${effectFlavor}</strong>.`;
+    if (secondarySchoolIdx !== null) {
+      const schoolFlavorB = getSchoolFlavor(secondarySchoolIdx, secondaryPolarity);
+      fictionText = `The local magical field splits as a dual surge of <strong>${schoolFlavorA}</strong> and <strong>${schoolFlavorB}</strong> manifests as <strong>${effectFlavor}</strong>.`;
+    }
+
+    let parserHtml = `
+      <strong>d8 School Roll:</strong> Rolled ${d1} &rarr; <em>${rollTypeStr}</em> &rarr; Mishap School: ${formatSchool(resultSchoolIdx, resultPolarity)}
+    `;
+    if (secondarySchoolIdx !== null) {
+      parserHtml += `<br><strong>Secondary Mishap School:</strong> ${formatSchool(secondarySchoolIdx, secondaryPolarity)}`;
+    }
+    parserHtml += `
+      <br><strong>d8 Effect Roll:</strong> Rolled ${d2} &rarr; Look at Slice ${d2} at Tier ${initialTier} &rarr; <strong>${effectType} (${modifier})</strong>
+    `;
+
+    let mechanicsHtml = `
+      <ul>
+        <li><strong>Determine Save:</strong> Target makes a <strong>${getSuggestedSave(resultSchoolIdx)} Save</strong> (${dcStr}) to resist.</li>
+    `;
+    if (secondarySchoolIdx !== null) {
+      mechanicsHtml += `
+        <li><strong>Secondary Save:</strong> For the secondary element, targets also make a <strong>${getSuggestedSave(secondarySchoolIdx)} Save</strong> (${dcStr}) to resist.</li>
+      `;
+    }
+    
+    if (diceStr !== '—') {
+      let dmgTypes = getDamageType(resultSchoolIdx, resultPolarity);
+      if (secondarySchoolIdx !== null) {
+        dmgTypes += ` and ${getDamageType(secondarySchoolIdx, secondaryPolarity)}`;
+      }
+      mechanicsHtml += `
+        <li><strong>Inflict Damage:</strong> On a failed save, deal <strong>${diceStr} ${dmgTypes} damage</strong> (half on success).</li>
+      `;
+    }
+
+    mechanicsHtml += `
+        <li><strong>Apply Complication — ${effectType} (${modifier}):</strong>
+          <ul>
+            ${getEffectRuling(effectSliceIdx, modifier)}
+          </ul>
+        </li>
+      </ul>
+    `;
+
+    gmGuideHtml = `
+      <h4><i class="gi gi-scroll"></i> OSR Resolution Guide</h4>
+      
+      <div class="gm-guide-section">
+        <span class="gm-guide-title">1. Rules Parsing Breakdown</span>
+        <div class="gm-guide-content gm-rules-applied">
+          ${parserHtml}
+        </div>
+      </div>
+
+      <div class="gm-guide-section">
+        <span class="gm-guide-title">2. Environmental & Thematic Fiction</span>
+        <div class="gm-guide-content gm-fiction-prompt">
+          "${fictionText}"
+        </div>
+      </div>
+
+      <div class="gm-guide-section">
+        <span class="gm-guide-title">3. Mechanical Adjudication (GM Checklist)</span>
+        <div class="gm-guide-content">
+          ${mechanicsHtml}
+        </div>
+      </div>
+    `;
   }
 
   narrativeBox.innerHTML = narrativeHtml;
+  if (gmGuideBox) gmGuideBox.innerHTML = gmGuideHtml;
 }
 
 init();
