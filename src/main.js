@@ -362,6 +362,10 @@ function renderScaledMandala() {
       path.setAttribute("stroke", "var(--bg-color)");
       path.setAttribute("stroke-opacity", "0.5");
       path.setAttribute("stroke-width", "8");
+      path.setAttribute("class", "node-path mandala-slice");
+      path.setAttribute("data-school-idx", i);
+      path.setAttribute("data-tier-idx", tIndex);
+      path.setAttribute("id", `mandala-slice-${tIndex}-${i}`);
 
       path.addEventListener('click', () => openModal(school, 'magic'));
 
@@ -759,7 +763,8 @@ function renderScaledMandala() {
       }
 
       const numberText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      numberText.setAttribute("class", "scaled-text");
+      numberText.setAttribute("class", `scaled-text outer-number outer-number-${i}`);
+      numberText.setAttribute("data-school-idx", i);
       numberText.setAttribute("x", textPos.x);
       numberText.setAttribute("y", textPos.y);
       numberText.setAttribute("text-anchor", "middle");
@@ -812,7 +817,9 @@ function renderScaledMandala() {
         svg.appendChild(defsPath);
 
         const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        textEl.setAttribute("class", "scaled-text outer-ring-text");
+        const extraClass = isSchool ? `outer-school-label-${i}` : `outer-effect-label-${i}`;
+        textEl.setAttribute("class", `scaled-text outer-ring-text ${extraClass}`);
+        textEl.setAttribute("data-school-idx", i);
         textEl.setAttribute("font-size", "70px");
         textEl.setAttribute("font-weight", isSchool ? "bold" : "normal");
         textEl.setAttribute("dominant-baseline", "middle");
@@ -868,7 +875,7 @@ function renderScaledMandala() {
       const iconSize = 180;
       const containerSize = iconSize * 2;
 
-      const renderIcon = (iconClass, targetAngle, targetColor) => {
+      const renderIcon = (iconClass, targetAngle, targetColor, polarity) => {
         const iconPos = polarToCartesian(cx, cy, iconRadius, targetAngle);
         let iconRot = targetAngle;
         if (isBottomHalf) {
@@ -876,6 +883,9 @@ function renderScaledMandala() {
         }
 
         const iconGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        iconGroup.setAttribute("class", `outer-icon-group outer-icon-${i} clickable`);
+        iconGroup.setAttribute("data-school-idx", i);
+        iconGroup.setAttribute("data-polarity", polarity);
         iconGroup.setAttribute("transform", `rotate(${iconRot}, ${iconPos.x}, ${iconPos.y})`);
 
         const fObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
@@ -886,6 +896,12 @@ function renderScaledMandala() {
         fObj.innerHTML = `<i class="gi ${iconClass}" style="font-size: ${iconSize}px; color: ${targetColor}; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
         iconGroup.appendChild(fObj);
         svg.appendChild(iconGroup);
+        
+        // Add click listener to select polarity from the circle
+        iconGroup.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectMishapIconFromCircle(i, polarity);
+        });
       };
 
       // Render Polarity Indicators based on appState.polarityMode
@@ -996,10 +1012,10 @@ function renderScaledMandala() {
 
       // Swapped: Negative on left, Positive on right
       if (school.negativeIcon) {
-        renderIcon(school.negativeIcon, leftCenterAngle, school.color);
+        renderIcon(school.negativeIcon, leftCenterAngle, school.color, 'negative');
       }
       if (school.icon) {
-        renderIcon(school.icon, rightCenterAngle, school.color);
+        renderIcon(school.icon, rightCenterAngle, school.color, 'positive');
       }
 
       // Draw other polarity label styles AFTER icons
@@ -1866,6 +1882,18 @@ function setupSpellPicker() {
     }
     closeAllLists();
 
+    // Sync tier with Mishap Roller
+    if (typeof mishapState !== 'undefined') {
+      mishapState.selectedTier = spell.tier;
+      const tierBtns = document.querySelectorAll('#mishap-tier-control .btn-segment');
+      tierBtns.forEach(b => {
+        b.classList.remove('active');
+        if (parseInt(b.dataset.mishapTier, 10) === spell.tier) {
+          b.classList.add('active');
+        }
+      });
+    }
+
     // Trigger animation
     resultBox.classList.remove('roll-pulse');
     void resultBox.offsetWidth; // Trigger reflow
@@ -2170,6 +2198,7 @@ async function init() {
   renderScaledMandala();
   renderSidebarTables();
   setupSpellPicker();
+  setupMishapRoller();
 
   // Set up header visibility toggle
   const header = document.querySelector('header');
@@ -2398,6 +2427,252 @@ async function exportToPNG() {
     exportPngBtn.textContent = originalText;
     exportPngBtn.disabled = false;
   }
+}
+
+// ==========================================
+// Cosmic Mishap Roller Logic
+// ==========================================
+
+let mishapState = {
+  selectedSchoolIdx: 0,
+  selectedPolarity: 'positive',
+  selectedTier: 1
+};
+
+function setupMishapRoller() {
+  const tierBtns = document.querySelectorAll('#mishap-tier-control .btn-segment');
+  const rollBtn = document.getElementById('btn-roll-mishap');
+  const toggleBtn = document.getElementById('btn-mishap-rules-toggle');
+  const rulesPopover = document.getElementById('mishap-rules-popover');
+
+  if (!rollBtn) return;
+
+  if (toggleBtn && rulesPopover) {
+    toggleBtn.addEventListener('click', () => {
+      rulesPopover.classList.toggle('visible');
+    });
+  }
+
+  // Tier selection
+  tierBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tierBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      mishapState.selectedTier = parseInt(btn.dataset.mishapTier, 10);
+    });
+  });
+
+  rollBtn.addEventListener('click', rollMishap);
+}
+
+function selectMishapIconFromCircle(schoolIdx, polarity) {
+  const selectionContainer = document.getElementById('mishap-active-selection');
+  if (!selectionContainer) return;
+
+  const school = appState.magicNodes[schoolIdx];
+  const iconClass = polarity === 'positive' ? school.icon : school.negativeIcon;
+  const symbol = polarity === 'positive' ? '+' : '−';
+
+  selectionContainer.style.setProperty('--school-color-glow', school.color + '88');
+  selectionContainer.style.setProperty('--school-color', school.color);
+  
+  selectionContainer.innerHTML = `
+    <i class="gi ${iconClass}"></i>
+    <div class="selection-text">
+      <span class="selection-school">${school.label} (${symbol})</span>
+      <span class="selection-polarity">${polarity}</span>
+    </div>
+  `;
+
+  mishapState.selectedSchoolIdx = parseInt(schoolIdx, 10);
+  mishapState.selectedPolarity = polarity;
+}
+
+function clearMandalaHighlights() {
+  document.querySelectorAll('.highlighted').forEach(el => el.classList.remove('highlighted'));
+}
+
+function highlightMandalaElements(schoolIdx, tierIdx, isEffect) {
+  // Highlight the slice
+  const slice = document.getElementById(`mandala-slice-${tierIdx}-${schoolIdx}`);
+  if (slice) slice.classList.add('highlighted');
+
+  // Highlight the outer number
+  const numberText = document.querySelector(`.outer-number-${schoolIdx}`);
+  if (numberText) numberText.classList.add('highlighted');
+
+  // Highlight the label and icon based on whether it's a school or effect
+  if (!isEffect) {
+    const schoolLabel = document.querySelector(`.outer-school-label-${schoolIdx}`);
+    if (schoolLabel) schoolLabel.classList.add('highlighted');
+  } else {
+    const effectLabel = document.querySelector(`.outer-effect-label-${schoolIdx}`);
+    if (effectLabel) effectLabel.classList.add('highlighted');
+  }
+  
+  document.querySelectorAll(`.outer-icon-${schoolIdx}`).forEach(el => {
+    el.classList.add('highlighted');
+  });
+}
+
+function rollMishap() {
+  clearMandalaHighlights();
+
+  const resultsContainer = document.getElementById('mishap-results-container');
+  const narrativeBox = document.getElementById('mishap-narrative');
+  const dieSchool = document.getElementById('die-container-mishap-school');
+  const dieEffect = document.getElementById('die-container-mishap-effect');
+  const dieChaos = document.getElementById('die-container-mishap-chaos');
+
+  resultsContainer.classList.remove('hidden');
+  narrativeBox.classList.remove('hidden');
+
+  // Reset dice animations
+  [dieSchool, dieEffect, dieChaos].forEach(d => {
+    d.classList.remove('die-rolled');
+    void d.offsetWidth; // trigger reflow
+    d.classList.add('die-rolled');
+  });
+
+  dieChaos.classList.add('hidden');
+
+  const d1 = Math.floor(Math.random() * 8) + 1; // Mishap School
+  const d2 = Math.floor(Math.random() * 8) + 1; // Mishap Effect
+
+  dieSchool.querySelector('.die-val').textContent = d1;
+  dieEffect.querySelector('.die-val').textContent = d2;
+
+  const initialTier = mishapState.selectedTier;
+  const castSchoolIdx = mishapState.selectedSchoolIdx;
+  const castPolarity = mishapState.selectedPolarity;
+  const castSchool = appState.magicNodes[castSchoolIdx];
+
+  const getOppositeSchoolIdx = (idx) => {
+    const oppLabel = appState.magicNodes[idx].opposite;
+    return appState.magicNodes.findIndex(n => n.label === oppLabel);
+  };
+
+  const getInvertedPolarity = (pol) => pol === 'positive' ? 'negative' : 'positive';
+  const formatSchool = (idx, pol) => `<strong style="color: ${appState.magicNodes[idx].color};">${appState.magicNodes[idx].label} (${pol === 'positive' ? '+' : '−'})</strong>`;
+  const formatEffect = (idx, tier) => {
+    const node = appState.scaledTiers[tier].nodes[idx];
+    return `<strong>${node.type}</strong>: <em>${node.modifier}</em>`;
+  };
+
+  let narrativeHtml = `<h4>Roll Results</h4><p>Base Tier: T${initialTier} | Cast: ${formatSchool(castSchoolIdx, castPolarity)}</p><hr>`;
+
+  if (d1 === d2) {
+    // AXIS FRACTURE (Doubles)
+    narrativeHtml += `<div class="axis-fracture-badge">⚠️ AXIS FRACTURE ⚠️</div>`;
+    dieChaos.classList.remove('hidden');
+
+    let currentTier = initialTier + 1;
+    narrativeHtml += `<p>• <strong>Tier Spike</strong>: Tier escalated to T${currentTier}.</p>`;
+
+    const oppSchoolIdx = getOppositeSchoolIdx(castSchoolIdx);
+    
+    // Trigger School (Positive) and Opposed (Negative) -- using the rolled number's slice? Wait, "rolled school". 
+    // "Use the circle to trigger both the rolled school (Positive polarity) and opposed school (Negative polarity)."
+    // Let's use the slice D1 (index d1-1).
+    const rolledSliceIdx = d1 - 1;
+    const rolledSliceOppIdx = getOppositeSchoolIdx(rolledSliceIdx);
+
+    narrativeHtml += `<p>• <strong>Dual Schools</strong>: Triggered ${formatSchool(rolledSliceIdx, 'positive')} & ${formatSchool(rolledSliceOppIdx, 'negative')}.</p>`;
+
+    // Highlight schools
+    highlightMandalaElements(rolledSliceIdx, Math.min(currentTier, 5), false);
+    highlightMandalaElements(rolledSliceOppIdx, Math.min(currentTier, 5), false);
+
+    let d3 = Math.floor(Math.random() * 8) + 1;
+    dieChaos.querySelector('.die-val').textContent = d3;
+    
+    let effectDiceBonus = 0;
+    let effectDcBonus = 0;
+
+    narrativeHtml += `<p>• <strong>Chaos Die</strong>: Rolled ${d3}.</p>`;
+
+    while (d3 === d1) {
+      narrativeHtml += `<p style="color: #ff4500;">💥 <strong>Resonance!</strong> Chaos Die matched doubles.</p>`;
+      if (currentTier < 5) {
+        currentTier++;
+        narrativeHtml += `<p>• Tier escalated to T${currentTier}. Re-rolling Chaos Die...</p>`;
+      } else {
+        effectDiceBonus++;
+        effectDcBonus += 2;
+        narrativeHtml += `<p>• <strong>Critical Overload!</strong> (Past T5) Effect Dice instances +1, DC +2. Re-rolling Chaos Die...</p>`;
+      }
+      d3 = Math.floor(Math.random() * 8) + 1;
+      dieChaos.querySelector('.die-val').textContent = d3;
+      narrativeHtml += `<p>• New Chaos Die: ${d3}.</p>`;
+    }
+
+    const finalSliceIdx = d3 - 1;
+    const finalOppSliceIdx = getOppositeSchoolIdx(finalSliceIdx);
+
+    narrativeHtml += `<p>• <strong>Dual Shapes</strong>: Triggered <strong>${appState.scaledTiers[0].nodes[finalSliceIdx].type}</strong> & <strong>${appState.scaledTiers[0].nodes[finalOppSliceIdx].type}</strong>.</p><hr>`;
+    
+    const finalTierClamp = Math.min(currentTier, 5);
+    const nodeA = appState.scaledTiers[finalTierClamp].nodes[finalSliceIdx];
+    const nodeB = appState.scaledTiers[finalTierClamp].nodes[finalOppSliceIdx];
+    const baseDc = appState.scaledTiers[finalTierClamp].nodes[0].dc;
+    const baseDice = appState.scaledTiers[finalTierClamp].nodes[0].dice;
+
+    narrativeHtml += `<p><strong>Final Escalated Effects (T${currentTier}):</strong></p>`;
+    narrativeHtml += `<ul><li>${formatEffect(finalSliceIdx, finalTierClamp)}</li><li>${formatEffect(finalOppSliceIdx, finalTierClamp)}</li></ul>`;
+    
+    if (effectDiceBonus > 0 || effectDcBonus > 0) {
+       narrativeHtml += `<p><em>Overload Adjustments:</em> Base DC (${baseDc}) + ${effectDcBonus}, Base Dice (${baseDice}) + ${effectDiceBonus} instance(s).</p>`;
+    }
+
+    // Highlight effects
+    highlightMandalaElements(finalSliceIdx, finalTierClamp, true);
+    highlightMandalaElements(finalOppSliceIdx, finalTierClamp, true);
+
+  } else {
+    // STANDARD ROLL
+    let resultSchoolIdx = castSchoolIdx;
+    let resultPolarity = castPolarity;
+    
+    let rollTypeStr = "";
+
+    if (d1 >= 6) {
+      rollTypeStr = "Cast school (same polarity)";
+      resultSchoolIdx = castSchoolIdx;
+      resultPolarity = castPolarity;
+    } else if (d1 >= 4) {
+      rollTypeStr = "Cast school (inverted polarity)";
+      resultSchoolIdx = castSchoolIdx;
+      resultPolarity = getInvertedPolarity(castPolarity);
+    } else if (d1 === 3) {
+      rollTypeStr = "Circle-opposite School (positive)";
+      resultSchoolIdx = getOppositeSchoolIdx(castSchoolIdx);
+      resultPolarity = 'positive';
+    } else if (d1 === 2) {
+      rollTypeStr = "Circle-opposite School (negative)";
+      resultSchoolIdx = getOppositeSchoolIdx(castSchoolIdx);
+      resultPolarity = 'negative';
+    } else if (d1 === 1) {
+      rollTypeStr = "Cast school (same) + Random school (inverted)";
+      // First result
+      resultSchoolIdx = castSchoolIdx;
+      resultPolarity = castPolarity;
+      
+      const randSchoolIdx = Math.floor(Math.random() * 8);
+      const randPolarity = getInvertedPolarity(castPolarity);
+      narrativeHtml += `<p><strong>Mishap School (Secondary)</strong>: ${formatSchool(randSchoolIdx, randPolarity)}</p>`;
+      highlightMandalaElements(randSchoolIdx, initialTier, false);
+    }
+
+    narrativeHtml += `<p><strong>Mishap School</strong> (Roll ${d1}): ${rollTypeStr} ➔ ${formatSchool(resultSchoolIdx, resultPolarity)}</p>`;
+    highlightMandalaElements(resultSchoolIdx, initialTier, false);
+
+    const effectSliceIdx = d2 - 1;
+    narrativeHtml += `<p><strong>Mishap Effect</strong> (Roll ${d2}): ${formatEffect(effectSliceIdx, initialTier)}</p>`;
+    
+    highlightMandalaElements(effectSliceIdx, initialTier, true);
+  }
+
+  narrativeBox.innerHTML = narrativeHtml;
 }
 
 init();

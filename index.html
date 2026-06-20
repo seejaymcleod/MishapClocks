@@ -139,39 +139,111 @@
         <div id="tier-controls" class="tier-controls-container" style="display: none;"></div>
       </div>
 
-      <div class="info-sidebar">
-        <div class="info-card">
-          <h3>Mishap School Roll</h3>
-          <table class="dashboard-table">
-            <thead>
-              <tr>
-                <th>d8 Roll</th>
-                <th>School Result</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>6 - 8</strong></td>
-                <td>Cast school <em>(same polarity)</em></td>
-              </tr>
-              <tr>
-                <td><strong>4 - 5</strong></td>
-                <td>Cast school <em>(inverted polarity)</em></td>
-              </tr>
-              <tr>
-                <td><strong>3</strong></td>
-                <td>Circle-opposite School (positive)</td>
-              </tr>
-              <tr>
-                <td><strong>2</strong></td>
-                <td>Circle-opposite School (negative)</td>
-              </tr>
-              <tr>
-                <td><strong>1</strong></td>
-                <td>Cast school <em>(same)</em><br>+ Random <strong>d8</strong> school <em>(inverted)</em></td>
-              </tr>
-            </tbody>
-          </table>
+      <div class="rollers-panel">
+        <!-- Cosmic Mishap Roller Card -->
+        <div class="info-card" id="mishap-roller-card">
+          <div class="mishap-header">
+            <h3>Materia Mishap Roller</h3>
+            <button id="btn-mishap-rules-toggle" class="btn-icon-toggle" title="Show Mishap Rules">ℹ️</button>
+          </div>
+          
+          <!-- Table hidden by default, toggled via info icon -->
+          <div class="mishap-rules-popover" id="mishap-rules-popover">
+            <table class="dashboard-table">
+              <thead>
+                <tr>
+                  <th>d8 Roll</th>
+                  <th>School Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>6 - 8</strong></td>
+                  <td>Cast school <em>(same polarity)</em></td>
+                </tr>
+                <tr>
+                  <td><strong>4 - 5</strong></td>
+                  <td>Cast school <em>(inverted polarity)</em></td>
+                </tr>
+                <tr>
+                  <td><strong>3</strong></td>
+                  <td>Circle-opposite School (positive)</td>
+                </tr>
+                <tr>
+                  <td><strong>2</strong></td>
+                  <td>Circle-opposite School (negative)</td>
+                </tr>
+                <tr>
+                  <td><strong>1</strong></td>
+                  <td>Cast school <em>(same)</em><br>+ Random <strong>d8</strong> school <em>(inverted)</em></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div class="mishap-roller-inputs">
+            <!-- Active Selection Display (No more grid) -->
+            <div class="mishap-input-group">
+              <span class="mishap-input-label">Cast School Polarity</span>
+              <div class="mishap-active-selection" id="mishap-active-selection">
+                <i class="gi gi-perspective-dice-six-faces-random"></i>
+                <div class="selection-text">
+                  <span class="selection-school">Select a polarity on the mandala</span>
+                  <span class="selection-polarity">Click an icon to start</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tier Selection -->
+            <div class="mishap-input-group" style="margin-top: 0.8rem;">
+              <span class="mishap-input-label">Spell Tier</span>
+              <div class="segmented-control" id="mishap-tier-control">
+                <button class="btn-segment" data-mishap-tier="0">T0</button>
+                <button class="btn-segment active" data-mishap-tier="1">T1</button>
+                <button class="btn-segment" data-mishap-tier="2">T2</button>
+                <button class="btn-segment" data-mishap-tier="3">T3</button>
+                <button class="btn-segment" data-mishap-tier="4">T4</button>
+                <button class="btn-segment" data-mishap-tier="5">T5</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Roll Button -->
+          <div class="mishap-roll-actions" style="margin-top: 1rem;">
+            <button id="btn-roll-mishap" class="btn primary" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px;">
+              <i class="gi gi-dice-eight-faces" style="font-size: 1.1rem; line-height: 1;"></i>
+              Roll Mishap (2d8)
+            </button>
+          </div>
+
+          <!-- Results Display -->
+          <div class="mishap-results-container hidden" id="mishap-results-container">
+            <div class="mishap-dice-box">
+              <div class="mishap-die-container" id="die-container-mishap-school">
+                <span class="die-label">School</span>
+                <div class="mishap-die" id="die-mishap-school">
+                  <span class="die-val">—</span>
+                </div>
+              </div>
+              <div class="mishap-die-container" id="die-container-mishap-effect">
+                <span class="die-label">Effect</span>
+                <div class="mishap-die" id="die-mishap-effect">
+                  <span class="die-val">—</span>
+                </div>
+              </div>
+              <div class="mishap-die-container hidden" id="die-container-mishap-chaos">
+                <span class="die-label">Chaos</span>
+                <div class="mishap-die" id="die-mishap-chaos">
+                  <span class="die-val">—</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Narrative / Explanation -->
+            <div id="mishap-narrative" class="mishap-narrative-box">
+              <!-- Result narrative filled by JS -->
+            </div>
+          </div>
         </div>
 
         <!-- New Spell Codex / Generator Card -->

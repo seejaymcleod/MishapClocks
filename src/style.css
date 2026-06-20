@@ -354,42 +354,73 @@ svg {
 .dashboard-grid {
   display: flex;
   flex-direction: row;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: flex-start;
-  gap: 3rem;
+  gap: 2rem;
   width: 100%;
-  max-width: 1400px;
+  max-width: 1550px;
   margin: 0 auto;
-}
-
-@media (max-width: 1100px) {
-  .dashboard-grid {
-    flex-direction: column;
-    align-items: center;
-  }
+  padding: 0 1rem;
 }
 
 .clock-panel {
   flex: 1 1 60%;
   max-width: 850px;
   width: 100%;
+  margin-top: -1.5rem;
 }
 
-.info-sidebar {
+.rollers-panel {
   flex: 1 1 35%;
-  width: 100%;
-  max-width: 450px;
   display: flex;
-  flex-direction: column;
-  gap: 2rem;
+  flex-direction: row;
+  gap: 1.25rem;
+  align-items: flex-start;
+  min-width: 0;
+  max-width: 900px;
+  width: 100%;
+}
+
+.rollers-panel .info-card {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 1350px) {
+  .dashboard-grid {
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+  }
+  .clock-panel {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: 850px;
+    margin-top: 0;
+  }
+  .rollers-panel {
+    width: 100%;
+    max-width: 900px;
+    flex-direction: row;
+  }
+}
+
+@media (max-width: 900px) {
+  .rollers-panel {
+    flex-direction: column;
+    align-items: center;
+  }
+  .rollers-panel .info-card {
+    width: 100%;
+  }
 }
 
 /* Sidebar Cards & Tables */
 .info-card {
   background: var(--panel-bg);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 1.5rem;
+  border-radius: 10px;
+  padding: 1rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -402,31 +433,31 @@ svg {
 
 .info-card h3 {
   margin-top: 0;
-  margin-bottom: 1rem;
-  font-size: 1.2rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.05rem;
   font-weight: 600;
   color: var(--accent-color);
   border-bottom: 1px solid var(--border-color);
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.4rem;
 }
 
 .dashboard-table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 .dashboard-table th, 
 .dashboard-table td {
-  padding: 0.75rem;
+  padding: 0.35rem 0.5rem;
   border-bottom: 1px solid var(--border-color);
 }
 
 .dashboard-table th {
   color: #8b949e;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -759,5 +790,285 @@ svg foreignObject i.gi:before {
 
 .autocomplete-list::-webkit-scrollbar-thumb:hover {
   background: #8b949e;
+}
+
+/* Cosmic Mishap Roller Styles */
+#mishap-roller-card {
+  position: relative;
+}
+
+.mishap-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.mishap-header h3 {
+  margin: 0;
+}
+
+.btn-icon-toggle {
+  background: none;
+  border: none;
+  color: #8b949e;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: color 0.2s;
+  padding: 0;
+}
+
+.btn-icon-toggle:hover {
+  color: var(--text-color);
+}
+
+.mishap-rules-popover {
+  background: var(--panel-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.5rem;
+  margin-bottom: 0.6rem;
+  display: none;
+}
+
+.mishap-rules-popover.visible {
+  display: block;
+}
+
+.mishap-rules-popover .dashboard-table {
+  margin: 0;
+}
+
+/* Polarity is now selected via the main SVG circle */
+.mishap-active-selection {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  box-shadow: 0 0 15px var(--school-color-glow, transparent);
+  transition: all 0.3s ease;
+}
+
+.mishap-active-selection i {
+  font-size: 1.4rem;
+  color: var(--school-color, #8b949e);
+}
+
+.mishap-active-selection .selection-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.mishap-active-selection .selection-school {
+  font-weight: bold;
+  color: var(--text-color);
+}
+
+.mishap-active-selection .selection-polarity {
+  font-size: 0.7rem;
+  color: #8b949e;
+  text-transform: uppercase;
+}
+
+.mishap-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.mishap-input-label {
+  font-size: 0.7rem;
+  color: #8b949e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.mishap-dice-box {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.mishap-die-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.mishap-die {
+  background: #1f242d;
+  border: 1px solid var(--border-color);
+  width: 48px;
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  transform: rotate(45deg);
+  transition: all 0.3s ease;
+}
+
+.mishap-die .die-val {
+  font-size: 1.3rem;
+  color: var(--accent-color);
+  transform: rotate(-45deg); /* Counter-rotate the text so it's upright */
+}
+
+.mishap-die-container .die-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: #8b949e;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.mishap-die-container.hidden {
+  display: none !important;
+}
+
+.mishap-die-container.die-rolled .mishap-die {
+  animation: dieRollDiamond 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 12px var(--accent-color);
+}
+
+@keyframes dieRollDiamond {
+  0% { transform: rotate(45deg) scale(0.85); opacity: 0.5; }
+  50% { transform: rotate(45deg) scale(1.15); opacity: 1; }
+  100% { transform: rotate(45deg) scale(1); }
+}
+
+.mishap-narrative-box {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--text-color);
+}
+
+.mishap-narrative-box.hidden {
+  display: none;
+}
+
+.mishap-narrative-box h4 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: #fff;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1rem;
+}
+
+.mishap-narrative-box p {
+  margin: 0.4rem 0;
+}
+
+.mishap-narrative-box hr {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 0.75rem 0;
+}
+
+/* Flashy badge for Axis Fracture */
+.axis-fracture-badge {
+  background: linear-gradient(90deg, #ff4500, #ff007f);
+  color: #fff;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  animation: pulseFlash 1.5s infinite;
+}
+
+@keyframes pulseFlash {
+  0% { box-shadow: 0 0 0 0 rgba(255, 69, 0, 0.6); }
+  70% { box-shadow: 0 0 0 8px rgba(255, 69, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 69, 0, 0); }
+}
+
+/* SVG Mandala Non-destructive Highlights (Extremely Obvious) */
+.mandala-slice {
+  transition: all 0.3s ease;
+  transform-origin: center center;
+}
+
+.mandala-slice.highlighted {
+  filter: brightness(2.5) drop-shadow(0 0 40px var(--glow-color, rgba(255, 191, 0, 1)));
+  stroke: #fff !important;
+  stroke-width: 15px !important;
+  stroke-opacity: 1 !important;
+  z-index: 100;
+  animation: pulseSlice 1.5s infinite alternate;
+}
+
+@keyframes pulseSlice {
+  0% { filter: brightness(2) drop-shadow(0 0 30px var(--glow-color, rgba(255, 191, 0, 0.8))); }
+  100% { filter: brightness(3.5) drop-shadow(0 0 60px var(--glow-color, rgba(255, 191, 0, 1))); }
+}
+
+.outer-number.highlighted {
+  fill: #fff !important;
+  font-size: 150px !important;
+  font-weight: 900 !important;
+  filter: drop-shadow(0 0 25px var(--glow-color, #fbbf24)) !important;
+  transition: all 0.3s ease;
+  animation: pulseGlowText 1.5s infinite alternate;
+}
+
+.outer-ring-text.highlighted {
+  fill: #fff !important;
+  font-weight: 900 !important;
+  font-size: 90px !important;
+  filter: drop-shadow(0 0 20px var(--glow-color, #fbbf24)) !important;
+  transition: all 0.3s ease;
+  animation: pulseGlowText 1.5s infinite alternate;
+}
+
+.outer-icon-group {
+  transition: opacity 0.2s ease;
+}
+
+/* Clicking icons logic */
+.outer-icon-group.clickable {
+  cursor: pointer;
+}
+
+.outer-icon-group.clickable foreignObject i {
+  transition: filter 0.2s ease, color 0.2s ease;
+}
+
+.outer-icon-group.clickable:hover foreignObject i {
+  filter: brightness(1.8) drop-shadow(0 0 12px rgba(255, 255, 255, 0.7)) !important;
+}
+
+.outer-icon-group.highlighted foreignObject i {
+  color: #fff !important;
+  filter: drop-shadow(0 0 25px var(--glow-color, #fbbf24)) !important;
+  animation: pulseGlow 1.5s infinite alternate;
+}
+
+@keyframes pulseGlowText {
+  0% { opacity: 0.85; filter: drop-shadow(0 0 10px var(--glow-color, #fbbf24)) !important; }
+  100% { opacity: 1; filter: drop-shadow(0 0 25px var(--glow-color, #fbbf24)) !important; }
+}
+
+@keyframes pulseGlow {
+  0% { opacity: 0.8; filter: drop-shadow(0 0 15px var(--glow-color, #fbbf24)) !important; }
+  100% { opacity: 1; filter: drop-shadow(0 0 30px var(--glow-color, #fbbf24)) !important; }
 }
 
