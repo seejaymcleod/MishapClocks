@@ -130,6 +130,14 @@ h1 {
   box-shadow: 0 0 10px var(--hover-glow);
 }
 
+.btn svg {
+  width: 16px;
+  height: 16px;
+  filter: none;
+  display: inline-block;
+  vertical-align: middle;
+}
+
 .mandala-container {
   display: flex;
   flex-wrap: wrap;
@@ -511,5 +519,150 @@ svg foreignObject i.gi:before {
   margin: 0 !important;
   width: auto !important;
   line-height: 1 !important;
+}
+
+/* Spell Generator CSS */
+.spell-filters {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.filter-label {
+  font-size: 0.75rem;
+  color: #8b949e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.spell-filters .btn-segment {
+  padding: 0.25rem 0.6rem;
+  font-size: 0.8rem;
+  border-radius: 4px;
+}
+
+.spell-filters .segmented-control {
+  border-radius: 6px;
+  padding: 1px;
+}
+
+.spell-display-container {
+  margin-top: 0.6rem;
+}
+
+#spell-result-box {
+  min-height: 60px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.01);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  overflow: hidden;
+  gap: 0.25rem;
+}
+
+#spell-result-box.spell-display-empty {
+  color: #8b949e;
+  border-style: dashed;
+}
+
+.spell-placeholder {
+  font-size: 0.9rem;
+}
+
+#spell-result-box.wizard-glow {
+  border-color: rgba(88, 166, 255, 0.6);
+  background: radial-gradient(circle at center, rgba(88, 166, 255, 0.08) 0%, rgba(22, 27, 34, 0.8) 100%);
+  box-shadow: inset 0 0 15px rgba(88, 166, 255, 0.15), 0 0 15px rgba(88, 166, 255, 0.1);
+}
+
+#spell-result-box.priest-glow {
+  border-color: rgba(251, 191, 36, 0.6);
+  background: radial-gradient(circle at center, rgba(251, 191, 36, 0.08) 0%, rgba(22, 27, 34, 0.8) 100%);
+  box-shadow: inset 0 0 15px rgba(251, 191, 36, 0.15), 0 0 15px rgba(251, 191, 36, 0.1);
+}
+
+.spell-result-name {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  font-size: 1.15rem;
+  margin-bottom: 0.1rem;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
+.spell-result-meta {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.badge {
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge.wizard {
+  background: rgba(88, 166, 255, 0.15);
+  color: #58a6ff;
+  border: 1px solid rgba(88, 166, 255, 0.3);
+}
+
+.badge.priest {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.badge.tier {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+#btn-roll-spell {
+  margin-top: 0.6rem !important;
+  padding: 0.45rem 1rem !important;
+  font-size: 0.9rem !important;
+}
+
+/* Rolling animation class */
+.roll-pulse {
+  animation: rollPulse 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+@keyframes rollPulse {
+  0% {
+    transform: scale(0.97);
+    filter: brightness(0.8);
+  }
+  50% {
+    transform: scale(1.02);
+    filter: brightness(1.2);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
 }
 

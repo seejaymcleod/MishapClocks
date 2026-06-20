@@ -1,3 +1,5 @@
+import { spells } from './spells.js';
+
 // State
 let appState = {
   viewMode: 'curved-axis',
@@ -1790,6 +1792,82 @@ function syncBottomSliders() {
   }
 }
 
+// Spell Generator Setup
+let spellState = {
+  selectedClass: 'all',
+  selectedTier: 'all'
+};
+
+function setupSpellPicker() {
+  const classButtons = document.querySelectorAll('#spell-generator-card [data-class]');
+  const tierButtons = document.querySelectorAll('#spell-generator-card [data-tier]');
+  const rollBtn = document.getElementById('btn-roll-spell');
+  const resultBox = document.getElementById('spell-result-box');
+
+  if (!rollBtn || !resultBox) return;
+
+  // Class Selection
+  classButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      classButtons.forEach(b => b.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      spellState.selectedClass = e.currentTarget.getAttribute('data-class');
+    });
+  });
+
+  // Tier Selection
+  tierButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      tierButtons.forEach(b => b.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      spellState.selectedTier = e.currentTarget.getAttribute('data-tier');
+    });
+  });
+
+  // Roll Button Event
+  rollBtn.addEventListener('click', () => {
+    // Filter spells based on state
+    let filtered = spells;
+    if (spellState.selectedClass !== 'all') {
+      filtered = filtered.filter(s => s.class === spellState.selectedClass);
+    }
+    if (spellState.selectedTier !== 'all') {
+      filtered = filtered.filter(s => s.tier === parseInt(spellState.selectedTier, 10));
+    }
+
+    if (filtered.length === 0) {
+      resultBox.className = 'spell-display-empty';
+      resultBox.innerHTML = '<div class="spell-placeholder" style="color: #ef4444;">No spells match current filters!</div>';
+      return;
+    }
+
+    // Pick a random spell
+    const randomSpell = filtered[Math.floor(Math.random() * filtered.length)];
+
+    // Trigger animation
+    resultBox.classList.remove('roll-pulse');
+    void resultBox.offsetWidth; // Trigger reflow
+    resultBox.classList.add('roll-pulse');
+
+    // Update styling based on class
+    resultBox.className = ''; // Reset classes
+    if (randomSpell.class === 'Wizard') {
+      resultBox.classList.add('wizard-glow');
+    } else {
+      resultBox.classList.add('priest-glow');
+    }
+
+    // Render result
+    resultBox.innerHTML = `
+      <div class="spell-result-name">${randomSpell.name}</div>
+      <div class="spell-result-meta">
+        <span class="badge ${randomSpell.class.toLowerCase()}">${randomSpell.class}</span>
+        <span class="badge tier">Tier ${randomSpell.tier}</span>
+      </div>
+    `;
+  });
+}
+
 // Init / Startup Flow
 async function init() {
   try {
@@ -1974,6 +2052,7 @@ async function init() {
   renderTierControls();
   renderScaledMandala();
   renderSidebarTables();
+  setupSpellPicker();
 
   // Set up header visibility toggle
   const header = document.querySelector('header');
