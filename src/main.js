@@ -1,4 +1,5 @@
 import { spells } from './spells.js';
+import { defaultScaledTiers, mishapRulings } from './mishapData.js';
 
 // State
 let appState = {
@@ -40,81 +41,9 @@ let appState = {
     { id: 't10', label: 'All @ Near', color: '#facc15' },
     { id: 't11', label: 'All @ Far', color: '#eab308' },
   ],
-  scaledTiers: [
-    {
-      offset: 0, nodes: [
-        { type: 'Self-Harm', modifier: 'Singe', dc: 'DC 9', dice: '1d4' },
-        { type: 'Mistarget', modifier: 'Glancing Veer' },
-        { type: 'Multi-Target', modifier: 'Dual Fork' },
-        { type: 'Close Range', modifier: 'Proximal Buzz' },
-        { type: 'Anti-School', modifier: 'Minor Damp' },
-        { type: 'Alter Environment', modifier: 'Surface Tilt' },
-        { type: 'Zone', modifier: 'Minor Ripple' },
-        { type: 'Materia Leak', modifier: 'Ether Drip' }
-      ]
-    },
-    {
-      offset: 0, nodes: [
-        { type: 'Self-Harm', modifier: 'Blister', dc: 'DC 11', dice: '1d6' },
-        { type: 'Mistarget', modifier: 'Wide Yaw' },
-        { type: 'Multi-Target', modifier: 'Triple Cleave' },
-        { type: 'Close Range', modifier: 'Aura Cling' },
-        { type: 'Anti-School', modifier: 'Ward Tear' },
-        { type: 'Alter Environment', modifier: 'Ground Shake' },
-        { type: 'Zone', modifier: 'Static Field' },
-        { type: 'Materia Leak', modifier: 'Mana Bleed' }
-      ]
-    },
-    {
-      offset: 0, nodes: [
-        { type: 'Self-Harm', modifier: 'Searing Flash', dc: 'DC 13', dice: '2d6' },
-        { type: 'Mistarget', modifier: 'Stray Vector' },
-        { type: 'Multi-Target', modifier: 'Quad Splinter' },
-        { type: 'Close Range', modifier: 'Tactile Shock' },
-        { type: 'Anti-School', modifier: 'Spell Dissolve' },
-        { type: 'Alter Environment', modifier: 'Terrain Warp' },
-        { type: 'Zone', modifier: 'Vortex Pull' },
-        { type: 'Materia Leak', modifier: 'Essence Drain' }
-      ]
-    },
-    {
-      offset: 0, nodes: [
-        { type: 'Self-Harm', modifier: 'Searing Wave', dc: 'DC 15', dice: '3d6' },
-        { type: 'Mistarget', modifier: 'Inverse Arc' },
-        { type: 'Multi-Target', modifier: 'Chain Cascade' },
-        { type: 'Close Range', modifier: 'Melee Bind' },
-        { type: 'Anti-School', modifier: 'Inverse Surge' },
-        { type: 'Alter Environment', modifier: 'Flora Spasm' },
-        { type: 'Zone', modifier: 'Gravity Well' },
-        { type: 'Materia Leak', modifier: 'Spell Fracture' }
-      ]
-    },
-    {
-      offset: 0, nodes: [
-        { type: 'Self-Harm', modifier: 'Meltdown', dc: 'DC 17', dice: '4d8' },
-        { type: 'Mistarget', modifier: 'Mirror Target' },
-        { type: 'Multi-Target', modifier: 'Omnipresence' },
-        { type: 'Close Range', modifier: 'Point-Blank' },
-        { type: 'Anti-School', modifier: 'School Nullify' },
-        { type: 'Alter Environment', modifier: 'Weather Flare' },
-        { type: 'Zone', modifier: 'Time Warp' },
-        { type: 'Materia Leak', modifier: 'Conduit Rupture' }
-      ]
-    },
-    {
-      offset: 0, nodes: [
-        { type: 'Self-Harm', modifier: 'Inferno Rupture', dc: 'DC 19', dice: '5d8' },
-        { type: 'Mistarget', modifier: 'Chaos Drift' },
-        { type: 'Multi-Target', modifier: 'Cataclysmic Split' },
-        { type: 'Close Range', modifier: 'Absolute Proximity' },
-        { type: 'Anti-School', modifier: 'Antimagic Collapse' },
-        { type: 'Alter Environment', modifier: 'Planar Rupture' },
-        { type: 'Zone', modifier: 'Singularity' },
-        { type: 'Materia Leak', modifier: 'Void Siphon' }
-      ]
-    }
-  ]
+  scaledTiers: JSON.parse(JSON.stringify(defaultScaledTiers))
 };
+
 
 let activeNodeId = null;
 
@@ -2529,9 +2458,11 @@ function clearMandalaHighlights() {
 }
 
 function highlightMandalaElements(schoolIdx, tierIdx, isEffect) {
-  // Highlight the slice
-  const slice = document.getElementById(`mandala-slice-${tierIdx}-${schoolIdx}`);
-  if (slice) slice.classList.add('highlighted');
+  // Highlight the slice ONLY if it is an effect (not the school roll)
+  if (isEffect) {
+    const slice = document.getElementById(`mandala-slice-${tierIdx}-${schoolIdx}`);
+    if (slice) slice.classList.add('highlighted');
+  }
 
   // Highlight the outer number
   const numberText = document.querySelector(`.outer-number-${schoolIdx}`);
@@ -2644,18 +2575,13 @@ function rollMishap() {
     return types[idx] || 'Magical';
   };
 
-  const getEffectRuling = (idx, modifier) => {
-    const rulings = [
-      `<li><strong>Epicenter Caster:</strong> Caster is the direct target. Complication cannot be redirected or mitigated by magic armor. Describe a physical toll (e.g., frostbitten fingers, smoking robes, or blood dripping from ears).</li>`,
-      `<li><strong>Veering Path:</strong> Spell completely veers off course. Roll randomly among all nearby creatures (allies, enemies, and neutrals) to determine who is hit by the veered spell.</li>`,
-      `<li><strong>Violent Split:</strong> Spell forks into multiple paths (<em>${modifier}</em>). If there are fewer targets than the fork amount, the extra paths strike the environment (creating hazards) or loop back to the caster.</li>`,
-      `<li><strong>Proximal Backlash:</strong> Spell collapses at the caster's feet. Every creature within Close range (5-10 ft) is caught in the radius and must make the saving throw.</li>`,
-      `<li><strong>Spell Dampening:</strong> Local magical frequency is jammed. Active spells of this school are dispelled, and casting of this school suffers a DC +4 penalty for the next 10 minutes.</li>`,
-      `<li><strong>Terrain Warping:</strong> Environment is permanently altered by the elements (<em>${modifier}</em>). This creates difficult terrain, blocks exits, or collapses structures.</li>`,
-      `<li><strong>Lingering Hazard:</strong> Persistent, unstable zone is created (30ft radius). Any creature entering or starting their turn in this zone must save or take damage/complications.</li>`,
-      `<li><strong>Ethereal Drain:</strong> Caster's mana reservoirs bleed out. Caster loses an additional spell slot, or magic items on their person lose 1 charge.</li>`
-    ];
-    return rulings[idx] || `<li><strong>Catastrophic Complication:</strong> Apply the custom effect <em>${modifier}</em> to the scene.</li>`;
+  const getEffectRuling = (idx, tierIdx, modifier) => {
+    const row = mishapRulings[idx];
+    if (row) {
+      const tierClamped = Math.max(0, Math.min(row.length - 1, tierIdx));
+      return row[tierClamped];
+    }
+    return `<li><strong>Catastrophic Complication:</strong> Apply the custom effect <em>${modifier}</em> to the scene.</li>`;
   };
 
   const diceList = [];
@@ -2755,12 +2681,12 @@ function rollMishap() {
             <li><strong>Damage:</strong> Inflict <strong>${finalDiceStr} ${getDamageType(rolledSliceIdx, 'positive')} damage</strong> AND <strong>${finalDiceStr} ${getDamageType(rolledSliceOppIdx, 'negative')} damage</strong>.</li>
             <li><strong>Shape A — ${nodeA.type} (${nodeA.modifier}):</strong>
               <ul>
-                ${getEffectRuling(finalSliceIdx, nodeA.modifier)}
+                ${getEffectRuling(finalSliceIdx, finalTierClamp, nodeA.modifier)}
               </ul>
             </li>
             <li><strong>Shape B — ${nodeB.type} (${nodeB.modifier}):</strong>
               <ul>
-                ${getEffectRuling(finalOppSliceIdx, nodeB.modifier)}
+                ${getEffectRuling(finalOppSliceIdx, finalTierClamp, nodeB.modifier)}
               </ul>
             </li>
           </ul>
@@ -2861,7 +2787,7 @@ function rollMishap() {
     mechanicsHtml += `
         <li><strong>Complication — ${effectType} (${modifier}):</strong>
           <ul>
-            ${getEffectRuling(effectSliceIdx, modifier)}
+            ${getEffectRuling(effectSliceIdx, initialTier, modifier)}
           </ul>
         </li>
       </ul>
