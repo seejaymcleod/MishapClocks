@@ -1803,8 +1803,17 @@ function setupSpellPicker() {
   const tierButtons = document.querySelectorAll('#spell-generator-card [data-tier]');
   const rollBtn = document.getElementById('btn-roll-spell');
   const resultBox = document.getElementById('spell-result-box');
+  const searchInput = document.getElementById('spell-search-input');
+  const autocompleteList = document.getElementById('spell-autocomplete-list');
 
-  if (!rollBtn || !resultBox) return;
+  if (!rollBtn || !resultBox || !searchInput || !autocompleteList) return;
+
+  // Helper to re-trigger search if input has value
+  function updateSuggestions() {
+    if (searchInput.value.trim()) {
+      searchInput.dispatchEvent(new Event('input'));
+    }
+  }
 
   // Class Selection
   classButtons.forEach(btn => {
@@ -1812,6 +1821,7 @@ function setupSpellPicker() {
       classButtons.forEach(b => b.classList.remove('active'));
       e.currentTarget.classList.add('active');
       spellState.selectedClass = e.currentTarget.getAttribute('data-class');
+      updateSuggestions();
     });
   });
 
@@ -1821,6 +1831,7 @@ function setupSpellPicker() {
       tierButtons.forEach(b => b.classList.remove('active'));
       e.currentTarget.classList.add('active');
       spellState.selectedTier = e.currentTarget.getAttribute('data-tier');
+      updateSuggestions();
     });
   });
 
@@ -1843,6 +1854,17 @@ function setupSpellPicker() {
 
     // Pick a random spell
     const randomSpell = filtered[Math.floor(Math.random() * filtered.length)];
+    selectSpell(randomSpell, true);
+  });
+
+  // Autocomplete search logic
+  let currentFocus = -1;
+
+  function selectSpell(spell, isRoll = false) {
+    if (!isRoll) {
+      searchInput.value = spell.name;
+    }
+    closeAllLists();
 
     // Trigger animation
     resultBox.classList.remove('roll-pulse');
@@ -1851,7 +1873,7 @@ function setupSpellPicker() {
 
     // Update styling based on class
     resultBox.className = ''; // Reset classes
-    if (randomSpell.class === 'Wizard') {
+    if (spell.class === 'Wizard') {
       resultBox.classList.add('wizard-glow');
     } else {
       resultBox.classList.add('priest-glow');
@@ -1859,12 +1881,107 @@ function setupSpellPicker() {
 
     // Render result
     resultBox.innerHTML = `
-      <div class="spell-result-name">${randomSpell.name}</div>
+      <div class="spell-result-name">${spell.name}</div>
       <div class="spell-result-meta">
-        <span class="badge ${randomSpell.class.toLowerCase()}">${randomSpell.class}</span>
-        <span class="badge tier">Tier ${randomSpell.tier}</span>
+        <span class="badge ${spell.class.toLowerCase()}">${spell.class}</span>
+        <span class="badge tier">Tier ${spell.tier}</span>
       </div>
     `;
+  }
+
+  searchInput.addEventListener('input', (e) => {
+    const val = e.target.value.trim().toLowerCase();
+    closeAllLists();
+    if (!val) return;
+    currentFocus = -1;
+
+    // Filter spells by query and active filters
+    const filtered = spells.filter(s => {
+      if (!s.name.toLowerCase().includes(val)) return false;
+      if (spellState.selectedClass !== 'all' && s.class !== spellState.selectedClass) return false;
+      if (spellState.selectedTier !== 'all' && s.tier !== parseInt(spellState.selectedTier, 10)) return false;
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      const item = document.createElement('div');
+      item.className = 'autocomplete-item';
+      item.style.color = '#8b949e';
+      item.style.cursor = 'default';
+      item.textContent = 'No matching spells found';
+      autocompleteList.appendChild(item);
+      autocompleteList.classList.remove('hidden');
+      return;
+    }
+
+    filtered.slice(0, 10).forEach(spell => {
+      const item = document.createElement('div');
+      item.className = 'autocomplete-item';
+      item.innerHTML = `
+        <span class="autocomplete-item-name">${spell.name}</span>
+        <span class="autocomplete-item-meta">
+          <span class="badge ${spell.class.toLowerCase()}">${spell.class}</span>
+          <span class="badge tier">T${spell.tier}</span>
+        </span>
+      `;
+      item.addEventListener('click', () => {
+        selectSpell(spell);
+      });
+      autocompleteList.appendChild(item);
+    });
+
+    autocompleteList.classList.remove('hidden');
+  });
+
+  searchInput.addEventListener('keydown', (e) => {
+    let items = autocompleteList.getElementsByClassName('autocomplete-item');
+    if (items.length === 0 || items[0].textContent === 'No matching spells found') return;
+
+    if (e.keyCode === 40) { // Arrow Down
+      e.preventDefault();
+      currentFocus++;
+      addActive(items);
+    } else if (e.keyCode === 38) { // Arrow Up
+      e.preventDefault();
+      currentFocus--;
+      addActive(items);
+    } else if (e.keyCode === 13) { // Enter
+      e.preventDefault();
+      if (currentFocus > -1 && items[currentFocus]) {
+        items[currentFocus].click();
+      } else if (items.length > 0) {
+        items[0].click();
+      }
+    } else if (e.keyCode === 27) { // Escape
+      closeAllLists();
+    }
+  });
+
+  function addActive(items) {
+    if (!items) return false;
+    removeActive(items);
+    if (currentFocus >= items.length) currentFocus = 0;
+    if (currentFocus < 0) currentFocus = items.length - 1;
+    items[currentFocus].classList.add('active');
+    items[currentFocus].scrollIntoView({ block: 'nearest' });
+  }
+
+  function removeActive(items) {
+    for (let i = 0; i < items.length; i++) {
+      items[i].classList.remove('active');
+    }
+  }
+
+  function closeAllLists() {
+    autocompleteList.innerHTML = '';
+    autocompleteList.classList.add('hidden');
+  }
+
+  // Close lists when clicking outside
+  document.addEventListener('click', (e) => {
+    if (e.target !== searchInput && e.target !== autocompleteList) {
+      closeAllLists();
+    }
   });
 }
 
