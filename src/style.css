@@ -1108,43 +1108,75 @@ svg foreignObject i.gi:before {
   }
 }
 
-/* OSR GM Adjudication / Resolution Guide Card */
-.mishap-gm-guide-box {
+/* details block styling */
+details.mishap-gm-details {
   background: #191512;
-  border: 2px solid #b45309; /* Warm OSR bronze border */
+  border: 2px solid #b45309;
   border-radius: 8px;
-  padding: 1.25rem;
   margin-top: 1.25rem;
   box-shadow: inset 0 0 20px rgba(180, 83, 9, 0.08), 0 10px 25px rgba(0, 0, 0, 0.5);
   font-family: inherit;
+  overflow: hidden;
   transition: all 0.3s ease;
 }
 
-.mishap-gm-guide-box.axis-fracture {
-  border-color: #dc2626; /* Crimson border for Axis Fracture */
+details.mishap-gm-details.axis-fracture {
+  border-color: #dc2626;
   background: #1c1010;
   box-shadow: inset 0 0 20px rgba(220, 38, 38, 0.08), 0 10px 25px rgba(0, 0, 0, 0.6);
 }
 
-.mishap-gm-guide-box h4 {
+details.mishap-gm-details summary {
+  padding: 0.75rem 1.25rem;
   font-family: 'Outfit', sans-serif;
-  color: #fbbf24; /* Gold title */
-  font-size: 1.15rem;
+  color: #fbbf24;
+  font-size: 1.05rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  margin-top: 0;
-  margin-bottom: 0.75rem;
+  cursor: pointer;
+  outline: none;
+  list-style: none; /* Hide default arrow in Chrome/Firefox */
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  transition: border-color 0.3s ease;
+}
+
+details.mishap-gm-details summary::-webkit-details-marker {
+  display: none; /* Hide default arrow in Safari */
+}
+
+details.mishap-gm-details summary::after {
+  content: '▼';
+  font-size: 0.8rem;
+  color: #fbbf24;
+  transition: transform 0.2s ease;
+}
+
+details.mishap-gm-details[open] summary::after {
+  transform: rotate(180deg);
+}
+
+details.mishap-gm-details[open] summary {
   border-bottom: 1px solid rgba(251, 191, 36, 0.25);
   padding-bottom: 0.5rem;
 }
 
-.mishap-gm-guide-box.axis-fracture h4 {
-  color: #ef4444; /* Crimson title */
+details.mishap-gm-details.axis-fracture summary {
+  color: #ef4444;
+}
+
+details.mishap-gm-details.axis-fracture summary::after {
+  color: #ef4444;
+}
+
+details.mishap-gm-details.axis-fracture[open] summary {
   border-bottom-color: rgba(239, 68, 68, 0.25);
+}
+
+.gm-details-content {
+  padding: 1.25rem;
 }
 
 .gm-guide-section {
@@ -1165,7 +1197,7 @@ svg foreignObject i.gi:before {
   display: block;
 }
 
-.mishap-gm-guide-box.axis-fracture .gm-guide-title {
+details.mishap-gm-details.axis-fracture .gm-guide-title {
   color: #f87171;
 }
 
@@ -1204,7 +1236,7 @@ svg foreignObject i.gi:before {
   margin: 0.5rem 0;
 }
 
-.mishap-gm-guide-box.axis-fracture .gm-fiction-prompt {
+details.mishap-gm-details.axis-fracture .gm-fiction-prompt {
   border-left-color: #ef4444;
 }
 
@@ -1215,5 +1247,29 @@ svg foreignObject i.gi:before {
   font-family: monospace;
   font-size: 0.85rem;
   color: #cbd5e1;
+}
+
+/* Exploded / Resonance Die Styling */
+.mishap-die.exploded {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.6) !important;
+  background: #2b1212 !important;
+  opacity: 0.75;
+  position: relative;
+}
+
+.mishap-die.exploded .die-val {
+  color: #f87171 !important;
+  text-decoration: line-through;
+}
+
+.mishap-die.exploded::after {
+  content: '💥';
+  position: absolute;
+  font-size: 0.85rem;
+  top: -8px;
+  right: -8px;
+  transform: rotate(-45deg); /* Counter-rotate to stay upright with text */
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5));
 }
 

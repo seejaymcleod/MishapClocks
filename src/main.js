@@ -333,9 +333,9 @@ function renderScaledMandala() {
     // Draw slices
     appState.magicNodes.forEach((school, i) => {
       const node = tier[i] || { dc: '—', dice: '—' };
-      const centerAngle = i * angleStep;
-      const startAngle = centerAngle - angleStep / 2;
-      const endAngle = centerAngle + angleStep / 2;
+      const centerAngle = i * angleStep + angleStep / 2;
+      const startAngle = i * angleStep;
+      const endAngle = (i + 1) * angleStep;
       const sliceAngle = angleStep;
 
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -536,7 +536,7 @@ function renderScaledMandala() {
     } else {
       // Rendering logic for the 3 experimental print-friendly modes:
       if (appState.viewMode === 'radial-axis') {
-        const axisAngle = -22.5;
+        const axisAngle = 0;
 
         // Draw divider line at -22.5 degrees as the gauge axis
         const axisStart = polarToCartesian(cx, cy, innerR, axisAngle);
@@ -654,8 +654,8 @@ function renderScaledMandala() {
         const modifierText = firstNode.modifier || '—';
 
         const createCurvedLine = (id, radius, textContent, color, fontSize, customClass = "scaled-text") => {
-          const pathStart = polarToCartesian(cx, cy, radius, -22.5);
-          const pathEnd = polarToCartesian(cx, cy, radius, 22.5);
+          const pathStart = polarToCartesian(cx, cy, radius, 0);
+          const pathEnd = polarToCartesian(cx, cy, radius, 45);
           const pathData = [
             "M", pathStart.x, pathStart.y,
             "A", radius, radius, 0, 0, 1, pathEnd.x, pathEnd.y
@@ -738,7 +738,7 @@ function renderScaledMandala() {
 
   // Outer Ring Section
   appState.magicNodes.forEach((school, i) => {
-    const angle = i * angleStep;
+    const angle = i * angleStep + angleStep / 2;
     const effectName = appState.scaledTiers[0].nodes[i]?.type || `Effect ${i + 1}`;
 
     // Retrieve opposite school color dynamically
@@ -2557,35 +2557,21 @@ function rollMishap() {
   const resultsContainer = document.getElementById('mishap-results-container');
   const narrativeBox = document.getElementById('mishap-narrative');
   const gmGuideBox = document.getElementById('mishap-gm-guide');
-  const dieSchool = document.getElementById('die-container-mishap-school');
-  const dieEffect = document.getElementById('die-container-mishap-effect');
-  const dieChaos = document.getElementById('die-container-mishap-chaos');
+  const detailsContent = document.getElementById('mishap-gm-details-content');
 
   if (resultsContainer) resultsContainer.classList.remove('hidden');
   if (narrativeBox) narrativeBox.classList.remove('hidden');
-  if (gmGuideBox) gmGuideBox.classList.remove('hidden');
-
-  // Reset dice animations
-  [dieSchool, dieEffect, dieChaos].forEach(d => {
-    if (d) {
-      d.classList.remove('die-rolled');
-      void d.offsetWidth; // trigger reflow
-      d.classList.add('die-rolled');
-    }
-  });
-
-  if (dieChaos) dieChaos.classList.add('hidden');
+  if (gmGuideBox) {
+    gmGuideBox.classList.remove('hidden');
+    gmGuideBox.removeAttribute('open'); // start collapsed by default
+  }
 
   const d1 = Math.floor(Math.random() * 8) + 1; // Mishap School
   const d2 = Math.floor(Math.random() * 8) + 1; // Mishap Effect
 
-  if (dieSchool) dieSchool.querySelector('.die-val').textContent = d1;
-  if (dieEffect) dieEffect.querySelector('.die-val').textContent = d2;
-
   const initialTier = mishapState.selectedTier;
   const castSchoolIdx = mishapState.selectedSchoolIdx;
   const castPolarity = mishapState.selectedPolarity;
-  const castSchool = appState.magicNodes[castSchoolIdx];
 
   const getOppositeSchoolIdx = (idx) => {
     const oppLabel = appState.magicNodes[idx].opposite;
@@ -2593,12 +2579,8 @@ function rollMishap() {
   };
 
   const getInvertedPolarity = (pol) => pol === 'positive' ? 'negative' : 'positive';
-  const formatSchool = (idx, pol) => `<strong style="color: ${appState.magicNodes[idx].color};">${appState.magicNodes[idx].label} (${pol === 'positive' ? '+' : '−'})</strong>`;
-  const formatEffect = (idx, tier) => {
-    const node = appState.scaledTiers[tier].nodes[idx];
-    return `<strong>${node.type}</strong>: <em>${node.modifier}</em>`;
-  };
-
+  const formatSchool = (idx, pol) => `<span style="color: ${appState.magicNodes[idx].color}; font-weight: bold;">${appState.magicNodes[idx].label} (${pol === 'positive' ? '+' : '−'})</span>`;
+  
   const getSchoolFlavor = (idx, pol) => {
     if (idx === 0) { // Thermal
       return pol === 'positive' ? 'kinetic ignition and flash-fire heat' : 'kinetic absolute zero and freezing cold';
@@ -2664,80 +2646,77 @@ function rollMishap() {
 
   const getEffectRuling = (idx, modifier) => {
     const rulings = [
-      `<li><strong>Epicenter Caster:</strong> The caster is the direct target. This damage/complication cannot be redirected or mitigated by magic armor. Describe a physical toll (e.g., frostbitten fingers, smoking robes, or blood dripping from ears).</li>`,
-      `<li><strong>Veering Path:</strong> The spell completely veers off course. Roll randomly among all nearby creatures (allies, enemies, and neutrals) to determine who is hit by the veered spell.</li>`,
-      `<li><strong>Violent Split:</strong> The mishap forks into multiple paths (<em>${modifier}</em>). If there are fewer targets than the fork amount, the extra paths strike the environment (creating hazards) or loop back to the caster.</li>`,
-      `<li><strong>Proximal Backlash:</strong> The spell collapses at the caster's feet. Every creature within Close range (5-10 ft) is caught in the radius and must make the saving throw.</li>`,
-      `<li><strong>Spell Dampening:</strong> The local magical frequency is jammed. Active spells of this school are dispelled, and casting of this school suffers a DC +4 penalty for the next 10 minutes.</li>`,
-      `<li><strong>Terrain Warping:</strong> The environment is permanently altered by the elements (<em>${modifier}</em>). This creates difficult terrain, blocks exits, or collapses structures.</li>`,
-      `<li><strong>Lingering Hazard:</strong> A persistent, unstable zone is created (30ft radius). Any creature entering or starting their turn in this zone must save or take damage/complications.</li>`,
-      `<li><strong>Ethereal Drain:</strong> Caster's mana reservoirs bleed out. The caster loses an additional spell slot, or magic items on their person lose 1 charge.</li>`
+      `<li><strong>Epicenter Caster:</strong> Caster is the direct target. Complication cannot be redirected or mitigated by magic armor. Describe a physical toll (e.g., frostbitten fingers, smoking robes, or blood dripping from ears).</li>`,
+      `<li><strong>Veering Path:</strong> Spell completely veers off course. Roll randomly among all nearby creatures (allies, enemies, and neutrals) to determine who is hit by the veered spell.</li>`,
+      `<li><strong>Violent Split:</strong> Spell forks into multiple paths (<em>${modifier}</em>). If there are fewer targets than the fork amount, the extra paths strike the environment (creating hazards) or loop back to the caster.</li>`,
+      `<li><strong>Proximal Backlash:</strong> Spell collapses at the caster's feet. Every creature within Close range (5-10 ft) is caught in the radius and must make the saving throw.</li>`,
+      `<li><strong>Spell Dampening:</strong> Local magical frequency is jammed. Active spells of this school are dispelled, and casting of this school suffers a DC +4 penalty for the next 10 minutes.</li>`,
+      `<li><strong>Terrain Warping:</strong> Environment is permanently altered by the elements (<em>${modifier}</em>). This creates difficult terrain, blocks exits, or collapses structures.</li>`,
+      `<li><strong>Lingering Hazard:</strong> Persistent, unstable zone is created (30ft radius). Any creature entering or starting their turn in this zone must save or take damage/complications.</li>`,
+      `<li><strong>Ethereal Drain:</strong> Caster's mana reservoirs bleed out. Caster loses an additional spell slot, or magic items on their person lose 1 charge.</li>`
     ];
     return rulings[idx] || `<li><strong>Catastrophic Complication:</strong> Apply the custom effect <em>${modifier}</em> to the scene.</li>`;
   };
 
-  let narrativeHtml = `<h4>Roll Results</h4><p>Base Tier: T${initialTier} | Cast: ${formatSchool(castSchoolIdx, castPolarity)}</p><hr>`;
+  const diceList = [];
+  diceList.push({ label: 'School', value: d1, exploded: false });
+  diceList.push({ label: 'Effect', value: d2, exploded: false });
+
+  let narrativeHtml = `<h4>Roll Results</h4>`;
   let gmGuideHtml = '';
 
   if (d1 === d2) {
     // AXIS FRACTURE (Doubles)
-    if (gmGuideBox) gmGuideBox.className = 'mishap-gm-guide-box axis-fracture';
-    narrativeHtml += `<div class="axis-fracture-badge">⚠️ AXIS FRACTURE ⚠️</div>`;
-    if (dieChaos) dieChaos.classList.remove('hidden');
+    if (gmGuideBox) gmGuideBox.className = 'mishap-gm-details axis-fracture';
+    narrativeHtml += `<div class="axis-fracture-badge" style="margin-bottom: 0.5rem;">⚠️ AXIS FRACTURE ⚠️</div>`;
 
     let currentTier = initialTier + 1;
-    narrativeHtml += `<p>• <strong>Tier Spike</strong>: Tier escalated to T${currentTier}.</p>`;
-
     const rolledSliceIdx = d1 - 1;
     const rolledSliceOppIdx = getOppositeSchoolIdx(rolledSliceIdx);
 
-    narrativeHtml += `<p>• <strong>Dual Schools</strong>: Triggered ${formatSchool(rolledSliceIdx, 'positive')} & ${formatSchool(rolledSliceOppIdx, 'negative')}.</p>`;
+    narrativeHtml += `<p>School: ${formatSchool(rolledSliceIdx, 'positive')} + ${formatSchool(rolledSliceOppIdx, 'negative')}</p>`;
+    narrativeHtml += `<p><em>(Roll ${d1}): Axis Fracture (Doubles)</em></p>`;
 
     // Highlight schools
     highlightMandalaElements(rolledSliceIdx, Math.min(currentTier, 5), false);
     highlightMandalaElements(rolledSliceOppIdx, Math.min(currentTier, 5), false);
 
     let d3 = Math.floor(Math.random() * 8) + 1;
-    if (dieChaos) dieChaos.querySelector('.die-val').textContent = d3;
-    
     let effectDiceBonus = 0;
     let effectDcBonus = 0;
     let chaosLog = `Rolled ${d3}`;
 
-    narrativeHtml += `<p>• <strong>Chaos Die</strong>: Rolled ${d3}.</p>`;
-
     while (d3 === d1) {
-      narrativeHtml += `<p style="color: #ff4500;">💥 <strong>Resonance!</strong> Chaos Die matched doubles.</p>`;
+      // Exploded! Show it in the dice history
+      diceList.push({ label: 'Resonance', value: d3, exploded: true });
+      
       if (currentTier < 5) {
         currentTier++;
-        narrativeHtml += `<p>• Tier escalated to T${currentTier}. Re-rolling Chaos Die...</p>`;
-        chaosLog += ` &rarr; 💥 <strong>Resonance!</strong> Escalated to T${currentTier}. Re-rolling`;
+        chaosLog += ` &rarr; 💥 Resonance! Escalated to T${currentTier}. Re-rolling`;
       } else {
         effectDiceBonus++;
         effectDcBonus += 2;
-        narrativeHtml += `<p>• <strong>Critical Overload!</strong> (Past T5) Effect Dice instances +1, DC +2. Re-rolling Chaos Die...</p>`;
-        chaosLog += ` &rarr; 💥 <strong>Critical Overload!</strong> DC+2, Dice+1. Re-rolling`;
+        chaosLog += ` &rarr; 💥 Overload! DC+2, Dice+1. Re-rolling`;
       }
       d3 = Math.floor(Math.random() * 8) + 1;
-      if (dieChaos) dieChaos.querySelector('.die-val').textContent = d3;
-      narrativeHtml += `<p>• New Chaos Die: ${d3}.</p>`;
       chaosLog += ` [New: ${d3}]`;
     }
 
+    // Settled Chaos Die
+    diceList.push({ label: 'Chaos', value: d3, exploded: false });
+
     const finalSliceIdx = d3 - 1;
     const finalOppSliceIdx = getOppositeSchoolIdx(finalSliceIdx);
-
-    narrativeHtml += `<p>• <strong>Dual Shapes</strong>: Triggered <strong>${appState.scaledTiers[0].nodes[finalSliceIdx].type}</strong> & <strong>${appState.scaledTiers[0].nodes[finalOppSliceIdx].type}</strong>.</p><hr>`;
-    
     const finalTierClamp = Math.min(currentTier, 5);
+
     const nodeA = appState.scaledTiers[finalTierClamp].nodes[finalSliceIdx];
     const nodeB = appState.scaledTiers[finalTierClamp].nodes[finalOppSliceIdx];
     const baseNode = appState.scaledTiers[finalTierClamp].nodes[0];
     const baseDc = baseNode.dc || 'DC 11';
     const baseDice = baseNode.dice || '1d6';
 
-    narrativeHtml += `<p><strong>Final Escalated Effects (T${currentTier}):</strong></p>`;
-    narrativeHtml += `<ul><li>${formatEffect(finalSliceIdx, finalTierClamp)}</li><li>${formatEffect(finalOppSliceIdx, finalTierClamp)}</li></ul>`;
+    narrativeHtml += `<p style="margin-top: 0.6rem;">Effect: <strong>${nodeA.type}: ${nodeA.modifier}</strong> + <strong>${nodeB.type}: ${nodeB.modifier}</strong></p>`;
+    narrativeHtml += `<p><em>(Roll ${d3}): Chaos Die (${chaosLog.replace(/&rarr;/g, '→')})</em></p>`;
     
     let baseDcVal = 9 + finalTierClamp * 2;
     if (baseDc.startsWith("DC ")) {
@@ -2748,9 +2727,9 @@ function rollMishap() {
 
     let finalDiceStr = baseDice;
     if (effectDiceBonus > 0) {
-      narrativeHtml += `<p><em>Overload Adjustments:</em> Base DC (${baseDc}) + ${effectDcBonus}, Base Dice (${baseDice}) + ${effectDiceBonus} instance(s).</p>`;
       finalDiceStr = `${baseDice} + ${effectDiceBonus} instance(s)`;
     }
+    narrativeHtml += `<p style="margin-top: 0.6rem; font-size: 0.95rem; font-weight: bold; color: #ef4444;">Escalated: T${currentTier} (${finalDcStr} • ${finalDiceStr})</p>`;
 
     // Highlight effects
     highlightMandalaElements(finalSliceIdx, finalTierClamp, true);
@@ -2759,42 +2738,27 @@ function rollMishap() {
     // OSR Guide Output
     const schoolFlavorA = getSchoolFlavor(rolledSliceIdx, 'positive');
     const schoolFlavorB = getSchoolFlavor(rolledSliceOppIdx, 'negative');
-    const shapeFlavorA = getEffectFlavor(finalSliceIdx);
-    const shapeFlavorB = getEffectFlavor(finalOppSliceIdx);
 
     gmGuideHtml = `
-      <h4><i class="gi gi-skull"></i> OSR Resolution: Axis Fracture</h4>
-      
       <div class="gm-guide-section">
-        <span class="gm-guide-title">1. Rules Parsing Breakdown</span>
-        <div class="gm-guide-content gm-rules-applied">
-          <strong>Catastrophic Doubles:</strong> Rolled ${d1} and ${d1} &rarr; Axis Fracture snapped the cosmic circuit.<br>
-          <strong>Tier Escalation:</strong> Base T${initialTier} spiked to T${currentTier} (clamped at T${finalTierClamp} for table lookup).<br>
-          <strong>Dual Schools Triggered:</strong> Rolled School ${formatSchool(rolledSliceIdx, 'positive')} AND Opposed School ${formatSchool(rolledSliceOppIdx, 'negative')}.<br>
-          <strong>Chaos Geometry:</strong> ${chaosLog} &rarr; Settled on unique ${d3}.<br>
-          <strong>Dual Shapes Triggered:</strong> Slice ${d3}: <strong>${nodeA.type}</strong> AND Opposite Slice ${finalOppSliceIdx + 1}: <strong>${nodeB.type}</strong>.
-        </div>
-      </div>
-
-      <div class="gm-guide-section">
-        <span class="gm-guide-title">2. Environmental & Thematic Fiction</span>
+        <span class="gm-guide-title">Fiction</span>
         <div class="gm-guide-content gm-fiction-prompt">
-          "The cosmic circuit shatters under a catastrophic collision of opposing forces! Eruptions of <strong>${schoolFlavorA}</strong> and <strong>${schoolFlavorB}</strong> clash violently, tearing the fabric of reality with both <strong>${shapeFlavorA}</strong> and <strong>${shapeFlavorB}</strong>."
+          "The cosmic circuit shatters under a catastrophic collision of opposing forces! Eruptions of <strong>${schoolFlavorA}</strong> and <strong>${schoolFlavorB}</strong> clash violently, tearing reality with both <strong>${getEffectFlavor(finalSliceIdx)}</strong> and <strong>${getEffectFlavor(finalOppSliceIdx)}</strong>."
         </div>
       </div>
 
       <div class="gm-guide-section">
-        <span class="gm-guide-title">3. Mechanical Adjudication (GM Checklist)</span>
+        <span class="gm-guide-title">Mechanics</span>
         <div class="gm-guide-content">
           <ul>
-            <li><strong>Double Threat Saving Throw:</strong> Targets must choose their defense: make a <strong>${getSuggestedSave(rolledSliceIdx)} Save</strong> OR a <strong>${getSuggestedSave(rolledSliceOppIdx)} Save</strong> at <strong>${finalDcStr}</strong> to resist.</li>
-            <li><strong>Dual-Elemental Damage:</strong> On a failed save, inflict <strong>${finalDiceStr} ${getDamageType(rolledSliceIdx, 'positive')} damage</strong> AND <strong>${finalDiceStr} ${getDamageType(rolledSliceOppIdx, 'negative')} damage</strong>.</li>
-            <li><strong>Apply Shape A Complication — ${nodeA.type} (${nodeA.modifier}):</strong>
+            <li><strong>Saves:</strong> Target makes a <strong>${getSuggestedSave(rolledSliceIdx)} Save</strong> OR a <strong>${getSuggestedSave(rolledSliceOppIdx)} Save</strong> at <strong>${finalDcStr}</strong>.</li>
+            <li><strong>Damage:</strong> Inflict <strong>${finalDiceStr} ${getDamageType(rolledSliceIdx, 'positive')} damage</strong> AND <strong>${finalDiceStr} ${getDamageType(rolledSliceOppIdx, 'negative')} damage</strong>.</li>
+            <li><strong>Shape A — ${nodeA.type} (${nodeA.modifier}):</strong>
               <ul>
                 ${getEffectRuling(finalSliceIdx, nodeA.modifier)}
               </ul>
             </li>
-            <li><strong>Apply Shape B Complication — ${nodeB.type} (${nodeB.modifier}):</strong>
+            <li><strong>Shape B — ${nodeB.type} (${nodeB.modifier}):</strong>
               <ul>
                 ${getEffectRuling(finalOppSliceIdx, nodeB.modifier)}
               </ul>
@@ -2806,12 +2770,11 @@ function rollMishap() {
 
   } else {
     // STANDARD ROLL
-    if (gmGuideBox) gmGuideBox.className = 'mishap-gm-guide-box';
+    if (gmGuideBox) gmGuideBox.className = 'mishap-gm-details';
     let resultSchoolIdx = castSchoolIdx;
     let resultPolarity = castPolarity;
     let secondarySchoolIdx = null;
     let secondaryPolarity = null;
-    
     let rollTypeStr = "";
 
     if (d1 >= 6) {
@@ -2837,26 +2800,37 @@ function rollMishap() {
       
       secondarySchoolIdx = Math.floor(Math.random() * 8);
       secondaryPolarity = getInvertedPolarity(castPolarity);
-      narrativeHtml += `<p><strong>Mishap School (Secondary)</strong>: ${formatSchool(secondarySchoolIdx, secondaryPolarity)}</p>`;
+      
+      // Roll random secondary school die and push to diceList
+      diceList.push({ label: 'Random', value: secondarySchoolIdx + 1, exploded: false });
+    }
+
+    if (secondarySchoolIdx !== null) {
+      narrativeHtml += `<p>School: ${formatSchool(resultSchoolIdx, resultPolarity)} + ${formatSchool(secondarySchoolIdx, secondaryPolarity)}</p>`;
+    } else {
+      narrativeHtml += `<p>School: ${formatSchool(resultSchoolIdx, resultPolarity)}</p>`;
+    }
+    narrativeHtml += `<p><em>(Roll ${d1}): ${rollTypeStr}</em></p>`;
+    highlightMandalaElements(resultSchoolIdx, initialTier, false);
+    if (secondarySchoolIdx !== null) {
       highlightMandalaElements(secondarySchoolIdx, initialTier, false);
     }
 
-    narrativeHtml += `<p><strong>Mishap School</strong> (Roll ${d1}): ${rollTypeStr} ➔ ${formatSchool(resultSchoolIdx, resultPolarity)}</p>`;
-    highlightMandalaElements(resultSchoolIdx, initialTier, false);
-
     const effectSliceIdx = d2 - 1;
-    narrativeHtml += `<p><strong>Mishap Effect</strong> (Roll ${d2}): ${formatEffect(effectSliceIdx, initialTier)}</p>`;
+    const effectNode = appState.scaledTiers[initialTier].nodes[effectSliceIdx];
+    const modifier = effectNode.modifier;
+    const effectType = effectNode.type;
+    const baseNode = appState.scaledTiers[initialTier].nodes[0];
+    const dcStr = baseNode.dc || `DC ${9 + initialTier * 2}`;
+    const diceStr = baseNode.dice || `1d${4 + initialTier * 2}`;
+
+    narrativeHtml += `<p style="margin-top: 0.6rem;">Effect: <strong>${effectType}: ${modifier}</strong></p>`;
+    narrativeHtml += `<p><em>(Roll ${d2}): T${initialTier} Slice ${d2} (${dcStr} • ${diceStr})</em></p>`;
     highlightMandalaElements(effectSliceIdx, initialTier, true);
 
     // OSR Guide Output
     const schoolFlavorA = getSchoolFlavor(resultSchoolIdx, resultPolarity);
     const effectFlavor = getEffectFlavor(effectSliceIdx);
-    const baseNode = appState.scaledTiers[initialTier].nodes[0];
-    const dcStr = baseNode.dc || `DC ${9 + initialTier * 2}`;
-    const diceStr = baseNode.dice || `1d${4 + initialTier * 2}`;
-    const effectNode = appState.scaledTiers[initialTier].nodes[effectSliceIdx];
-    const modifier = effectNode.modifier;
-    const effectType = effectNode.type;
 
     let fictionText = `The local magical field buckles as a surge of <strong>${schoolFlavorA}</strong> manifests as <strong>${effectFlavor}</strong>.`;
     if (secondarySchoolIdx !== null) {
@@ -2864,23 +2838,13 @@ function rollMishap() {
       fictionText = `The local magical field splits as a dual surge of <strong>${schoolFlavorA}</strong> and <strong>${schoolFlavorB}</strong> manifests as <strong>${effectFlavor}</strong>.`;
     }
 
-    let parserHtml = `
-      <strong>d8 School Roll:</strong> Rolled ${d1} &rarr; <em>${rollTypeStr}</em> &rarr; Mishap School: ${formatSchool(resultSchoolIdx, resultPolarity)}
-    `;
-    if (secondarySchoolIdx !== null) {
-      parserHtml += `<br><strong>Secondary Mishap School:</strong> ${formatSchool(secondarySchoolIdx, secondaryPolarity)}`;
-    }
-    parserHtml += `
-      <br><strong>d8 Effect Roll:</strong> Rolled ${d2} &rarr; Look at Slice ${d2} at Tier ${initialTier} &rarr; <strong>${effectType} (${modifier})</strong>
-    `;
-
     let mechanicsHtml = `
       <ul>
-        <li><strong>Determine Save:</strong> Target makes a <strong>${getSuggestedSave(resultSchoolIdx)} Save</strong> (${dcStr}) to resist.</li>
+        <li><strong>Save:</strong> Target makes a <strong>${getSuggestedSave(resultSchoolIdx)} Save</strong> (${dcStr}).</li>
     `;
     if (secondarySchoolIdx !== null) {
       mechanicsHtml += `
-        <li><strong>Secondary Save:</strong> For the secondary element, targets also make a <strong>${getSuggestedSave(secondarySchoolIdx)} Save</strong> (${dcStr}) to resist.</li>
+        <li><strong>Secondary Save:</strong> Targets also make a <strong>${getSuggestedSave(secondarySchoolIdx)} Save</strong> (${dcStr}).</li>
       `;
     }
     
@@ -2890,12 +2854,12 @@ function rollMishap() {
         dmgTypes += ` and ${getDamageType(secondarySchoolIdx, secondaryPolarity)}`;
       }
       mechanicsHtml += `
-        <li><strong>Inflict Damage:</strong> On a failed save, deal <strong>${diceStr} ${dmgTypes} damage</strong> (half on success).</li>
+        <li><strong>Damage:</strong> Inflict <strong>${diceStr} ${dmgTypes} damage</strong> (half on success).</li>
       `;
     }
 
     mechanicsHtml += `
-        <li><strong>Apply Complication — ${effectType} (${modifier}):</strong>
+        <li><strong>Complication — ${effectType} (${modifier}):</strong>
           <ul>
             ${getEffectRuling(effectSliceIdx, modifier)}
           </ul>
@@ -2904,24 +2868,15 @@ function rollMishap() {
     `;
 
     gmGuideHtml = `
-      <h4><i class="gi gi-scroll"></i> OSR Resolution Guide</h4>
-      
       <div class="gm-guide-section">
-        <span class="gm-guide-title">1. Rules Parsing Breakdown</span>
-        <div class="gm-guide-content gm-rules-applied">
-          ${parserHtml}
-        </div>
-      </div>
-
-      <div class="gm-guide-section">
-        <span class="gm-guide-title">2. Environmental & Thematic Fiction</span>
+        <span class="gm-guide-title">Fiction</span>
         <div class="gm-guide-content gm-fiction-prompt">
           "${fictionText}"
         </div>
       </div>
 
       <div class="gm-guide-section">
-        <span class="gm-guide-title">3. Mechanical Adjudication (GM Checklist)</span>
+        <span class="gm-guide-title">Mechanics</span>
         <div class="gm-guide-content">
           ${mechanicsHtml}
         </div>
@@ -2930,7 +2885,36 @@ function rollMishap() {
   }
 
   narrativeBox.innerHTML = narrativeHtml;
-  if (gmGuideBox) gmGuideBox.innerHTML = gmGuideHtml;
+  if (detailsContent) detailsContent.innerHTML = gmGuideHtml;
+
+  // Dynamically render the dice box
+  const diceBox = document.getElementById('mishap-dice-box');
+  if (diceBox) {
+    diceBox.innerHTML = '';
+    diceList.forEach(die => {
+      const container = document.createElement('div');
+      container.className = 'mishap-die-container die-rolled';
+      
+      const label = document.createElement('span');
+      label.className = 'die-label';
+      label.textContent = die.label;
+      container.appendChild(label);
+      
+      const dieEl = document.createElement('div');
+      dieEl.className = 'mishap-die' + (die.exploded ? ' exploded' : '');
+      
+      const val = document.createElement('span');
+      val.className = 'die-val';
+      val.textContent = die.value;
+      
+      dieEl.appendChild(val);
+      container.appendChild(dieEl);
+      diceBox.appendChild(container);
+      
+      // Trigger reflow to play animation on insertion
+      void dieEl.offsetWidth;
+    });
+  }
 }
 
 init();

@@ -218,25 +218,8 @@
 
           <!-- Results Display -->
           <div class="mishap-results-container hidden" id="mishap-results-container">
-            <div class="mishap-dice-box">
-              <div class="mishap-die-container" id="die-container-mishap-school">
-                <span class="die-label">School</span>
-                <div class="mishap-die" id="die-mishap-school">
-                  <span class="die-val">—</span>
-                </div>
-              </div>
-              <div class="mishap-die-container" id="die-container-mishap-effect">
-                <span class="die-label">Effect</span>
-                <div class="mishap-die" id="die-mishap-effect">
-                  <span class="die-val">—</span>
-                </div>
-              </div>
-              <div class="mishap-die-container hidden" id="die-container-mishap-chaos">
-                <span class="die-label">Chaos</span>
-                <div class="mishap-die" id="die-mishap-chaos">
-                  <span class="die-val">—</span>
-                </div>
-              </div>
+            <div class="mishap-dice-box" id="mishap-dice-box">
+              <!-- Generated dynamically by JS -->
             </div>
 
             <!-- Narrative / Explanation -->
@@ -245,9 +228,12 @@
             </div>
 
             <!-- GM Resolution / OSR Adjudication Guide -->
-            <div id="mishap-gm-guide" class="mishap-gm-guide-box hidden">
-              <!-- GM guide filled by JS -->
-            </div>
+            <details id="mishap-gm-guide" class="mishap-gm-details hidden">
+              <summary>Details</summary>
+              <div class="gm-details-content" id="mishap-gm-details-content">
+                <!-- GM details filled by JS -->
+              </div>
+            </details>
           </div>
         </div>
 
