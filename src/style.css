@@ -1057,8 +1057,7 @@ svg foreignObject i.gi:before {
   filter: brightness(1.8) drop-shadow(0 0 12px rgba(255, 255, 255, 0.7)) !important;
 }
 
-.outer-icon-group.highlighted foreignObject i {
-  color: #fff !important;
+.outer-icon-group.highlighted .base-icon {
   filter: drop-shadow(0 0 25px var(--glow-color, #fbbf24)) !important;
   animation: pulseGlow 1.5s infinite alternate;
 }
@@ -1094,22 +1093,21 @@ svg foreignObject i.gi:before {
 /* ----------------------------------------------------
    STATE 1: SELECTED POLARITY (CAST)
    ---------------------------------------------------- */
-/* Swirling magic ring around it, stylistically similar to the middle of the circle (#fbbf24) */
-.outer-icon-group.selected-school-polarity .selection-ring-inner {
-  opacity: 1;
-  stroke: #fbbf24;
-  stroke-width: 4px;
-  stroke-dasharray: 20 10 5 10;
-  animation: spinRing 12s linear infinite;
-  filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.8));
+/* Swirling magic ring around it (Atomic Slashes with center cut out!) */
+.selected-backdrop {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: opacity 0.3s ease;
+  /* CSS Cookie Cutter: Makes the center 35% completely transparent to remove the dot */
+  -webkit-mask-image: radial-gradient(circle at center, transparent 35%, black 36%);
+  mask-image: radial-gradient(circle at center, transparent 35%, black 36%);
 }
 
-.outer-icon-group.selected-school-polarity .selection-ring-outer {
-  opacity: 1;
-  stroke: rgba(251, 191, 36, 0.5);
-  stroke-width: 2px;
-  stroke-dasharray: 5 15;
-  animation: spinRing 24s linear infinite reverse;
+.outer-icon-group.selected-school-polarity .selected-backdrop {
+  opacity: 1 !important;
+  visibility: visible !important;
+  filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.8));
+  animation: spinIcon 15s linear infinite;
 }
 
 /* ----------------------------------------------------

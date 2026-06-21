@@ -845,7 +845,12 @@ function renderScaledMandala() {
         fObj.setAttribute("y", iconPos.y - containerSize / 2);
         fObj.setAttribute("width", containerSize);
         fObj.setAttribute("height", containerSize);
-        fObj.innerHTML = `<i class="gi ${iconClass} base-icon" style="font-size: ${iconSize}px; color: ${targetColor}; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; transition: all 0.3s ease;"></i>`;
+        fObj.innerHTML = `
+          <div style="position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+            <i class="gi gi-atomic-slashes selected-backdrop" style="position: absolute; font-size: ${iconSize * 1.6}px; color: #fbbf24; z-index: 1;"></i>
+            <i class="gi ${iconClass} base-icon" style="position: relative; font-size: ${iconSize}px; color: ${targetColor}; z-index: 2; transition: all 0.3s ease;"></i>
+          </div>
+        `;
         iconGroup.appendChild(fObj);
         svg.appendChild(iconGroup);
         
