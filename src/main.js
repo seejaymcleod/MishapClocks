@@ -845,13 +845,7 @@ function renderScaledMandala() {
         fObj.setAttribute("y", iconPos.y - containerSize / 2);
         fObj.setAttribute("width", containerSize);
         fObj.setAttribute("height", containerSize);
-        fObj.innerHTML = `
-          <div style="position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
-            <div class="status-badge cast-badge">CAST</div>
-            <i class="gi ${iconClass} base-icon" style="position: relative; font-size: ${iconSize}px; color: ${targetColor}; z-index: 2; transition: all 0.3s ease;"></i>
-            <div class="status-badge result-badge">RESULT</div>
-          </div>
-        `;
+        fObj.innerHTML = `<i class="gi ${iconClass} base-icon" style="font-size: ${iconSize}px; color: ${targetColor}; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; transition: all 0.3s ease;"></i>`;
         iconGroup.appendChild(fObj);
         svg.appendChild(iconGroup);
         
