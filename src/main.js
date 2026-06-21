@@ -773,7 +773,8 @@ function renderScaledMandala() {
         if (shouldWrap) {
           let parts = [];
           if (text.includes(" ")) {
-            parts = text.split(" ");
+            const idx = text.indexOf(" ");
+            parts = [text.substring(0, idx), text.substring(idx + 1)];
           } else {
             const idx = text.indexOf("-");
             parts = [text.substring(0, idx), text.substring(idx + 1)];
@@ -2588,14 +2589,14 @@ function rollMishap() {
 
   const getEffectFlavor = (idx) => {
     const types = [
-      'direct self-infliction upon the caster',
-      'unintended redirection veering off-course',
-      'splitting and striking multiple targets',
-      'a close-range backlash shockwave',
-      'magical dampening interference',
-      'permanent environmental warping',
-      'a lingering localized vortex field',
-      'raw mana leakage and energy drainage'
+      'chaos + reroll manifestation',
+      'an essence fracture redirection',
+      'a spatial tear striking multiple targets',
+      'a vector drift close-range shockwave',
+      'a temporal rupture/magical interference',
+      'materia snap environmental warping',
+      'a cosmic debt lingering hazard field',
+      'flesh corruption upon the caster'
     ];
     return types[idx] || 'mishap manifestation';
   };
