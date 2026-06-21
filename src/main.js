@@ -1,5 +1,5 @@
 import { spells } from './spells.js';
-import { defaultScaledTiers, mishapRulings } from './mishapData.js';
+import { defaultScaledTiers } from './mishapData.js';
 
 // State
 let appState = {
@@ -2629,10 +2629,10 @@ function rollMishap() {
   };
 
   const getEffectRuling = (idx, tierIdx, modifier) => {
-    const row = mishapRulings[idx];
-    if (row) {
-      const tierClamped = Math.max(0, Math.min(row.length - 1, tierIdx));
-      return row[tierClamped];
+    const tierClamped = Math.max(0, Math.min(appState.scaledTiers.length - 1, tierIdx));
+    const tier = appState.scaledTiers[tierClamped];
+    if (tier && tier.nodes && tier.nodes[idx] && tier.nodes[idx].ruling) {
+      return tier.nodes[idx].ruling;
     }
     return `<li><strong>Catastrophic Complication:</strong> Apply the custom effect <em>${modifier}</em> to the scene.</li>`;
   };
