@@ -1077,69 +1077,113 @@ svg foreignObject i.gi:before {
 .outer-icon-group .selection-ring-outer,
 .outer-icon-group .selection-ring-inner {
   fill: none;
+/* ====================================================
+   POLARITY HIGHLIGHTING SYSTEM (CAST vs RESULT)
+   ==================================================== */
+
+/* 1. Base State (Hidden) */
+.outer-icon-group .selection-ring-outer,
+.outer-icon-group .selection-ring-inner {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
 }
 
-.outer-icon-group.selected-school-polarity .selection-ring-outer,
-.outer-icon-group.selected-school-polarity .selection-ring-inner {
-  opacity: 1;
+/* Base badge styles inside foreignObject */
+.status-badge {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%) scale(0.8);
+  opacity: 0;
+  visibility: hidden;
+  font-size: 1.25rem;
+  font-weight: 900;
+  font-family: 'Montserrat', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  z-index: 10;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
 }
 
+.cast-badge {
+  top: 12%;
+  background: #ec4899;
+  color: #fff;
+  border: 2px solid #fbcfe8;
+  box-shadow: 0 4px 10px rgba(236, 72, 153, 0.6);
+}
+
+.result-badge {
+  bottom: 12%;
+  background: #fbbf24;
+  color: #111;
+  border: 2px solid #fffbeb;
+  box-shadow: 0 4px 10px rgba(251, 191, 36, 0.6);
+}
+
+/* ----------------------------------------------------
+   STATE 1: SELECTED POLARITY (CAST)
+   ---------------------------------------------------- */
 .outer-icon-group.selected-school-polarity .selection-ring-inner {
+  opacity: 1;
   stroke: #ec4899;
   stroke-width: 4px;
-  stroke-dasharray: 6 4;
-  animation: spinRing 15s linear infinite reverse;
+  stroke-dasharray: 10 6;
+  animation: spinRing 20s linear infinite;
   filter: drop-shadow(0 0 6px rgba(236, 72, 153, 0.8));
 }
 
-.outer-icon-group.selected-school-polarity .selection-ring-outer {
-  stroke: rgba(236, 72, 153, 0.6);
-  stroke-width: 2px;
-  stroke-dasharray: 20 10;
-  animation: marqueeSelectionOuter 4s linear infinite;
+.outer-icon-group.selected-school-polarity .base-icon {
+  filter: drop-shadow(0 0 8px rgba(236, 72, 153, 0.6));
 }
 
-.outer-icon-group.selected-school-polarity foreignObject i {
-  color: #f9a8d4 !important;
-  filter: drop-shadow(0 0 10px rgba(236, 72, 153, 0.7)) !important;
-}
-
-@keyframes marqueeSelectionOuter {
-  from { stroke-dashoffset: 0; }
-  to { stroke-dashoffset: 30; }
-}
-
-/* Result Polarity Highlight (Takes precedence over selected-school-polarity) */
-.outer-icon-group.result-polarity-highlight .selection-ring-outer,
-.outer-icon-group.result-polarity-highlight .selection-ring-inner {
+.outer-icon-group.selected-school-polarity .cast-badge {
   opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) scale(1);
 }
 
+/* ----------------------------------------------------
+   STATE 2: ROLLED POLARITY (RESULT)
+   ---------------------------------------------------- */
 .outer-icon-group.result-polarity-highlight .selection-ring-outer {
+  opacity: 1;
   stroke: #fff;
-  stroke-width: 4px;
+  stroke-width: 6px;
   stroke-dasharray: none;
   animation: pulseRingResult 1.5s infinite alternate;
+  filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.8));
 }
 
-.outer-icon-group.result-polarity-highlight .selection-ring-inner {
-  stroke: var(--glow-color, #fbbf24);
-  stroke-width: 3px;
-  stroke-dasharray: 4 2;
-  animation: spinRing 5s linear infinite;
-  transform-origin: center;
-  filter: none;
-}
-
-.outer-icon-group.result-polarity-highlight foreignObject i {
-  color: #fff !important;
-  filter: drop-shadow(0 0 25px #fff) !important;
+.outer-icon-group.result-polarity-highlight .base-icon {
+  color: #ffffff !important;
+  filter: drop-shadow(0 0 15px #fbbf24) !important;
   transform: scale(1.15);
-  transition: all 0.3s ease;
 }
+
+.outer-icon-group.result-polarity-highlight .result-badge {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) scale(1);
+}
+
+/* ----------------------------------------------------
+   STATE 3: BOTH (CAST + RESULT)
+   ---------------------------------------------------- */
+/* When both are active, they naturally stack because they use different rings and different badges! */
+/* We just need to make the dual-glow on the icon itself look amazing. */
+.outer-icon-group.selected-school-polarity.result-polarity-highlight .base-icon {
+  color: #ffffff !important;
+  filter: drop-shadow(0 0 12px #ec4899) drop-shadow(0 0 12px #fbbf24) !important;
+  transform: scale(1.2);
+}
+
+
+
+
 
 @keyframes pulseRingResult {
   0% { filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5)); stroke: rgba(255, 255, 255, 0.8); }
@@ -1311,3 +1355,10 @@ details.mishap-gm-details.axis-fracture .gm-fiction-prompt {
   filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5));
 }
 
+
+
+
+@keyframes spinIcon {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

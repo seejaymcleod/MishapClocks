@@ -31,6 +31,7 @@
         <button id="btn-polarity-flanking" class="btn-segment" data-polarity="flanking">Flanking</button>
         <button id="btn-polarity-watermark" class="btn-segment" data-polarity="watermark">Watermark</button>
       </div>
+
       <button id="outer-centering-btn" class="btn secondary">Outer Ring: Pinned</button>
       <div id="outer-offset-container" class="btn"
         style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; padding: 0.4rem 0.8rem;">
@@ -132,7 +133,7 @@
     </button>
   </header>
 
-  <main class="mandala-container">
+  <main id="mandala-container" class="mandala-container">
     <div class="dashboard-grid">
       <div class="clock-panel">
         <div id="target-mandala" class="svg-container"></div>
@@ -220,6 +221,11 @@
           <div class="mishap-results-container hidden" id="mishap-results-container">
             <div class="mishap-dice-box" id="mishap-dice-box">
               <!-- Generated dynamically by JS -->
+            </div>
+
+            <!-- Narrative Header -->
+            <div class="results-header-bar" style="margin-top: 1rem; margin-bottom: 0.5rem;">
+              <h4 style="margin: 0; font-family: 'Montserrat', sans-serif; font-size: 0.95rem; color: #fff; text-transform: uppercase; letter-spacing: 0.05em;">Roll Results</h4>
             </div>
 
             <!-- Narrative / Explanation -->

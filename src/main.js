@@ -3,6 +3,7 @@ import { defaultScaledTiers, mishapRulings } from './mishapData.js';
 
 // State
 let appState = {
+  castHighlightStyle: 'aether',
   viewMode: 'curved-axis',
   polarityMode: 'gap',
   polarityGap: 4,
@@ -844,7 +845,13 @@ function renderScaledMandala() {
         fObj.setAttribute("y", iconPos.y - containerSize / 2);
         fObj.setAttribute("width", containerSize);
         fObj.setAttribute("height", containerSize);
-        fObj.innerHTML = `<i class="gi ${iconClass}" style="font-size: ${iconSize}px; color: ${targetColor}; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
+        fObj.innerHTML = `
+          <div style="position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+            <div class="status-badge cast-badge">CAST</div>
+            <i class="gi ${iconClass} base-icon" style="position: relative; font-size: ${iconSize}px; color: ${targetColor}; z-index: 2; transition: all 0.3s ease;"></i>
+            <div class="status-badge result-badge">RESULT</div>
+          </div>
+        `;
         iconGroup.appendChild(fObj);
         svg.appendChild(iconGroup);
         
@@ -2415,6 +2422,8 @@ function setupMishapRoller() {
 
   rollBtn.addEventListener('click', rollMishap);
 
+
+
   // Default selection is not applied so the user must pick a polarity
 }
 
@@ -2520,7 +2529,12 @@ function rollMishap() {
   };
 
   const getInvertedPolarity = (pol) => pol === 'positive' ? 'negative' : 'positive';
-  const formatSchool = (idx, pol) => `<span style="color: ${appState.magicNodes[idx].color}; font-weight: bold;">${appState.magicNodes[idx].label} (${pol === 'positive' ? '+' : '−'})</span>`;
+  
+  const formatSchool = (idx, pol) => {
+    const node = appState.magicNodes[idx];
+    const signText = pol === 'positive' ? '+' : '−';
+    return `<span style="color: ${node.color}; font-weight: bold;">${node.label} (${signText})</span>`;
+  };
   
   const getSchoolFlavor = (idx, pol) => {
     if (idx === 0) { // Thermal
@@ -2603,7 +2617,7 @@ function rollMishap() {
     diceList.push({ label: 'Effect', value: d2, exploded: false });
   }
 
-  let narrativeHtml = `<h4>Roll Results</h4>`;
+  let narrativeHtml = ``;
   let gmGuideHtml = '';
 
   if (d1 === d2) {
