@@ -2251,51 +2251,81 @@ async function exportToPNG() {
     }
 
     function replaceForeignObjects(root) {
-      const fObjs = Array.from(root.querySelectorAll('foreignObject'));
-      for (const fObj of fObjs) {
+      const originalFObjs = Array.from(document.querySelectorAll('#target-mandala foreignObject'));
+      const clonedFObjs = Array.from(root.querySelectorAll('foreignObject'));
+
+      for (let idx = 0; idx < clonedFObjs.length; idx++) {
+        const fObj = clonedFObjs[idx];
+        const origFObj = originalFObjs[idx];
+
         const x = parseFloat(fObj.getAttribute('x') || '0');
         const y = parseFloat(fObj.getAttribute('y') || '0');
         const w = parseFloat(fObj.getAttribute('width') || '0');
         const h = parseFloat(fObj.getAttribute('height') || '0');
 
-        const iEl = fObj.querySelector('i[class]');
-        if (!iEl) { fObj.parentNode.removeChild(fObj); continue; }
+        const iEls = Array.from(fObj.querySelectorAll('i[class]'));
+        const origIEls = origFObj ? Array.from(origFObj.querySelectorAll('i[class]')) : [];
 
-        const classes = iEl.getAttribute('class').split(/\s+/);
-        const iconClass = classes.filter(c => c.startsWith('gi-') && c !== 'gi').join(' ');
-        const hasFlip = classes.includes('gi-flip-horizontal');
-
-        const styleStr = iEl.getAttribute('style') || '';
-        const colorMatch = styleStr.match(/color:\s*([^;]+)/);
-        const fontSizeMatch = styleStr.match(/font-size:\s*([\d.]+)px/);
-        const color = colorMatch ? colorMatch[1].trim() : '#ffffff';
-        const fontSize = fontSizeMatch ? parseFloat(fontSizeMatch[1]) : (Math.min(w, h) * 0.85);
-
-        const glyph = getIconGlyph(iconClass);
-        if (!glyph) { fObj.parentNode.removeChild(fObj); continue; }
+        if (iEls.length === 0) {
+          fObj.parentNode.removeChild(fObj);
+          continue;
+        }
 
         const cx2 = x + w / 2;
         const cy2 = y + h / 2;
 
-        const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        textEl.setAttribute("fill", color);
-        textEl.setAttribute("font-size", `${fontSize}px`);
-        textEl.setAttribute("text-anchor", "middle");
-        textEl.setAttribute("dominant-baseline", "central");
-        // Use inline style with !important so the broad .scaled-text/text CSS rule can't override
-        textEl.setAttribute("style", `font-family: rpgen-gameicons !important; pointer-events: none;`);
+        for (let j = 0; j < iEls.length; j++) {
+          const iEl = iEls[j];
+          const origIEl = origIEls[j];
 
-        if (hasFlip) {
-          textEl.setAttribute("x", cx2.toString());
-          textEl.setAttribute("y", cy2.toString());
-          textEl.setAttribute("transform", `scale(-1,1) translate(${-(cx2 * 2)},0)`);
-        } else {
-          textEl.setAttribute("x", cx2.toString());
-          textEl.setAttribute("y", cy2.toString());
+          // Check if it's hidden in the original DOM
+          if (origIEl) {
+            const comp = window.getComputedStyle(origIEl);
+            if (comp.opacity === '0' || comp.visibility === 'hidden' || comp.display === 'none') {
+              continue; // Skip rendering hidden icons
+            }
+          }
+
+          const classes = iEl.getAttribute('class').split(/\s+/);
+          const iconClass = classes.filter(c => c.startsWith('gi-') && c !== 'gi').join(' ');
+          const hasFlip = classes.includes('gi-flip-horizontal');
+
+          // Grab inline styles
+          const styleStr = iEl.getAttribute('style') || '';
+          const colorMatch = styleStr.match(/color:\s*([^;]+)/);
+          const fontSizeMatch = styleStr.match(/font-size:\s*([\d.]+)px/);
+          
+          // Determine color based on classes if inline doesn't exist (backdrop relies on classes sometimes, though we set it inline)
+          let color = colorMatch ? colorMatch[1].trim() : '#ffffff';
+          if (classes.includes('selected-backdrop')) color = '#fbbf24';
+
+          const fontSize = fontSizeMatch ? parseFloat(fontSizeMatch[1]) : (Math.min(w, h) * 0.85);
+
+          const glyph = getIconGlyph(iconClass);
+          if (!glyph) continue;
+
+          const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          textEl.setAttribute("fill", color);
+          textEl.setAttribute("font-size", `${fontSize}px`);
+          textEl.setAttribute("text-anchor", "middle");
+          textEl.setAttribute("dominant-baseline", "central");
+          textEl.setAttribute("class", iEl.getAttribute('class')); // pass classes for CSS masks/filters to apply
+          textEl.setAttribute("style", `font-family: rpgen-gameicons !important; pointer-events: none;`);
+
+          if (hasFlip) {
+            textEl.setAttribute("x", cx2.toString());
+            textEl.setAttribute("y", cy2.toString());
+            textEl.setAttribute("transform", `scale(-1,1) translate(${-(cx2 * 2)},0)`);
+          } else {
+            textEl.setAttribute("x", cx2.toString());
+            textEl.setAttribute("y", cy2.toString());
+          }
+
+          textEl.textContent = glyph;
+          fObj.parentNode.insertBefore(textEl, fObj);
         }
 
-        textEl.textContent = glyph;
-        fObj.parentNode.replaceChild(textEl, fObj);
+        fObj.parentNode.removeChild(fObj);
       }
     }
 
