@@ -1034,8 +1034,8 @@ svg foreignObject i.gi:before {
 .outer-ring-text.highlighted {
   fill: #fff !important;
   font-weight: 900 !important;
-  font-size: 90px !important;
-  filter: drop-shadow(0 0 20px var(--glow-color, #fbbf24)) !important;
+  font-size: 100px !important;
+  filter: drop-shadow(0 0 30px var(--glow-color, #fbbf24)) drop-shadow(0 0 10px #ffffff) !important;
   transition: all 0.3s ease;
   animation: pulseGlowText 1.5s infinite alternate;
 }
@@ -1064,8 +1064,8 @@ svg foreignObject i.gi:before {
 }
 
 @keyframes pulseGlowText {
-  0% { opacity: 0.85; filter: drop-shadow(0 0 10px var(--glow-color, #fbbf24)) !important; }
-  100% { opacity: 1; filter: drop-shadow(0 0 25px var(--glow-color, #fbbf24)) !important; }
+  0% { opacity: 0.9; filter: drop-shadow(0 0 15px var(--glow-color, #fbbf24)) drop-shadow(0 0 5px #fff) !important; }
+  100% { opacity: 1; filter: drop-shadow(0 0 35px var(--glow-color, #fbbf24)) drop-shadow(0 0 15px #fff) !important; }
 }
 
 @keyframes pulseGlow {
@@ -1073,7 +1073,7 @@ svg foreignObject i.gi:before {
   100% { opacity: 1; filter: drop-shadow(0 0 30px var(--glow-color, #fbbf24)) !important; }
 }
 
-/* Selection Rings for Selected School Polarity */
+/* Selection Rings for Selected School Polarity (Cast) */
 .outer-icon-group .selection-ring-outer,
 .outer-icon-group .selection-ring-inner {
   fill: none;
@@ -1087,26 +1087,63 @@ svg foreignObject i.gi:before {
   opacity: 1;
 }
 
-.outer-icon-group .selection-ring-inner {
-  stroke: #ffffff;
-  stroke-width: 8px;
-  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.95));
+.outer-icon-group.selected-school-polarity .selection-ring-inner {
+  stroke: #ec4899;
+  stroke-width: 4px;
+  stroke-dasharray: 6 4;
+  animation: spinRing 15s linear infinite reverse;
+  filter: drop-shadow(0 0 6px rgba(236, 72, 153, 0.8));
 }
 
-.outer-icon-group .selection-ring-outer {
-  stroke: rgba(255, 255, 255, 0.45);
-  stroke-width: 3px;
-  stroke-dasharray: 16 12;
-  animation: marqueeSelectionOuter 3s linear infinite;
+.outer-icon-group.selected-school-polarity .selection-ring-outer {
+  stroke: rgba(236, 72, 153, 0.6);
+  stroke-width: 2px;
+  stroke-dasharray: 20 10;
+  animation: marqueeSelectionOuter 4s linear infinite;
+}
+
+.outer-icon-group.selected-school-polarity foreignObject i {
+  color: #f9a8d4 !important;
+  filter: drop-shadow(0 0 10px rgba(236, 72, 153, 0.7)) !important;
 }
 
 @keyframes marqueeSelectionOuter {
-  from {
-    stroke-dashoffset: 0;
-  }
-  to {
-    stroke-dashoffset: 28; /* sum of dash (16) and gap (12) */
-  }
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: 30; }
+}
+
+/* Result Polarity Highlight (Takes precedence over selected-school-polarity) */
+.outer-icon-group.result-polarity-highlight .selection-ring-outer,
+.outer-icon-group.result-polarity-highlight .selection-ring-inner {
+  opacity: 1;
+}
+
+.outer-icon-group.result-polarity-highlight .selection-ring-outer {
+  stroke: #fff;
+  stroke-width: 4px;
+  stroke-dasharray: none;
+  animation: pulseRingResult 1.5s infinite alternate;
+}
+
+.outer-icon-group.result-polarity-highlight .selection-ring-inner {
+  stroke: var(--glow-color, #fbbf24);
+  stroke-width: 3px;
+  stroke-dasharray: 4 2;
+  animation: spinRing 5s linear infinite;
+  transform-origin: center;
+  filter: none;
+}
+
+.outer-icon-group.result-polarity-highlight foreignObject i {
+  color: #fff !important;
+  filter: drop-shadow(0 0 25px #fff) !important;
+  transform: scale(1.15);
+  transition: all 0.3s ease;
+}
+
+@keyframes pulseRingResult {
+  0% { filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5)); stroke: rgba(255, 255, 255, 0.8); }
+  100% { filter: drop-shadow(0 0 25px #fff); stroke: #fff; }
 }
 
 /* details block styling */

@@ -2385,8 +2385,8 @@ async function exportToPNG() {
 // ==========================================
 
 let mishapState = {
-  selectedSchoolIdx: 0,
-  selectedPolarity: 'positive',
+  selectedSchoolIdx: null,
+  selectedPolarity: null,
   selectedTier: 1
 };
 
@@ -2415,8 +2415,7 @@ function setupMishapRoller() {
 
   rollBtn.addEventListener('click', rollMishap);
 
-  // Set default selection display on load
-  selectMishapIconFromCircle(mishapState.selectedSchoolIdx, mishapState.selectedPolarity);
+  // Default selection is not applied so the user must pick a polarity
 }
 
 function selectMishapIconFromCircle(schoolIdx, polarity) {
@@ -2455,34 +2454,45 @@ function selectMishapIconFromCircle(schoolIdx, polarity) {
 
 function clearMandalaHighlights() {
   document.querySelectorAll('.highlighted').forEach(el => el.classList.remove('highlighted'));
+  document.querySelectorAll('.result-polarity-highlight').forEach(el => el.classList.remove('result-polarity-highlight'));
 }
 
-function highlightMandalaElements(schoolIdx, tierIdx, isEffect) {
-  // Highlight the slice ONLY if it is an effect (not the school roll)
+function highlightMandalaElements(schoolIdx, tierIdx, isEffect, polarity) {
   if (isEffect) {
+    // 1. Highlight the specific tier slice for the Effect
     const slice = document.getElementById(`mandala-slice-${tierIdx}-${schoolIdx}`);
     if (slice) slice.classList.add('highlighted');
-  }
 
-  // Highlight the outer number
-  const numberText = document.querySelector(`.outer-number-${schoolIdx}`);
-  if (numberText) numberText.classList.add('highlighted');
-
-  // Highlight the label and icon based on whether it's a school or effect
-  if (!isEffect) {
+    // 2. Highlight the Effect Label
+    document.querySelectorAll(`.outer-effect-label-${schoolIdx}`).forEach(effectLabel => {
+      effectLabel.classList.add('highlighted');
+    });
+  } else {
+    // 1. Highlight the School Label
     const schoolLabel = document.querySelector(`.outer-school-label-${schoolIdx}`);
     if (schoolLabel) schoolLabel.classList.add('highlighted');
-  } else {
-    const effectLabel = document.querySelector(`.outer-effect-label-${schoolIdx}`);
-    if (effectLabel) effectLabel.classList.add('highlighted');
+
+    // 2. Highlight the outer number
+    const numberText = document.querySelector(`.outer-number-${schoolIdx}`);
+    if (numberText) numberText.classList.add('highlighted');
+    
+    // 3. Highlight the specific Polarity Icon(s)
+    document.querySelectorAll(`.outer-icon-${schoolIdx}`).forEach(el => {
+      const groupPol = el.getAttribute('data-polarity');
+      if (!polarity || groupPol === polarity) {
+        el.classList.add('highlighted');
+        el.classList.add('result-polarity-highlight');
+      }
+    });
   }
-  
-  document.querySelectorAll(`.outer-icon-${schoolIdx}`).forEach(el => {
-    el.classList.add('highlighted');
-  });
 }
 
 function rollMishap() {
+  if (mishapState.selectedSchoolIdx === null) {
+    alert("Please select a Cast School Polarity from the mandala before rolling.");
+    return;
+  }
+
   clearMandalaHighlights();
 
   const resultsContainer = document.getElementById('mishap-results-container');
@@ -2585,8 +2595,13 @@ function rollMishap() {
   };
 
   const diceList = [];
-  diceList.push({ label: 'School', value: d1, exploded: false });
-  diceList.push({ label: 'Effect', value: d2, exploded: false });
+  if (d1 === d2) {
+    diceList.push({ label: 'Axis', value: d1, exploded: false });
+    diceList.push({ label: 'Axis', value: d2, exploded: false });
+  } else {
+    diceList.push({ label: 'School', value: d1, exploded: false });
+    diceList.push({ label: 'Effect', value: d2, exploded: false });
+  }
 
   let narrativeHtml = `<h4>Roll Results</h4>`;
   let gmGuideHtml = '';
@@ -2604,8 +2619,8 @@ function rollMishap() {
     narrativeHtml += `<p><em>(Roll ${d1}): Axis Fracture (Doubles)</em></p>`;
 
     // Highlight schools
-    highlightMandalaElements(rolledSliceIdx, Math.min(currentTier, 5), false);
-    highlightMandalaElements(rolledSliceOppIdx, Math.min(currentTier, 5), false);
+    highlightMandalaElements(rolledSliceIdx, Math.min(currentTier, 5), false, 'positive');
+    highlightMandalaElements(rolledSliceOppIdx, Math.min(currentTier, 5), false, 'negative');
 
     let d3 = Math.floor(Math.random() * 8) + 1;
     let effectDiceBonus = 0;
@@ -2629,7 +2644,7 @@ function rollMishap() {
     }
 
     // Settled Chaos Die
-    diceList.push({ label: 'Chaos', value: d3, exploded: false });
+    diceList.push({ label: 'Chaos Effect', value: d3, exploded: false });
 
     const finalSliceIdx = d3 - 1;
     const finalOppSliceIdx = getOppositeSchoolIdx(finalSliceIdx);
@@ -2737,9 +2752,9 @@ function rollMishap() {
       narrativeHtml += `<p>School: ${formatSchool(resultSchoolIdx, resultPolarity)}</p>`;
     }
     narrativeHtml += `<p><em>(Roll ${d1}): ${rollTypeStr}</em></p>`;
-    highlightMandalaElements(resultSchoolIdx, initialTier, false);
+    highlightMandalaElements(resultSchoolIdx, initialTier, false, resultPolarity);
     if (secondarySchoolIdx !== null) {
-      highlightMandalaElements(secondarySchoolIdx, initialTier, false);
+      highlightMandalaElements(secondarySchoolIdx, initialTier, false, secondaryPolarity);
     }
 
     const effectSliceIdx = d2 - 1;
