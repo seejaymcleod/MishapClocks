@@ -28,6 +28,11 @@ let appState = {
   animationSpeed: 5,
   animationDuration: 2,
   momentumCurve: 5,
+  staticPills: true,
+  alignSchoolToTop: false,
+  alignEffectToTop: false,
+  showOuterCenterNumbers: true,
+  showInlineNumbers: false,
   magicNodes: [
     { id: 'm0', label: 'Thermal', icon: 'gi-flame-spin', negativeIcon: 'gi-snowflake-1', color: '#ff4500', opposite: 'Hydro', slider: 'Injecting kinetic heat (ignition) ↔ siphoning it (absolute zero).' },
     { id: 'm1', label: 'Aero', icon: 'gi-tornado', negativeIcon: 'gi-wind-hole', color: '#87ceeb', opposite: 'Geo', slider: 'High pressure and gales ↔ suffocating vacuums.' },
@@ -1062,26 +1067,28 @@ function renderScaledMandala() {
       const labelSep = Number(appState.labelSeparation ?? 100);
 
       // 1. Center Big Number
-      const textPos = polarToCartesian(cx, cy, centerRadius, angle);
-      let rot = angle;
-      if (isBottomHalf) {
-        rot += 180;
-      }
+      if (appState.showOuterCenterNumbers) {
+        const textPos = polarToCartesian(cx, cy, centerRadius, angle);
+        let rot = angle;
+        if (isBottomHalf) {
+          rot += 180;
+        }
 
-      const numberText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      numberText.setAttribute("class", `scaled-text outer-number outer-number-${i}`);
-      numberText.setAttribute("data-school-idx", i);
-      numberText.setAttribute("x", textPos.x);
-      numberText.setAttribute("y", textPos.y);
-      numberText.setAttribute("text-anchor", "middle");
-      numberText.setAttribute("dominant-baseline", "middle");
-      numberText.setAttribute("fill", "#fbbf24");
-      numberText.setAttribute("font-size", `${rollFontSize}px`);
-      numberText.setAttribute("font-weight", "bold");
-      numberText.setAttribute("filter", "url(#text-shadow-filter)");
-      numberText.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
-      numberText.textContent = (i + 1).toString();
-      svg.appendChild(numberText);
+        const numberText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        numberText.setAttribute("class", `scaled-text outer-number outer-number-${i}`);
+        numberText.setAttribute("data-school-idx", i);
+        numberText.setAttribute("x", textPos.x);
+        numberText.setAttribute("y", textPos.y);
+        numberText.setAttribute("text-anchor", "middle");
+        numberText.setAttribute("dominant-baseline", "middle");
+        numberText.setAttribute("fill", "#fbbf24");
+        numberText.setAttribute("font-size", `${rollFontSize}px`);
+        numberText.setAttribute("font-weight", "bold");
+        numberText.setAttribute("filter", "url(#text-shadow-filter)");
+        numberText.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
+        numberText.textContent = (i + 1).toString();
+        svg.appendChild(numberText);
+      }
 
       // Left/Right center angle calculations based on the centerOuterText toggle and iconSeparation/outerPinOffset
       let leftCenterAngle;
@@ -1096,7 +1103,7 @@ function renderScaledMandala() {
       }
 
       // Helper to draw centered text along a circular path segment
-      const drawSingleLineText = (text, radius, centerAngle, pathId, isSchool) => {
+      const drawSingleLineText = (text, radius, centerAngle, pathId, isSchool, prefix) => {
         let pathStart, pathEnd, pathData;
         const halfSpan = 15; // 30-degree path segment span to prevent clipping
 
@@ -1137,15 +1144,27 @@ function renderScaledMandala() {
         textPath.setAttribute("startOffset", "50%");
         textPath.setAttribute("text-anchor", "middle");
         textPath.setAttribute("fill", isSchool ? school.color : "#e2e8f0");
-        textPath.textContent = text;
+        if (prefix) {
+          const tspanPrefix = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+          tspanPrefix.setAttribute("font-weight", "bold");
+          tspanPrefix.setAttribute("fill", "#fbbf24");
+          tspanPrefix.textContent = prefix;
+          textPath.appendChild(tspanPrefix);
+          
+          const tspanText = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+          tspanText.textContent = text;
+          textPath.appendChild(tspanText);
+        } else {
+          textPath.textContent = text;
+        }
 
         textEl.appendChild(textPath);
         svg.appendChild(textEl);
       };
 
-      const drawCenteredText = (text, radius, centerAngle, pathId, isSchool) => {
+      const drawCenteredText = (text, radius, centerAngle, pathId, isSchool, prefix) => {
         // Wrap effect names if they contain a space or hyphen and are long enough
-        const shouldWrap = !isSchool && (text.includes(" ") || text.includes("-")) && text.length > 8;
+        const shouldWrap = !isSchool && (text.includes(" ") || text.includes("-")) && text.length > 15;
         if (shouldWrap) {
           let parts = [];
           if (text.includes(" ")) {
@@ -1158,10 +1177,10 @@ function renderScaledMandala() {
           const wrapDist = Number(appState.wrapDistance ?? 25);
           const radius1 = isBottomHalf ? (radius - wrapDist) : (radius + wrapDist);
           const radius2 = isBottomHalf ? (radius + wrapDist) : (radius - wrapDist);
-          drawSingleLineText(parts[0], radius1, centerAngle, `${pathId}-line1`, isSchool);
+          drawSingleLineText(parts[0], radius1, centerAngle, `${pathId}-line1`, isSchool, prefix);
           drawSingleLineText(parts[1], radius2, centerAngle, `${pathId}-line2`, isSchool);
         } else {
-          drawSingleLineText(text, radius, centerAngle, pathId, isSchool);
+          drawSingleLineText(text, radius, centerAngle, pathId, isSchool, prefix);
         }
       };
 
@@ -1169,7 +1188,14 @@ function renderScaledMandala() {
       const schoolPathId = `outer-school-path-${i}`;
       // Add bottom/top label offset directly for perfect symmetry and adjustment
       const schoolRadius = isBottomHalf ? (centerRadius + labelSep + labelOffsetBottom) : (centerRadius + labelSep + labelOffsetTop);
-      drawCenteredText(school.label, schoolRadius, angle, schoolPathId, true);
+      
+      let schoolPrefix = "";
+      if (appState.showInlineNumbers) schoolPrefix += (i + 1) + " ";
+      if (appState.showInlineDice) {
+        const dText = appState.scaledTiers?.[0]?.nodes?.[i]?.dice || '';
+        if (dText) schoolPrefix += "[" + dText + "] ";
+      }
+      drawCenteredText(school.label, schoolRadius, angle, schoolPathId, true, schoolPrefix);
 
       // 3. Effect Name below the number (curved)
       const effectPathId = `outer-effect-path-${i}`;
@@ -1749,11 +1775,17 @@ function renderScaledMandala() {
     spinCWGroup.style.transform = `rotate(${initialCW}deg)`;
 
     // Static items stay in svg: defs, bg, center circle, center icon, dice/dc texts
+    const staticPillsList = [];
     const childrenToMove = Array.from(svg.childNodes).filter(el => {
       const tagName = el.tagName ? el.tagName.toLowerCase() : '';
       const idName = el.getAttribute('id') || '';
       const className = el.getAttribute('class') || '';
-      return tagName !== 'defs' && tagName !== 'circle' && idName !== 'center-hud-content' && !className.includes('dice-dc-text');
+      if (tagName === 'defs' || tagName === 'circle' || idName === 'center-hud-content' || className.includes('dice-dc-text')) return false;
+      if (appState.staticPills && (className.includes('mandala-overlay-box') || className.includes('overlay-text-dice') || className.includes('overlay-text-dc') || className.includes('overlay-text-tier') || className.includes('pill-'))) {
+        staticPillsList.push(el);
+        return false;
+      }
+      return true;
     });
 
     childrenToMove.forEach(el => {
@@ -1768,14 +1800,47 @@ function renderScaledMandala() {
       }
 
       if (isCW) {
+        el.dataset.isOuter = "true";
         spinCWGroup.appendChild(el);
       } else {
+        el.dataset.isOuter = "false";
         spinCCWGroup.appendChild(el);
       }
     });
 
     svg.appendChild(spinCCWGroup);
     svg.appendChild(spinCWGroup);
+
+    // Append static pills last to render on top
+    if (appState.staticPills) {
+      staticPillsList.forEach(el => svg.appendChild(el));
+    }
+
+    // Animation frame loop to fix text flipping during rotation
+    const updatePaths = () => {
+      if (!svg.isConnected) return; // stop loop if SVG is removed
+      if (appState.animationMode) {
+        const matrixCCW = new DOMMatrix(getComputedStyle(spinCCWGroup).transform);
+        let angleCCW = Math.atan2(matrixCCW.b, matrixCCW.a) * (180 / Math.PI);
+        const matrixCW = new DOMMatrix(getComputedStyle(spinCWGroup).transform);
+        let angleCW = Math.atan2(matrixCW.b, matrixCW.a) * (180 / Math.PI);
+
+        document.querySelectorAll('.outer-number').forEach(textEl => {
+          const sIdx = parseInt(textEl.getAttribute('data-school-idx'), 10);
+          const baseAngle = sIdx * 45 + 22.5;
+          let visualAngle = (baseAngle + angleCCW) % 360;
+          if (visualAngle < 0) visualAngle += 360;
+          const isVisuallyBottomHalf = visualAngle > 90 && visualAngle < 270;
+          const cxNum = parseFloat(textEl.getAttribute('x'));
+          const cyNum = parseFloat(textEl.getAttribute('y'));
+          const rotOffset = isVisuallyBottomHalf ? 180 : 0;
+          textEl.setAttribute("transform", `rotate(${baseAngle + rotOffset}, ${cxNum}, ${cyNum})`);
+        });
+
+        requestAnimationFrame(updatePaths);
+      }
+    };
+    requestAnimationFrame(updatePaths);
   }
 
   container.appendChild(svg);
@@ -2759,6 +2824,62 @@ async function init() {
     });
   }
 
+  const staticPillsCb = document.getElementById('toggle-static-pills');
+  if (staticPillsCb) {
+    staticPillsCb.checked = appState.staticPills;
+    staticPillsCb.addEventListener('change', (e) => {
+      appState.staticPills = e.target.checked;
+      renderScaledMandala();
+    });
+  }
+
+  const alignSchoolCb = document.getElementById('toggle-align-school');
+  if (alignSchoolCb) {
+    alignSchoolCb.checked = appState.alignSchoolToTop;
+    alignSchoolCb.addEventListener('change', (e) => {
+      appState.alignSchoolToTop = e.target.checked;
+    });
+  }
+
+  const alignEffectCb = document.getElementById('toggle-align-effect');
+  if (alignEffectCb) {
+    alignEffectCb.checked = appState.alignEffectToTop;
+    alignEffectCb.addEventListener('change', (e) => {
+      appState.alignEffectToTop = e.target.checked;
+    });
+  }
+
+  const showOuterCenterNumbersCb = document.getElementById('toggle-outer-center-numbers');
+  if (showOuterCenterNumbersCb) {
+    showOuterCenterNumbersCb.checked = appState.showOuterCenterNumbers;
+    showOuterCenterNumbersCb.addEventListener('change', (e) => {
+      appState.showOuterCenterNumbers = e.target.checked;
+      renderScaledMandala();
+    });
+  }
+
+  const showInlineNumbersCb = document.getElementById('toggle-inline-numbers');
+  if (showInlineNumbersCb) {
+    showInlineNumbersCb.checked = appState.showInlineNumbers;
+    showInlineNumbersCb.addEventListener('change', (e) => {
+      appState.showInlineNumbers = e.target.checked;
+      if (e.target.checked && showOuterCenterNumbersCb) {
+        appState.showOuterCenterNumbers = false;
+        showOuterCenterNumbersCb.checked = false;
+      }
+      renderScaledMandala();
+    });
+  }
+
+  const showInlineDiceCb = document.getElementById('toggle-inline-dice');
+  if (showInlineDiceCb) {
+    showInlineDiceCb.checked = appState.showInlineDice;
+    showInlineDiceCb.addEventListener('change', (e) => {
+      appState.showInlineDice = e.target.checked;
+      renderScaledMandala();
+    });
+  }
+
   const exportPngBtn = document.getElementById('export-png-btn');
   if (exportPngBtn) {
     exportPngBtn.addEventListener('click', exportToPNG);
@@ -3240,11 +3361,41 @@ function rollMishap() {
     const spinCWGroup = svg ? svg.querySelector('.spin-cw-group') : null;
     const spinCCWGroup = svg ? svg.querySelector('.spin-ccw-group') : null;
 
+    const d1 = Math.floor(Math.random() * 8) + 1; // Mishap School
+    const d2 = Math.floor(Math.random() * 8) + 1; // Mishap Effect
+    mishapState.d1 = d1;
+    mishapState.d2 = d2;
+
     if (spinCWGroup && spinCCWGroup) {
       // Calculate target rotation based on speed
       const rotations = 2 + ((appState.animationSpeed || 5) * 0.4);
-      mishapState.cwAngle = (mishapState.cwAngle || 0) + 360 * rotations;
-      mishapState.ccwAngle = (mishapState.ccwAngle || 0) + 360 * rotations;
+      let cwAdd = 360 * rotations;
+      let ccwAdd = 360 * rotations;
+      
+      if (appState.alignSchoolToTop) {
+        let alignSchoolIdx = mishapState.selectedSchoolIdx;
+        if (d1 === d2) {
+          alignSchoolIdx = d1 - 1;
+        } else if (d1 === 2 || d1 === 3) {
+          const oppLabel = appState.magicNodes[mishapState.selectedSchoolIdx].opposite;
+          alignSchoolIdx = appState.magicNodes.findIndex(n => n.label === oppLabel);
+        }
+
+        const desiredCCWRemainder = (alignSchoolIdx * 45) % 360;
+        const currentCCWRemainder = mishapState.ccwAngle ? mishapState.ccwAngle % 360 : 0;
+        const diff = desiredCCWRemainder - currentCCWRemainder;
+        ccwAdd += (diff < 0 ? diff + 360 : diff);
+      }
+      
+      if (appState.alignEffectToTop) {
+        const desiredCWRemainder = (360 - (d2 - 1) * 45) % 360;
+        const currentCWRemainder = mishapState.cwAngle ? mishapState.cwAngle % 360 : 0;
+        const diff = desiredCWRemainder - currentCWRemainder;
+        cwAdd += (diff < 0 ? diff + 360 : diff);
+      }
+
+      mishapState.cwAngle = (mishapState.cwAngle || 0) + cwAdd;
+      mishapState.ccwAngle = (mishapState.ccwAngle || 0) + ccwAdd;
 
       const duration = appState.animationDuration || 2;
       const curve = appState.momentumCurve || 5;
@@ -3293,8 +3444,12 @@ function executeMishapRoll() {
     gmGuideBox.removeAttribute('open'); // start collapsed by default
   }
 
-  const d1 = Math.floor(Math.random() * 8) + 1; // Mishap School
-  const d2 = Math.floor(Math.random() * 8) + 1; // Mishap Effect
+  const d1 = mishapState.d1 || (Math.floor(Math.random() * 8) + 1); // Mishap School
+  const d2 = mishapState.d2 || (Math.floor(Math.random() * 8) + 1); // Mishap Effect
+
+  // Clear for next roll without animation
+  mishapState.d1 = null;
+  mishapState.d2 = null;
 
   const initialTier = mishapState.selectedTier;
   const castSchoolIdx = mishapState.selectedSchoolIdx;
