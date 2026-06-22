@@ -24,7 +24,7 @@ let appState = {
   modifierMinFontSize: 22,
   modifierMaxFontSize: 80,
   modifierDesiredFontSize: 100,
-  animationMode: false,
+  animationMode: true,
   animationSpeed: 5,
   animationDuration: 2,
   momentumCurve: 5,
@@ -2016,7 +2016,7 @@ document.getElementById('file-input').addEventListener('change', (e) => {
         if (appState.modifierMinFontSize === undefined) appState.modifierMinFontSize = 22;
         if (appState.modifierMaxFontSize === undefined) appState.modifierMaxFontSize = 55;
         if (appState.modifierDesiredFontSize === undefined) appState.modifierDesiredFontSize = 50;
-        if (appState.animationMode === undefined) appState.animationMode = false;
+        if (appState.animationMode === undefined) appState.animationMode = true;
         if (appState.animationSpeed === undefined) appState.animationSpeed = 5;
         if (appState.animationDuration === undefined) appState.animationDuration = 2;
         if (appState.momentumCurve === undefined) appState.momentumCurve = 5;
