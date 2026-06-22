@@ -481,7 +481,7 @@ svg {
 /* Segmented Control Styles */
 .segmented-control {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   background: var(--bg-color);
   border: 1px solid var(--border-color);
   padding: 2px;
@@ -493,13 +493,17 @@ svg {
   background: transparent;
   color: #8b949e;
   border: none;
-  padding: 0.4rem 1rem;
+  padding: 0.4rem 0.5rem;
   border-radius: 6px;
   cursor: pointer;
   font-family: inherit;
   font-size: 0.9rem;
   font-weight: 500;
   transition: all 0.2s ease;
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .btn-segment:hover {
@@ -564,8 +568,10 @@ svg foreignObject i.gi:before {
 .filter-group {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 0.25rem;
+  flex: 1 1 0%;
+  min-width: 0;
 }
 
 .filter-label {
@@ -577,14 +583,26 @@ svg foreignObject i.gi:before {
 }
 
 .spell-filters .btn-segment {
-  padding: 0.25rem 0.6rem;
+  padding: 0.25rem 0.2rem;
   font-size: 0.8rem;
   border-radius: 4px;
+  flex: 1 1 0%;
+  min-width: 0;
+  text-align: center;
 }
 
 .spell-filters .segmented-control {
   border-radius: 6px;
   padding: 1px;
+  width: 100%;
+}
+
+#mishap-tier-control .btn-segment {
+  flex: 1 1 0%;
+  min-width: 0;
+  text-align: center;
+  padding-left: 2px;
+  padding-right: 2px;
 }
 
 .spell-display-container {
@@ -1009,35 +1027,26 @@ svg foreignObject i.gi:before {
 }
 
 .mandala-slice.highlighted {
-  filter: brightness(2.5) drop-shadow(0 0 40px var(--glow-color, rgba(255, 191, 0, 1)));
-  stroke: #fff !important;
-  stroke-width: 15px !important;
-  stroke-opacity: 1 !important;
   z-index: 100;
-  animation: pulseSlice 1.5s infinite alternate;
 }
 
 @keyframes pulseSlice {
-  0% { filter: brightness(2) drop-shadow(0 0 30px var(--glow-color, rgba(255, 191, 0, 0.8))); }
-  100% { filter: brightness(3.5) drop-shadow(0 0 60px var(--glow-color, rgba(255, 191, 0, 1))); }
+  0% {}
+  100% {}
 }
 
 .outer-number.highlighted {
   fill: #fff !important;
-  font-size: 150px !important;
   font-weight: 900 !important;
-  filter: drop-shadow(0 0 25px var(--glow-color, #fbbf24)) !important;
+  filter: drop-shadow(0 0 20px #ffffff) !important;
   transition: all 0.3s ease;
-  animation: pulseGlowText 1.5s infinite alternate;
 }
 
 .outer-ring-text.highlighted {
   fill: #fff !important;
   font-weight: 900 !important;
-  font-size: 100px !important;
-  filter: drop-shadow(0 0 30px var(--glow-color, #fbbf24)) drop-shadow(0 0 10px #ffffff) !important;
+  filter: drop-shadow(0 0 20px #ffffff) !important;
   transition: all 0.3s ease;
-  animation: pulseGlowText 1.5s infinite alternate;
 }
 
 .outer-icon-group {
@@ -1058,18 +1067,16 @@ svg foreignObject i.gi:before {
 }
 
 .outer-icon-group.highlighted .base-icon {
-  filter: drop-shadow(0 0 25px var(--glow-color, #fbbf24)) !important;
-  animation: pulseGlow 1.5s infinite alternate;
 }
 
 @keyframes pulseGlowText {
-  0% { opacity: 0.9; filter: drop-shadow(0 0 15px var(--glow-color, #fbbf24)) drop-shadow(0 0 5px #fff) !important; }
-  100% { opacity: 1; filter: drop-shadow(0 0 35px var(--glow-color, #fbbf24)) drop-shadow(0 0 15px #fff) !important; }
+  0% {}
+  100% {}
 }
 
 @keyframes pulseGlow {
-  0% { opacity: 0.8; filter: drop-shadow(0 0 15px var(--glow-color, #fbbf24)) !important; }
-  100% { opacity: 1; filter: drop-shadow(0 0 30px var(--glow-color, #fbbf24)) !important; }
+  0% {}
+  100% {}
 }
 
 /* Selection Rings for Selected School Polarity (Cast) */
@@ -1308,7 +1315,12 @@ details.mishap-gm-details.axis-fracture .gm-fiction-prompt {
 }
 
 /* --- Dulling Logic for Roll Results --- */
-.has-results .mandala-slice:not(.highlighted),
+.has-results .mandala-slice:not(.highlighted) {
+  fill-opacity: 0.25;
+  filter: grayscale(80%) brightness(0.6);
+  transition: fill-opacity 0.5s ease, filter 0.5s ease;
+}
+
 .has-results .outer-school-label:not(.highlighted),
 .has-results .outer-number:not(.highlighted),
 .has-results .outer-icon-group:not(.highlighted),
@@ -1318,6 +1330,13 @@ details.mishap-gm-details.axis-fracture .gm-fiction-prompt {
   opacity: 0.25;
   filter: grayscale(80%) brightness(0.6);
   transition: opacity 0.5s ease, filter 0.5s ease;
+}
+
+.mandala-slice.effect-result-border {
+  stroke: #ffffff !important;
+  stroke-width: 15px !important;
+  stroke-opacity: 1 !important;
+  z-index: 100;
 }
 
 .has-results .highlighted {

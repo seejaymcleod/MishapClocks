@@ -31,6 +31,13 @@
         <button id="btn-polarity-flanking" class="btn-segment" data-polarity="flanking">Flanking</button>
         <button id="btn-polarity-watermark" class="btn-segment" data-polarity="watermark">Watermark</button>
       </div>
+      <div class="segmented-control" id="overlay-style-container" style="display: flex; align-items: center;">
+        <span style="opacity: 0.7; font-size: 0.9rem; padding: 0 0.6rem; border-right: 1px solid var(--border-color); margin-right: 4px;">Overlay Style</span>
+        <button id="btn-overlay-classic" class="btn-segment" data-overlay="classic">Classic</button>
+        <button id="btn-overlay-radial" class="btn-segment" data-overlay="radial-arc">Radial Arc</button>
+        <button id="btn-overlay-constant" class="btn-segment" data-overlay="constant-column">Constant Column</button>
+        <button id="btn-overlay-pill" class="btn-segment active" data-overlay="floating-pill">Floating Pill</button>
+      </div>
 
       <button id="outer-centering-btn" class="btn secondary">Outer Ring: Pinned</button>
       <div id="outer-offset-container" class="btn"
@@ -121,6 +128,22 @@
         <span id="polarity-gap-val"
           style="font-weight: bold; min-width: 35px; text-align: right; color: #fbbf24;">3.2°</span>
       </div>
+      <div id="overlay-width-container" class="btn"
+        style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; padding: 0.4rem 0.8rem;">
+        <span style="opacity: 0.7;">Overlay Width:</span>
+        <input type="range" id="overlay-width-slider" min="2" max="45" step="0.5" value="12"
+          style="cursor: pointer; width: 120px;" />
+        <span id="overlay-width-val"
+          style="font-weight: bold; min-width: 35px; text-align: right; color: #fbbf24;">12°</span>
+      </div>
+      <div id="overlay-font-size-container" class="btn"
+        style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; padding: 0.4rem 0.8rem;">
+        <span style="opacity: 0.7;">Overlay Font:</span>
+        <input type="range" id="overlay-font-size-slider" min="20" max="90" step="1" value="45"
+          style="cursor: pointer; width: 120px;" />
+        <span id="overlay-font-size-val"
+          style="font-weight: bold; min-width: 35px; text-align: right; color: #fbbf24;">45px</span>
+      </div>
       <div id="animation-toggle-container" class="btn"
         style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; padding: 0.4rem 0.8rem;">
         <span style="opacity: 0.7;">Animations:</span>
@@ -150,7 +173,10 @@
         <div class="info-card" id="mishap-roller-card">
           <div class="mishap-header">
             <h3>Materia Mishap Roller</h3>
-            <button id="btn-mishap-rules-toggle" class="btn-icon-toggle" title="Show Mishap Rules">ℹ️</button>
+            <div style="display: flex; gap: 8px;">
+              <button id="btn-mishap-reset" class="btn-icon-toggle" title="Reset Roller">🔄</button>
+              <button id="btn-mishap-rules-toggle" class="btn-icon-toggle" title="Show Mishap Rules">ℹ️</button>
+            </div>
           </div>
           
           <!-- Table hidden by default, toggled via info icon -->

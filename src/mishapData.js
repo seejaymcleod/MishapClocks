@@ -1,7 +1,7 @@
 export const defaultScaledTiers = [
   {
     offset: 0, nodes: [
-      { type: 'Chaos + reroll', modifier: 'Chaos + reroll - 0', dc: 'DC 9', dice: '1d4', ruling: `<li><strong>Chaos + reroll - 0:</strong> Placeholder ruling for Chaos + reroll - 0.</li>` },
+      { type: 'Chaos + reroll', modifier: 'Chaos + reroll - 0', dc: 'DC9', dice: '1d4', ruling: `<li><strong>Chaos + reroll - 0:</strong> Placeholder ruling for Chaos + reroll - 0.</li>` },
       { type: 'Essense Fracture', modifier: 'Essense Fracture - 0', ruling: `<li><strong>Essense Fracture - 0:</strong> Placeholder ruling for Essense Fracture - 0.</li>` },
       { type: 'Spatial Tear', modifier: 'Spatial Tear - 0', ruling: `<li><strong>Spatial Tear - 0:</strong> Placeholder ruling for Spatial Tear - 0.</li>` },
       { type: 'Vector Drift', modifier: 'Vector Drift - 0', ruling: `<li><strong>Vector Drift - 0:</strong> Placeholder ruling for Vector Drift - 0.</li>` },
@@ -13,7 +13,7 @@ export const defaultScaledTiers = [
   },
   {
     offset: 0, nodes: [
-      { type: 'Chaos + reroll', modifier: 'Chaos + reroll - 1', dc: 'DC 11', dice: '1d6', ruling: `<li><strong>Chaos + reroll - 1:</strong> Placeholder ruling for Chaos + reroll - 1.</li>` },
+      { type: 'Chaos + reroll', modifier: 'Chaos + reroll - 1', dc: 'DC11', dice: '1d6', ruling: `<li><strong>Chaos + reroll - 1:</strong> Placeholder ruling for Chaos + reroll - 1.</li>` },
       { type: 'Essense Fracture', modifier: 'Essense Fracture - 1', ruling: `<li><strong>Essense Fracture - 1:</strong> Placeholder ruling for Essense Fracture - 1.</li>` },
       { type: 'Spatial Tear', modifier: 'Spatial Tear - 1', ruling: `<li><strong>Spatial Tear - 1:</strong> Placeholder ruling for Spatial Tear - 1.</li>` },
       { type: 'Vector Drift', modifier: 'Vector Drift - 1', ruling: `<li><strong>Vector Drift - 1:</strong> Placeholder ruling for Vector Drift - 1.</li>` },
@@ -25,7 +25,7 @@ export const defaultScaledTiers = [
   },
   {
     offset: 0, nodes: [
-      { type: 'Chaos + reroll', modifier: 'Chaos + reroll - 2', dc: 'DC 13', dice: '2d6', ruling: `<li><strong>Chaos + reroll - 2:</strong> Placeholder ruling for Chaos + reroll - 2.</li>` },
+      { type: 'Chaos + reroll', modifier: 'Chaos + reroll - 2', dc: 'DC13', dice: '2d6', ruling: `<li><strong>Chaos + reroll - 2:</strong> Placeholder ruling for Chaos + reroll - 2.</li>` },
       { type: 'Essense Fracture', modifier: 'Essense Fracture - 2', ruling: `<li><strong>Essense Fracture - 2:</strong> Placeholder ruling for Essense Fracture - 2.</li>` },
       { type: 'Spatial Tear', modifier: 'Spatial Tear - 2', ruling: `<li><strong>Spatial Tear - 2:</strong> Placeholder ruling for Spatial Tear - 2.</li>` },
       { type: 'Vector Drift', modifier: 'Vector Drift - 2', ruling: `<li><strong>Vector Drift - 2:</strong> Placeholder ruling for Vector Drift - 2.</li>` },
@@ -37,7 +37,7 @@ export const defaultScaledTiers = [
   },
   {
     offset: 0, nodes: [
-      { type: 'Chaos +reroll', modifier: 'Chaos + reroll - 3', dc: 'DC 15', dice: '3d6', ruling: `<li><strong>Chaos + reroll - 3:</strong> Placeholder ruling for Chaos + reroll - 3.</li>` },
+      { type: 'Chaos +reroll', modifier: 'Chaos + reroll - 3', dc: 'DC15', dice: '3d6', ruling: `<li><strong>Chaos + reroll - 3:</strong> Placeholder ruling for Chaos + reroll - 3.</li>` },
       { type: 'Essense Fracture', modifier: 'Essense Fracture - 3', ruling: `<li><strong>Essense Fracture - 3:</strong> Placeholder ruling for Essense Fracture - 3.</li>` },
       { type: 'Spatial Tear', modifier: 'Spatial Tear - 3', ruling: `<li><strong>Spatial Tear - 3:</strong> Placeholder ruling for Spatial Tear - 3.</li>` },
       { type: 'Vector Drift', modifier: 'Vector Drift - 3', ruling: `<li><strong>Vector Drift - 3:</strong> Placeholder ruling for Vector Drift - 3.</li>` },
@@ -49,7 +49,7 @@ export const defaultScaledTiers = [
   },
   {
     offset: 0, nodes: [
-      { type: 'Chaos + reroll', modifier: 'Chaos + reroll - 4', dc: 'DC 17', dice: '4d8', ruling: `<li><strong>Chaos + reroll - 4:</strong> Placeholder ruling for Chaos + reroll - 4.</li>` },
+      { type: 'Chaos + reroll', modifier: 'Chaos + reroll - 4', dc: 'DC17', dice: '4d8', ruling: `<li><strong>Chaos + reroll - 4:</strong> Placeholder ruling for Chaos + reroll - 4.</li>` },
       { type: 'Essense Fracture', modifier: 'Essense Fracture - 4', ruling: `<li><strong>Essense Fracture - 4:</strong> Placeholder ruling for Essense Fracture - 4.</li>` },
       { type: 'Spatial Tear', modifier: 'Spatial Tear - 4', ruling: `<li><strong>Spatial Tear - 4:</strong> Placeholder ruling for Spatial Tear - 4.</li>` },
       { type: 'Vector Drift', modifier: 'Vector Drift - 4', ruling: `<li><strong>Vector Drift - 4:</strong> Placeholder ruling for Vector Drift - 4.</li>` },
@@ -61,7 +61,7 @@ export const defaultScaledTiers = [
   },
   {
     offset: 0, nodes: [
-      { type: 'Chaos + reroll', modifier: 'Chaos + reroll - 5', dc: 'DC 19', dice: '5d8', ruling: `<li><strong>Chaos + reroll - 5:</strong> Placeholder ruling for Chaos + reroll - 5.</li>` },
+      { type: 'Chaos + reroll', modifier: 'Chaos + reroll - 5', dc: 'DC19', dice: '5d8', ruling: `<li><strong>Chaos + reroll - 5:</strong> Placeholder ruling for Chaos + reroll - 5.</li>` },
       { type: 'Essense Fracture', modifier: 'Essense Fracture - 5', ruling: `<li><strong>Essense Fracture - 5:</strong> Placeholder ruling for Essense Fracture - 5.</li>` },
       { type: 'Spatial Tear', modifier: 'Spatial Tear - 5', ruling: `<li><strong>Spatial Tear - 5:</strong> Placeholder ruling for Spatial Tear - 5.</li>` },
       { type: 'Vector Drift', modifier: 'Vector Drift - 5', ruling: `<li><strong>Vector Drift - 5:</strong> Placeholder ruling for Vector Drift - 5.</li>` },
