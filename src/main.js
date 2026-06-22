@@ -2995,6 +2995,9 @@ function rollMishap() {
 
   clearMandalaHighlights();
 
+  // Re-render the mandala to refresh the pill selection state back to the casting tier
+  renderScaledMandala();
+
   const resultsContainer = document.getElementById('mishap-results-container');
   const narrativeBox = document.getElementById('mishap-narrative');
   const gmGuideBox = document.getElementById('mishap-gm-guide');
