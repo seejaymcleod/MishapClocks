@@ -173,6 +173,30 @@
         <span style="opacity: 0.7;">Animations:</span>
         <button id="btn-toggle-animation" class="btn-segment">OFF</button>
       </div>
+      <div id="animation-speed-container" class="btn"
+        style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; padding: 0.4rem 0.8rem;">
+        <span style="opacity: 0.7;">Anim Speed:</span>
+        <input type="range" id="animation-speed-slider" min="1" max="20" step="0.5" value="5"
+          style="cursor: pointer; width: 120px;" />
+        <span id="animation-speed-val"
+          style="font-weight: bold; min-width: 35px; text-align: right; color: #fbbf24;">5</span>
+      </div>
+      <div id="animation-duration-container" class="btn"
+        style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; padding: 0.4rem 0.8rem;">
+        <span style="opacity: 0.7;">Anim Duration:</span>
+        <input type="range" id="animation-duration-slider" min="0.5" max="5" step="0.1" value="2"
+          style="cursor: pointer; width: 120px;" />
+        <span id="animation-duration-val"
+          style="font-weight: bold; min-width: 35px; text-align: right; color: #fbbf24;">2s</span>
+      </div>
+      <div id="animation-momentum-container" class="btn"
+        style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; padding: 0.4rem 0.8rem;">
+        <span style="opacity: 0.7;">Momentum Curve:</span>
+        <input type="range" id="animation-momentum-slider" min="1" max="10" step="0.5" value="5"
+          style="cursor: pointer; width: 120px;" />
+        <span id="animation-momentum-val"
+          style="font-weight: bold; min-width: 35px; text-align: right; color: #fbbf24;">5</span>
+      </div>
       <button id="save-btn" class="btn primary">Save State</button>
       <button id="load-btn" class="btn secondary">Load State</button>
       <button id="export-png-btn" class="btn secondary" style="background: #047857; color: white; border-color: #059669;">Export PNG</button>

@@ -1347,12 +1347,10 @@ details.mishap-gm-details.axis-fracture .gm-fiction-prompt {
 
 /* --- Spin Animations --- */
 .animating-ring .spin-ccw-group {
-  animation: spinCCW 60s linear infinite;
   transform-origin: 2600px 2600px;
 }
 
 .animating-ring .spin-cw-group {
-  animation: spinCW 60s linear infinite;
   transform-origin: 2600px 2600px;
 }
 

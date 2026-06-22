@@ -24,6 +24,10 @@ let appState = {
   modifierMinFontSize: 22,
   modifierMaxFontSize: 80,
   modifierDesiredFontSize: 100,
+  animationMode: false,
+  animationSpeed: 5,
+  animationDuration: 2,
+  momentumCurve: 5,
   magicNodes: [
     { id: 'm0', label: 'Thermal', icon: 'gi-flame-spin', negativeIcon: 'gi-snowflake-1', color: '#ff4500', opposite: 'Hydro', slider: 'Injecting kinetic heat (ignition) ↔ siphoning it (absolute zero).' },
     { id: 'm1', label: 'Aero', icon: 'gi-tornado', negativeIcon: 'gi-wind-hole', color: '#87ceeb', opposite: 'Geo', slider: 'High pressure and gales ↔ suffocating vacuums.' },
@@ -1736,9 +1740,13 @@ function renderScaledMandala() {
 
     const spinCCWGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
     spinCCWGroup.setAttribute("class", "spin-ccw-group");
+    const initialCCW = mishapState.ccwAngle || 0;
+    spinCCWGroup.style.transform = `rotate(${-initialCCW}deg)`;
 
     const spinCWGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
     spinCWGroup.setAttribute("class", "spin-cw-group");
+    const initialCW = mishapState.cwAngle || 0;
+    spinCWGroup.style.transform = `rotate(${initialCW}deg)`;
 
     // Static items stay in svg: defs, bg, center circle, center icon, dice/dc texts
     const childrenToMove = Array.from(svg.childNodes).filter(el => {
@@ -2008,9 +2016,14 @@ document.getElementById('file-input').addEventListener('change', (e) => {
         if (appState.modifierMinFontSize === undefined) appState.modifierMinFontSize = 22;
         if (appState.modifierMaxFontSize === undefined) appState.modifierMaxFontSize = 55;
         if (appState.modifierDesiredFontSize === undefined) appState.modifierDesiredFontSize = 50;
+        if (appState.animationMode === undefined) appState.animationMode = false;
+        if (appState.animationSpeed === undefined) appState.animationSpeed = 5;
+        if (appState.animationDuration === undefined) appState.animationDuration = 2;
+        if (appState.momentumCurve === undefined) appState.momentumCurve = 5;
         syncViewModeButtons();
         syncPolarityModeButtons();
         syncOuterCenteringButton();
+        syncAnimationSliders();
         renderTierControls();
         renderScaledMandala();
         renderSidebarTables();
@@ -2248,6 +2261,39 @@ function syncBottomSliders() {
     modDesiredSlider.value = val;
     modDesiredVal.textContent = val + "px";
   }
+  syncAnimationSliders();
+}
+
+function syncAnimationSliders() {
+  const animToggle = document.getElementById('btn-toggle-animation');
+  if (animToggle) {
+    animToggle.classList.toggle('active', !!appState.animationMode);
+    animToggle.textContent = appState.animationMode ? 'ON' : 'OFF';
+  }
+
+  const speedSlider = document.getElementById('animation-speed-slider');
+  const speedVal = document.getElementById('animation-speed-val');
+  if (speedSlider && speedVal) {
+    const speed = appState.animationSpeed ?? 5;
+    speedSlider.value = speed;
+    speedVal.textContent = speed;
+  }
+
+  const durationSlider = document.getElementById('animation-duration-slider');
+  const durationVal = document.getElementById('animation-duration-val');
+  if (durationSlider && durationVal) {
+    const duration = appState.animationDuration ?? 2;
+    durationSlider.value = duration;
+    durationVal.textContent = duration + "s";
+  }
+
+  const momentumSlider = document.getElementById('animation-momentum-slider');
+  const momentumVal = document.getElementById('animation-momentum-val');
+  if (momentumSlider && momentumVal) {
+    const momentum = appState.momentumCurve ?? 5;
+    momentumSlider.value = momentum;
+    momentumVal.textContent = momentum;
+  }
 }
 
 // Spell Generator Setup
@@ -2461,17 +2507,9 @@ function setupSpellPicker() {
 async function init() {
   const animToggle = document.getElementById('btn-toggle-animation');
   if (animToggle) {
-    if (appState.animationMode) {
-      animToggle.classList.add('active');
-      animToggle.textContent = 'ON';
-    } else {
-      animToggle.classList.remove('active');
-      animToggle.textContent = 'OFF';
-    }
     animToggle.addEventListener('click', () => {
       appState.animationMode = !appState.animationMode;
-      animToggle.classList.toggle('active', appState.animationMode);
-      animToggle.textContent = appState.animationMode ? 'ON' : 'OFF';
+      syncAnimationSliders();
       renderScaledMandala();
     });
   }
@@ -2694,6 +2732,33 @@ async function init() {
     });
   }
 
+  const speedSlider = document.getElementById('animation-speed-slider');
+  const speedVal = document.getElementById('animation-speed-val');
+  if (speedSlider && speedVal) {
+    speedSlider.addEventListener('input', (e) => {
+      appState.animationSpeed = parseFloat(e.target.value);
+      speedVal.textContent = appState.animationSpeed;
+    });
+  }
+
+  const durationSlider = document.getElementById('animation-duration-slider');
+  const durationVal = document.getElementById('animation-duration-val');
+  if (durationSlider && durationVal) {
+    durationSlider.addEventListener('input', (e) => {
+      appState.animationDuration = parseFloat(e.target.value);
+      durationVal.textContent = appState.animationDuration + "s";
+    });
+  }
+
+  const momentumSlider = document.getElementById('animation-momentum-slider');
+  const momentumVal = document.getElementById('animation-momentum-val');
+  if (momentumSlider && momentumVal) {
+    momentumSlider.addEventListener('input', (e) => {
+      appState.momentumCurve = parseFloat(e.target.value);
+      momentumVal.textContent = appState.momentumCurve;
+    });
+  }
+
   const exportPngBtn = document.getElementById('export-png-btn');
   if (exportPngBtn) {
     exportPngBtn.addEventListener('click', exportToPNG);
@@ -2708,6 +2773,7 @@ async function init() {
   syncViewModeButtons();
   syncPolarityModeButtons();
   syncOuterCenteringButton();
+  syncAnimationSliders();
 
   // Update input values and render views
   const msInitEl = document.getElementById('magic-slots');
@@ -2987,7 +3053,10 @@ let mishapState = {
   selectedSchoolIdx: null,
   selectedPolarity: null,
   selectedTier: 1,
-  displayedTier: 1
+  displayedTier: 1,
+  isRolling: false,
+  cwAngle: 0,
+  ccwAngle: 0
 };
 
 function setupMishapRoller() {
@@ -3021,8 +3090,10 @@ function setupMishapRoller() {
       if (detailsContent) detailsContent.innerHTML = '';
       if (diceBox) diceBox.innerHTML = '';
 
-      // Reset displayed tier to original selected tier, and re-render
+      // Reset displayed tier to original selected tier, reset rotation angles, and re-render
       mishapState.displayedTier = mishapState.selectedTier;
+      mishapState.cwAngle = 0;
+      mishapState.ccwAngle = 0;
       renderScaledMandala();
     });
   }
@@ -3133,6 +3204,8 @@ function rollMishap() {
     return;
   }
 
+  if (mishapState.isRolling) return;
+
   // Default displayed tier to the casting tier
   mishapState.displayedTier = mishapState.selectedTier;
 
@@ -3141,6 +3214,71 @@ function rollMishap() {
   // Re-render the mandala to refresh the pill selection state back to the casting tier
   renderScaledMandala();
 
+  const resultsContainer = document.getElementById('mishap-results-container');
+  const narrativeBox = document.getElementById('mishap-narrative');
+  const gmGuideBox = document.getElementById('mishap-gm-guide');
+  const container = document.getElementById('target-mandala');
+
+  // Hide results while rolling
+  if (container) container.classList.remove('has-results');
+  if (resultsContainer) resultsContainer.classList.add('hidden');
+  if (narrativeBox) narrativeBox.classList.add('hidden');
+  if (gmGuideBox) gmGuideBox.classList.add('hidden');
+
+  const rollBtn = document.getElementById('btn-roll-mishap');
+  const resetBtn = document.getElementById('btn-mishap-reset');
+
+  if (appState.animationMode) {
+    mishapState.isRolling = true;
+    if (rollBtn) {
+      rollBtn.disabled = true;
+      rollBtn.innerHTML = `<i class="gi gi-dice-eight-faces" style="font-size: 1.1rem; line-height: 1;"></i> Rolling...`;
+    }
+    if (resetBtn) resetBtn.disabled = true;
+
+    const svg = container ? container.querySelector('svg') : null;
+    const spinCWGroup = svg ? svg.querySelector('.spin-cw-group') : null;
+    const spinCCWGroup = svg ? svg.querySelector('.spin-ccw-group') : null;
+
+    if (spinCWGroup && spinCCWGroup) {
+      // Calculate target rotation based on speed
+      const rotations = 2 + ((appState.animationSpeed || 5) * 0.4);
+      mishapState.cwAngle = (mishapState.cwAngle || 0) + 360 * rotations;
+      mishapState.ccwAngle = (mishapState.ccwAngle || 0) + 360 * rotations;
+
+      const duration = appState.animationDuration || 2;
+      const curve = appState.momentumCurve || 5;
+      const easing = `cubic-bezier(0.1, ${0.1 * curve}, 0.1, 1)`;
+
+      // Force reflow
+      void spinCWGroup.offsetHeight;
+      void spinCCWGroup.offsetHeight;
+
+      // Set transitions
+      spinCWGroup.style.transition = `transform ${duration}s ${easing}`;
+      spinCCWGroup.style.transition = `transform ${duration}s ${easing}`;
+
+      // Set target rotations
+      spinCWGroup.style.transform = `rotate(${mishapState.cwAngle}deg)`;
+      spinCCWGroup.style.transform = `rotate(${-mishapState.ccwAngle}deg)`;
+    }
+
+    setTimeout(() => {
+      mishapState.isRolling = false;
+      if (rollBtn) {
+        rollBtn.disabled = false;
+        rollBtn.innerHTML = `<i class="gi gi-dice-eight-faces" style="font-size: 1.1rem; line-height: 1;"></i> Roll Mishap (2d8)`;
+      }
+      if (resetBtn) resetBtn.disabled = false;
+
+      executeMishapRoll();
+    }, (appState.animationDuration || 2) * 1000);
+  } else {
+    executeMishapRoll();
+  }
+}
+
+function executeMishapRoll() {
   const resultsContainer = document.getElementById('mishap-results-container');
   const narrativeBox = document.getElementById('mishap-narrative');
   const gmGuideBox = document.getElementById('mishap-gm-guide');
