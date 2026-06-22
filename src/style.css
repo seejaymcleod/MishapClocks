@@ -1365,3 +1365,48 @@ details.mishap-gm-details.axis-fracture .gm-fiction-prompt {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* --- Overlay Pill Styling in Default/Neutral State vs Rolled State --- */
+
+/* Default state: No yellow border, normal white border */
+.mandala-overlay-box {
+  stroke: rgba(255, 255, 255, 0.15) !important;
+  stroke-width: 4px !important;
+  stroke-opacity: 1 !important;
+  transition: stroke 0.3s ease, stroke-width 0.3s ease;
+}
+
+/* Default state: All text is bright (normal brightness) */
+.overlay-text-dice,
+.overlay-text-dc,
+.overlay-text-tier {
+  opacity: 1.0 !important;
+  transition: opacity 0.3s ease;
+}
+
+/* Rolled state: Yellow border on selected tier */
+.has-results .mandala-overlay-box.selected-tier {
+  stroke: #fbbf24 !important;
+  stroke-width: 8px !important;
+  stroke-opacity: 1 !important;
+}
+
+/* Rolled state: Normal border on unselected tiers */
+.has-results .mandala-overlay-box:not(.selected-tier) {
+  stroke: rgba(255, 255, 255, 0.15) !important;
+  stroke-width: 4px !important;
+  stroke-opacity: 1 !important;
+}
+
+/* Rolled state: Keep selected tier text bright, dim unselected tiers */
+.has-results .overlay-text-dice:not(.selected-tier),
+.has-results .overlay-text-dc:not(.selected-tier),
+.has-results .overlay-text-tier:not(.selected-tier) {
+  opacity: 0.25 !important;
+}
+
+.has-results .overlay-text-dice.selected-tier,
+.has-results .overlay-text-dc.selected-tier,
+.has-results .overlay-text-tier.selected-tier {
+  opacity: 1.0 !important;
+}

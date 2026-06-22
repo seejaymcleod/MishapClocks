@@ -531,7 +531,7 @@ function renderScaledMandala() {
     const diceText = firstNode.dice || '—';
     const dcText = firstNode.dc || '—';
 
-    const isSelectedTier = (tIndex === mishapState.selectedTier);
+    const isSelectedTier = (tIndex === mishapState.displayedTier);
     const textOpacity = isSelectedTier ? "1.0" : "0.25";
     const fontSize = appState.overlayFontSize ?? 45;
 
@@ -813,7 +813,7 @@ function renderScaledMandala() {
         boxPath.setAttribute("stroke", "rgba(255, 255, 255, 0.15)");
         boxPath.setAttribute("stroke-width", "4");
       }
-      boxPath.setAttribute("class", "mandala-overlay-box");
+      boxPath.setAttribute("class", isSelectedTier ? "mandala-overlay-box selected-tier" : "mandala-overlay-box");
 
       const yCenter = cy - (innerR + ringWidth * 0.5);
 
@@ -893,7 +893,7 @@ function renderScaledMandala() {
       diceTextEl.setAttribute("text-anchor", "middle");
       diceTextEl.setAttribute("dominant-baseline", "middle");
       diceTextEl.setAttribute("opacity", textOpacity);
-      diceTextEl.setAttribute("class", "overlay-text-dice");
+      diceTextEl.setAttribute("class", isSelectedTier ? "overlay-text-dice selected-tier" : "overlay-text-dice");
       diceTextEl.style.pointerEvents = "none";
       diceTextEl.textContent = diceText;
       svg.appendChild(diceTextEl);
@@ -908,7 +908,7 @@ function renderScaledMandala() {
       dcTextEl.setAttribute("text-anchor", "middle");
       dcTextEl.setAttribute("dominant-baseline", "middle");
       dcTextEl.setAttribute("opacity", textOpacity);
-      dcTextEl.setAttribute("class", "overlay-text-dc");
+      dcTextEl.setAttribute("class", isSelectedTier ? "overlay-text-dc selected-tier" : "overlay-text-dc");
       dcTextEl.style.pointerEvents = "none";
       dcTextEl.textContent = cleanDcText;
       svg.appendChild(dcTextEl);
@@ -923,7 +923,7 @@ function renderScaledMandala() {
       tierTextEl.setAttribute("text-anchor", "middle");
       tierTextEl.setAttribute("dominant-baseline", "middle");
       tierTextEl.setAttribute("opacity", textOpacity);
-      tierTextEl.setAttribute("class", "overlay-text-tier");
+      tierTextEl.setAttribute("class", isSelectedTier ? "overlay-text-tier selected-tier" : "overlay-text-tier");
       tierTextEl.style.pointerEvents = "none";
       tierTextEl.textContent = `T${tIndex}`;
       svg.appendChild(tierTextEl);
@@ -2214,6 +2214,7 @@ function setupSpellPicker() {
     // Sync tier with Mishap Roller
     if (typeof mishapState !== 'undefined') {
       mishapState.selectedTier = spell.tier;
+      mishapState.displayedTier = spell.tier;
       const tierBtns = document.querySelectorAll('#mishap-tier-control .btn-segment');
       tierBtns.forEach(b => {
         b.classList.remove('active');
@@ -2842,7 +2843,8 @@ async function exportToPNG() {
 let mishapState = {
   selectedSchoolIdx: null,
   selectedPolarity: null,
-  selectedTier: 1
+  selectedTier: 1,
+  displayedTier: 1
 };
 
 function setupMishapRoller() {
@@ -2875,6 +2877,10 @@ function setupMishapRoller() {
       if (gmGuideBox) gmGuideBox.classList.add('hidden');
       if (detailsContent) detailsContent.innerHTML = '';
       if (diceBox) diceBox.innerHTML = '';
+
+      // Reset displayed tier to original selected tier, and re-render
+      mishapState.displayedTier = mishapState.selectedTier;
+      renderScaledMandala();
     });
   }
 
@@ -2884,6 +2890,7 @@ function setupMishapRoller() {
       tierBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       mishapState.selectedTier = parseInt(btn.dataset.mishapTier, 10);
+      mishapState.displayedTier = mishapState.selectedTier;
       renderScaledMandala();
     });
   });
@@ -2982,6 +2989,9 @@ function rollMishap() {
     alert("Please select a Cast School Polarity from the mandala before rolling.");
     return;
   }
+
+  // Default displayed tier to the casting tier
+  mishapState.displayedTier = mishapState.selectedTier;
 
   clearMandalaHighlights();
 
@@ -3115,10 +3125,6 @@ function rollMishap() {
     narrativeHtml += `<p>School: ${formatSchool(rolledSliceIdx, 'positive')} + ${formatSchool(rolledSliceOppIdx, 'negative')}</p>`;
     narrativeHtml += `<p><em>(Roll ${d1}): Axis Fracture (Doubles)</em></p>`;
 
-    // Highlight schools
-    highlightMandalaElements(rolledSliceIdx, Math.min(currentTier, 5), false, 'positive');
-    highlightMandalaElements(rolledSliceOppIdx, Math.min(currentTier, 5), false, 'negative');
-
     let d3 = Math.floor(Math.random() * 8) + 1;
     let effectDiceBonus = 0;
     let effectDcBonus = 0;
@@ -3169,7 +3175,19 @@ function rollMishap() {
     }
     narrativeHtml += `<p style="margin-top: 0.6rem; font-size: 0.95rem; font-weight: bold; color: #ef4444;">Escalated: T${currentTier} (${finalDcStr} • ${finalDiceStr})</p>`;
 
-    // Highlight effects
+    // Sync mishapState displayed tier with the new escalated tier (do not affect selected casting tier)
+    mishapState.displayedTier = finalTierClamp;
+
+    // Re-render the mandala so the correct overlay pill is selected
+    renderScaledMandala();
+
+    // Re-add has-results to the container (since renderScaledMandala replaces innerHTML)
+    const container = document.getElementById('target-mandala');
+    if (container) container.classList.add('has-results');
+
+    // Highlight schools and effects at the final tier
+    highlightMandalaElements(rolledSliceIdx, finalTierClamp, false, 'positive');
+    highlightMandalaElements(rolledSliceOppIdx, finalTierClamp, false, 'negative');
     highlightMandalaElements(finalSliceIdx, finalTierClamp, true);
     highlightMandalaElements(finalOppSliceIdx, finalTierClamp, true);
 
