@@ -1306,3 +1306,43 @@ details.mishap-gm-details.axis-fracture .gm-fiction-prompt {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* --- Dulling Logic for Roll Results --- */
+.has-results .mandala-slice:not(.highlighted),
+.has-results .outer-school-label:not(.highlighted),
+.has-results .outer-number:not(.highlighted),
+.has-results .outer-icon-group:not(.highlighted),
+.has-results .polarity-label:not(.highlighted),
+.has-results .effect-name-text:not(.highlighted),
+.has-results .tier-modifier-text:not(.highlighted) {
+  opacity: 0.25;
+  filter: grayscale(80%) brightness(0.6);
+  transition: opacity 0.5s ease, filter 0.5s ease;
+}
+
+.has-results .highlighted {
+  opacity: 1;
+  filter: none;
+  transition: opacity 0.5s ease, filter 0.5s ease;
+}
+
+/* --- Spin Animations --- */
+.animating-ring .spin-ccw-group {
+  animation: spinCCW 60s linear infinite;
+  transform-origin: 2600px 2600px;
+}
+
+.animating-ring .spin-cw-group {
+  animation: spinCW 60s linear infinite;
+  transform-origin: 2600px 2600px;
+}
+
+@keyframes spinCCW {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes spinCW {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

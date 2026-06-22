@@ -252,6 +252,24 @@ function renderScaledMandala() {
   bg.setAttribute("fill", "#1e1e1e");
   svg.appendChild(bg);
 
+  const spinCCWGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  if (appState.animationMode) spinCCWGroup.setAttribute("class", "spin-ccw-group");
+  spinCCWGroup.style.transformOrigin = "2600px 2600px";
+  svg.appendChild(spinCCWGroup);
+
+  const spinCWGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  if (appState.animationMode) spinCWGroup.setAttribute("class", "spin-cw-group");
+  spinCWGroup.style.transformOrigin = "2600px 2600px";
+  svg.appendChild(spinCWGroup);
+
+  // Helper function to direct elements to the right group based on logic
+  const appendToMandala = (el, type) => {
+    if (type === 'ccw') spinCCWGroup.appendChild(el);
+    else if (type === 'cw') spinCWGroup.appendChild(el);
+    else svg.appendChild(el); // static
+  };
+
+
   const numSlices = appState.magicNodes.length;
   const angleStep = 360 / Math.max(numSlices, 1);
 
@@ -444,7 +462,6 @@ function renderScaledMandala() {
         diceTextEl.setAttribute("font-size", "45px");
         diceTextEl.setAttribute("font-weight", "bold");
         diceTextEl.setAttribute("text-anchor", "middle");
-        diceTextEl.setAttribute("class", "dice-dc-text");
         diceTextEl.setAttribute("transform", `rotate(${-angleOffset}, ${posL.x}, ${posL.y})`);
         diceTextEl.style.pointerEvents = "none";
         svg.appendChild(diceTextEl);
@@ -460,7 +477,6 @@ function renderScaledMandala() {
         dcTextEl.setAttribute("font-size", "45px");
         dcTextEl.setAttribute("font-weight", "bold");
         dcTextEl.setAttribute("text-anchor", "middle");
-        dcTextEl.setAttribute("class", "dice-dc-text");
         dcTextEl.setAttribute("transform", `rotate(${angleOffset}, ${posR.x}, ${posR.y})`);
         dcTextEl.style.pointerEvents = "none";
         svg.appendChild(dcTextEl);
@@ -1359,46 +1375,6 @@ function renderScaledMandala() {
     line.setAttribute("stroke-width", "6");
     svg.appendChild(line);
   });
-
-
-  if (appState.animationMode) {
-    svg.classList.add('animating-ring');
-    
-    const spinCCWGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    spinCCWGroup.setAttribute("class", "spin-ccw-group");
-
-    const spinCWGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    spinCWGroup.setAttribute("class", "spin-cw-group");
-
-    // Static items stay in svg: defs, bg, center circle, center icon, dice/dc texts
-    const childrenToMove = Array.from(svg.childNodes).filter(el => {
-      const tagName = el.tagName ? el.tagName.toLowerCase() : '';
-      const idName = el.getAttribute('id') || '';
-      const className = el.getAttribute('class') || '';
-      return tagName !== 'defs' && tagName !== 'circle' && idName !== 'center-hud-content' && !className.includes('dice-dc-text');
-    });
-
-    childrenToMove.forEach(el => {
-      const className = el.getAttribute('class') || '';
-      const idName = el.getAttribute('id') || '';
-      
-      let isCW = false;
-      if (className.includes('effect-name-text') || className.includes('outer-effect-label') || className.includes('tier-label-text')) {
-         isCW = true;
-      } else if (idName.startsWith('curved-path') || idName.startsWith('outer-effect-path')) {
-         isCW = true;
-      }
-
-      if (isCW) {
-        spinCWGroup.appendChild(el);
-      } else {
-        spinCCWGroup.appendChild(el);
-      }
-    });
-
-    svg.appendChild(spinCCWGroup);
-    svg.appendChild(spinCWGroup);
-  }
 
   container.appendChild(svg);
 }
@@ -2554,8 +2530,6 @@ function selectMishapIconFromCircle(schoolIdx, polarity) {
 function clearMandalaHighlights() {
   document.querySelectorAll('.highlighted').forEach(el => el.classList.remove('highlighted'));
   document.querySelectorAll('.result-polarity-highlight').forEach(el => el.classList.remove('result-polarity-highlight'));
-  const container = document.getElementById('target-mandala');
-  if (container) container.classList.remove('has-results');
 }
 
 function highlightMandalaElements(schoolIdx, tierIdx, isEffect, polarity) {
@@ -2600,8 +2574,6 @@ function rollMishap() {
   const narrativeBox = document.getElementById('mishap-narrative');
   const gmGuideBox = document.getElementById('mishap-gm-guide');
   const detailsContent = document.getElementById('mishap-gm-details-content');
-  const container = document.getElementById('target-mandala');
-  if (container) container.classList.add('has-results');
 
   if (resultsContainer) resultsContainer.classList.remove('hidden');
   if (narrativeBox) narrativeBox.classList.remove('hidden');
