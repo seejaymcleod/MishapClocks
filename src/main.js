@@ -21,6 +21,9 @@ let appState = {
   overlayBoxWidth: 12,
   overlayFontSize: 45,
   overlayStyle: 'floating-pill',
+  modifierMinFontSize: 22,
+  modifierMaxFontSize: 80,
+  modifierDesiredFontSize: 100,
   magicNodes: [
     { id: 'm0', label: 'Thermal', icon: 'gi-flame-spin', negativeIcon: 'gi-snowflake-1', color: '#ff4500', opposite: 'Hydro', slider: 'Injecting kinetic heat (ignition) ↔ siphoning it (absolute zero).' },
     { id: 'm1', label: 'Aero', icon: 'gi-tornado', negativeIcon: 'gi-wind-hole', color: '#87ceeb', opposite: 'Geo', slider: 'High pressure and gales ↔ suffocating vacuums.' },
@@ -220,6 +223,7 @@ function getGradientColor(hexColor, tIndex, isAlt) {
 }
 
 // Smart wrapping and font scaling helper functions
+// Smart wrapping and font scaling helper functions
 function splitTextIntoTwoRows(text) {
   let row1 = text;
   let row2 = '';
@@ -227,7 +231,7 @@ function splitTextIntoTwoRows(text) {
     const parts = text.split(' - ');
     row1 = parts[0];
     row2 = '- ' + parts[1];
-    
+
     // If row1 is still long and contains a space, split row1 and prepend to row2
     if (row1.length > 10 && row1.includes(' ')) {
       const words = row1.split(' ');
@@ -244,64 +248,138 @@ function splitTextIntoTwoRows(text) {
   return { row1, row2 };
 }
 
-function calculateCurvedFontSize(text, radius, angleStep, isDoubleLine = false) {
+function splitTextIntoThreeRows(text) {
+  let row1 = '';
+  let row2 = '';
+  let row3 = '';
+  if (text.includes(' - ')) {
+    const parts = text.split(' - ');
+    const mainText = parts[0];
+    const tierPart = '- ' + parts[1];
+
+    if (mainText.includes(' + ')) {
+      const mainParts = mainText.split(' + ');
+      row1 = mainParts[0] + ' +';
+      row2 = mainParts[1];
+      row3 = tierPart;
+    } else if (mainText.includes('+')) {
+      const mainParts = mainText.split('+');
+      row1 = mainParts[0] + ' +';
+      row2 = mainParts[1].trim();
+      row3 = tierPart;
+    } else if (mainText.includes(' ')) {
+      const mainParts = mainText.split(' ');
+      row1 = mainParts[0];
+      row2 = mainParts[1];
+      row3 = tierPart;
+    } else {
+      row1 = mainText;
+      row2 = tierPart;
+    }
+  } else {
+    const words = text.split(' ');
+    if (words.length >= 3) {
+      row1 = words[0];
+      row2 = words[1];
+      row3 = words.slice(2).join(' ');
+    } else if (words.length === 2) {
+      row1 = words[0];
+      row2 = words[1];
+    } else {
+      row1 = text;
+    }
+  }
+  return { row1, row2, row3 };
+}
+
+function calculateCurvedFontSize(text, radius, angleStep, numLines = 1) {
   const arcLength = radius * (angleStep * Math.PI / 180);
   const maxChars = text.length || 1;
   const targetWidth = arcLength * 0.85; // 85% safety margin
-  
+
   // Calculate size to fit width
   let size = targetWidth / (maxChars * 0.52);
-  
+
   // Height constraints:
   // Ring height is 280px.
-  // For double line, each line should not exceed ~85px.
-  // For single line, it should not exceed ~160px.
-  const limit = isDoubleLine ? 85 : 160;
-  
+  // We keep font sizes highly consistent across tiers using slider configurations:
+  // 1 line: max modifierMaxFontSize
+  // 2 lines: max modifierMaxFontSize - 5
+  // 3 lines: max modifierMaxFontSize - 10
+  const maxVal = appState.modifierMaxFontSize ?? 55;
+  const minVal = appState.modifierMinFontSize ?? 22;
+
+  let limit = maxVal;
+  if (numLines === 2) limit = Math.max(minVal, maxVal - 5);
+  if (numLines === 3) limit = Math.max(minVal, maxVal - 10);
+
   size = Math.min(limit, size);
-  return Math.max(22, size);
+  return Math.max(minVal, size);
 }
 
 function getOptimalModifierLayout(text, radius, angleStep) {
   // Try single line
-  const fsSingle = calculateCurvedFontSize(text, radius, angleStep, false);
-  
+  const fsSingle = calculateCurvedFontSize(text, radius, angleStep, 1);
+
   // Try double line
-  const { row1, row2 } = splitTextIntoTwoRows(text);
-  if (!row2) {
+  const { row1: row2_1, row2: row2_2 } = splitTextIntoTwoRows(text);
+  let fsDouble = 0;
+  if (row2_2) {
+    const fsRow2_1 = calculateCurvedFontSize(row2_1, radius, angleStep, 2);
+    const fsRow2_2 = calculateCurvedFontSize(row2_2, radius, angleStep, 2);
+    fsDouble = Math.min(fsRow2_1, fsRow2_2);
+  }
+
+  // Try triple line
+  const { row1: row3_1, row2: row3_2, row3: row3_3 } = splitTextIntoThreeRows(text);
+  let fsTriple = 0;
+  if (row3_3) {
+    const fsRow3_1 = calculateCurvedFontSize(row3_1, radius, angleStep, 3);
+    const fsRow3_2 = calculateCurvedFontSize(row3_2, radius, angleStep, 3);
+    const fsRow3_3 = calculateCurvedFontSize(row3_3, radius, angleStep, 3);
+    fsTriple = Math.min(fsRow3_1, fsRow3_2, fsRow3_3);
+  }
+
+  const desiredVal = appState.modifierDesiredFontSize ?? 50;
+
+  // Prefer single line if it achieves a good size (>= desiredVal)
+  if (fsSingle >= desiredVal) {
     return {
       isDouble: false,
+      isTriple: false,
       row1: text,
       row2: '',
+      row3: '',
       fontSize: fsSingle
     };
   }
-  
-  const fsRow1 = calculateCurvedFontSize(row1, radius, angleStep, true);
-  const fsRow2 = calculateCurvedFontSize(row2, radius, angleStep, true);
-  const fsDouble = Math.min(fsRow1, fsRow2);
-  
-  // If single line fits with a readable size of 55px or more, prefer single line.
-  // Otherwise, use double line if it results in a larger font size.
-  if (fsSingle >= 55) {
+
+  // Otherwise, compare double and triple lines. Choose the one that yields the larger font size.
+  if (fsTriple > fsDouble && fsTriple > fsSingle) {
     return {
       isDouble: false,
-      row1: text,
-      row2: '',
-      fontSize: fsSingle
+      isTriple: true,
+      row1: row3_1,
+      row2: row3_2,
+      row3: row3_3,
+      fontSize: fsTriple
     };
   } else if (fsDouble > fsSingle) {
     return {
       isDouble: true,
-      row1,
-      row2,
+      isTriple: false,
+      row1: row2_1,
+      row2: row2_2,
+      row3: '',
       fontSize: fsDouble
     };
   } else {
     return {
       isDouble: false,
+      isTriple: false,
       row1: text,
       row2: '',
+      row3: '',
       fontSize: fsSingle
     };
   }
@@ -422,7 +500,7 @@ function renderScaledMandala() {
           const overlayHalfAngle = getOverlayHalfAngle(textRadius);
           const margin = 2; // degrees margin to clear boundaries
           const offsetAngle = overlayHalfAngle + margin;
-          
+
           if (i === 0) {
             // First slice (to the right of 12 o'clock boundary)
             textStartAngle = startAngle + offsetAngle;
@@ -438,11 +516,11 @@ function renderScaledMandala() {
 
         if (['curved-axis', 'horizontal-hud', 'radial-vector', 'minimal-rune', 'curved-text'].includes(appState.viewMode)) {
           const layout = getOptimalModifierLayout(modText, textRadius, textSpan);
+          const isBottomHalf = (textCenterAngle > 90 && textCenterAngle < 270);
 
           const drawCurvedText = (textContent, radiusOffset, fontSize) => {
             const currentRadius = textRadius + radiusOffset;
             let pathData;
-            const isBottomHalf = (textCenterAngle > 90 && textCenterAngle < 270);
             if (isBottomHalf) {
               const pathStart = polarToCartesian(cx, cy, currentRadius, textEndAngle);
               const pathEnd = polarToCartesian(cx, cy, currentRadius, textStartAngle);
@@ -486,9 +564,18 @@ function renderScaledMandala() {
             svg.appendChild(textEl);
           };
 
-          if (layout.isDouble) {
-            drawCurvedText(layout.row1, 28, layout.fontSize);
-            drawCurvedText(layout.row2, -28, layout.fontSize);
+          if (layout.isTriple) {
+            const offset1 = isBottomHalf ? -48 : 48;
+            const offset2 = 0;
+            const offset3 = isBottomHalf ? 48 : -48;
+            drawCurvedText(layout.row1, offset1, layout.fontSize);
+            drawCurvedText(layout.row2, offset2, layout.fontSize);
+            drawCurvedText(layout.row3, offset3, layout.fontSize);
+          } else if (layout.isDouble) {
+            const offset1 = isBottomHalf ? -28 : 28;
+            const offset2 = isBottomHalf ? 28 : -28;
+            drawCurvedText(layout.row1, offset1, layout.fontSize);
+            drawCurvedText(layout.row2, offset2, layout.fontSize);
           } else {
             drawCurvedText(layout.row1, 0, layout.fontSize);
           }
@@ -789,9 +876,9 @@ function renderScaledMandala() {
               const rRow1 = pathRadius + 65;
               const rRow2 = pathRadius - 10;
               const rRow3 = pathRadius - 85;
-              
+
               const calculatedFontSize = getDynamicFontSize(modifierText, rRow1);
-              
+
               createCurvedLine(`curved-path-${tIndex}-r1`, rRow1, modifierText, "#ffffff", Math.min(calculatedFontSize + 10, 80), "scaled-text effect-name-text");
               createCurvedLine(`curved-path-${tIndex}-r2`, rRow2, `${diceText}   ${dcText}`, "#fbbf24", 45, "scaled-text");
               createCurvedLine(`curved-path-${tIndex}-r3`, rRow3, `T${tIndex}`, "rgba(255, 255, 255, 0.7)", 56, "scaled-text tier-label-text");
@@ -822,21 +909,21 @@ function renderScaledMandala() {
         const h = 165;
         const pillW = w - 36;
         const pillH = h;
-        boxPath.setAttribute("d", `M ${cx - pillW/2} ${yCenter - pillH/2} h ${pillW} a 18 18 0 0 1 18 18 v ${pillH - 36} a 18 18 0 0 1 -18 18 h ${-pillW} a 18 18 0 0 1 -18 -18 v ${-pillH + 36} a 18 18 0 0 1 18 -18 Z`);
+        boxPath.setAttribute("d", `M ${cx - pillW / 2} ${yCenter - pillH / 2} h ${pillW} a 18 18 0 0 1 18 18 v ${pillH - 36} a 18 18 0 0 1 -18 18 h ${-pillW} a 18 18 0 0 1 -18 -18 v ${-pillH + 36} a 18 18 0 0 1 18 -18 Z`);
       } else if (appState.overlayStyle === 'constant-column') {
         const w = (appState.overlayBoxWidth ?? 12) * 16;
         const halfW = w / 2;
-        
+
         const angleOuter = Math.asin(Math.min(0.99, halfW / outerR));
         const angleOuterDeg = angleOuter * 180 / Math.PI;
         const angleInner = Math.asin(Math.min(0.99, halfW / innerR));
         const angleInnerDeg = angleInner * 180 / Math.PI;
-        
+
         const startOuter = polarToCartesian(cx, cy, outerR, angleOuterDeg);
         const endOuter = polarToCartesian(cx, cy, outerR, -angleOuterDeg);
         const startInner = polarToCartesian(cx, cy, innerR, -angleInnerDeg);
         const endInner = polarToCartesian(cx, cy, innerR, angleInnerDeg);
-        
+
         const d = [
           "M", startOuter.x, startOuter.y,
           "A", outerR, outerR, 0, 0, 0, endOuter.x, endOuter.y,
@@ -873,7 +960,7 @@ function renderScaledMandala() {
         const boxWidth = (appState.overlayStyle === 'constant-column')
           ? (appState.overlayBoxWidth ?? 12) * 16
           : innerR * ((appState.overlayBoxWidth ?? 12) * Math.PI / 180);
-        
+
         const maxTextChars = Math.max(diceText.length, dcText.length, 4);
         const fitFontSize = (boxWidth * 0.85) / (maxTextChars * 0.55);
         activeFontSize = Math.min(fontSize, Math.max(16, fitFontSize));
@@ -1139,7 +1226,7 @@ function renderScaledMandala() {
         `;
         iconGroup.appendChild(fObj);
         svg.appendChild(iconGroup);
-        
+
         // Add click listener to select polarity from the circle
         iconGroup.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -1646,7 +1733,7 @@ function renderScaledMandala() {
 
   if (appState.animationMode) {
     svg.classList.add('animating-ring');
-    
+
     const spinCCWGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
     spinCCWGroup.setAttribute("class", "spin-ccw-group");
 
@@ -1664,12 +1751,12 @@ function renderScaledMandala() {
     childrenToMove.forEach(el => {
       const className = el.getAttribute('class') || '';
       const idName = el.getAttribute('id') || '';
-      
+
       let isCW = false;
       if (className.includes('effect-name-text') || className.includes('outer-effect-label') || className.includes('tier-label-text')) {
-         isCW = true;
+        isCW = true;
       } else if (idName.startsWith('curved-path') || idName.startsWith('outer-effect-path')) {
-         isCW = true;
+        isCW = true;
       }
 
       if (isCW) {
@@ -1918,6 +2005,9 @@ document.getElementById('file-input').addEventListener('change', (e) => {
         if (appState.overlayBoxWidth === undefined) appState.overlayBoxWidth = 12;
         if (appState.overlayFontSize === undefined) appState.overlayFontSize = 45;
         if (appState.overlayStyle === undefined) appState.overlayStyle = 'floating-pill';
+        if (appState.modifierMinFontSize === undefined) appState.modifierMinFontSize = 22;
+        if (appState.modifierMaxFontSize === undefined) appState.modifierMaxFontSize = 55;
+        if (appState.modifierDesiredFontSize === undefined) appState.modifierDesiredFontSize = 50;
         syncViewModeButtons();
         syncPolarityModeButtons();
         syncOuterCenteringButton();
@@ -1991,7 +2081,7 @@ function syncOverlayModeButtons() {
     if (val === 'radial') val = 'radial-arc';
     if (val === 'constant') val = 'constant-column';
     if (val === 'pill') val = 'floating-pill';
-    
+
     if (val === appState.overlayStyle) {
       btn.classList.add('active');
     } else {
@@ -2134,6 +2224,29 @@ function syncBottomSliders() {
     const val = appState.overlayFontSize ?? 45;
     overlayFontSizeSlider.value = val;
     overlayFontSizeVal.textContent = val + "px";
+  }
+
+  const modMinSlider = document.getElementById('modifier-min-font-size-slider');
+  const modMinVal = document.getElementById('modifier-min-font-size-val');
+  const modMaxSlider = document.getElementById('modifier-max-font-size-slider');
+  const modMaxVal = document.getElementById('modifier-max-font-size-val');
+  const modDesiredSlider = document.getElementById('modifier-desired-font-size-slider');
+  const modDesiredVal = document.getElementById('modifier-desired-font-size-val');
+
+  if (modMinSlider && modMinVal) {
+    const val = appState.modifierMinFontSize ?? 22;
+    modMinSlider.value = val;
+    modMinVal.textContent = val + "px";
+  }
+  if (modMaxSlider && modMaxVal) {
+    const val = appState.modifierMaxFontSize ?? 55;
+    modMaxSlider.value = val;
+    modMaxVal.textContent = val + "px";
+  }
+  if (modDesiredSlider && modDesiredVal) {
+    const val = appState.modifierDesiredFontSize ?? 50;
+    modDesiredSlider.value = val;
+    modDesiredVal.textContent = val + "px";
   }
 }
 
@@ -2551,6 +2664,36 @@ async function init() {
     });
   }
 
+  const modMinSlider = document.getElementById('modifier-min-font-size-slider');
+  const modMinVal = document.getElementById('modifier-min-font-size-val');
+  if (modMinSlider && modMinVal) {
+    modMinSlider.addEventListener('input', (e) => {
+      appState.modifierMinFontSize = parseInt(e.target.value, 10);
+      modMinVal.textContent = appState.modifierMinFontSize + "px";
+      renderScaledMandala();
+    });
+  }
+
+  const modMaxSlider = document.getElementById('modifier-max-font-size-slider');
+  const modMaxVal = document.getElementById('modifier-max-font-size-val');
+  if (modMaxSlider && modMaxVal) {
+    modMaxSlider.addEventListener('input', (e) => {
+      appState.modifierMaxFontSize = parseInt(e.target.value, 10);
+      modMaxVal.textContent = appState.modifierMaxFontSize + "px";
+      renderScaledMandala();
+    });
+  }
+
+  const modDesiredSlider = document.getElementById('modifier-desired-font-size-slider');
+  const modDesiredVal = document.getElementById('modifier-desired-font-size-val');
+  if (modDesiredSlider && modDesiredVal) {
+    modDesiredSlider.addEventListener('input', (e) => {
+      appState.modifierDesiredFontSize = parseInt(e.target.value, 10);
+      modDesiredVal.textContent = appState.modifierDesiredFontSize + "px";
+      renderScaledMandala();
+    });
+  }
+
   const exportPngBtn = document.getElementById('export-png-btn');
   if (exportPngBtn) {
     exportPngBtn.addEventListener('click', exportToPNG);
@@ -2714,7 +2857,7 @@ async function exportToPNG() {
           const styleStr = iEl.getAttribute('style') || '';
           const colorMatch = styleStr.match(/color:\s*([^;]+)/);
           const fontSizeMatch = styleStr.match(/font-size:\s*([\d.]+)px/);
-          
+
           // Determine color based on classes if inline doesn't exist (backdrop relies on classes sometimes, though we set it inline)
           let color = colorMatch ? colorMatch[1].trim() : '#ffffff';
           if (classes.includes('selected-backdrop')) color = '#fbbf24';
@@ -2865,7 +3008,7 @@ function setupMishapRoller() {
   if (resetBtn) {
     resetBtn.addEventListener('click', () => {
       clearMandalaHighlights();
-      
+
       const resultsContainer = document.getElementById('mishap-results-container');
       const narrativeBox = document.getElementById('mishap-narrative');
       const gmGuideBox = document.getElementById('mishap-gm-guide');
@@ -2914,7 +3057,7 @@ function selectMishapIconFromCircle(schoolIdx, polarity) {
 
     selectionContainer.style.setProperty('--school-color-glow', 'rgba(255, 255, 255, 0.5)');
     selectionContainer.style.setProperty('--school-color', school.color);
-    
+
     selectionContainer.innerHTML = `
       <i class="gi ${iconClass}"></i>
       <div class="selection-text">
@@ -2972,7 +3115,7 @@ function highlightMandalaElements(schoolIdx, tierIdx, isEffect, polarity) {
     // 2. Highlight the outer number
     const numberText = document.querySelector(`.outer-number-${schoolIdx}`);
     if (numberText) numberText.classList.add('highlighted');
-    
+
     // 3. Highlight the specific Polarity Icon(s)
     document.querySelectorAll(`.outer-icon-${schoolIdx}`).forEach(el => {
       const groupPol = el.getAttribute('data-polarity');
@@ -3025,13 +3168,13 @@ function rollMishap() {
   };
 
   const getInvertedPolarity = (pol) => pol === 'positive' ? 'negative' : 'positive';
-  
+
   const formatSchool = (idx, pol) => {
     const node = appState.magicNodes[idx];
     const signText = pol === 'positive' ? '+' : '−';
     return `<span style="color: ${node.color}; font-weight: bold;">${node.label} (${signText})</span>`;
   };
-  
+
   const getSchoolFlavor = (idx, pol) => {
     if (idx === 0) { // Thermal
       return pol === 'positive' ? 'kinetic ignition and flash-fire heat' : 'kinetic absolute zero and freezing cold';
@@ -3136,7 +3279,7 @@ function rollMishap() {
     while (d3 === d1) {
       // Exploded! Show it in the dice history
       diceList.push({ label: 'Resonance', value: d3, exploded: true });
-      
+
       if (currentTier < 5) {
         currentTier++;
         chaosLog += ` &rarr; 💥 Resonance! Escalated to T${currentTier}. Re-rolling`;
@@ -3164,7 +3307,7 @@ function rollMishap() {
 
     narrativeHtml += `<p style="margin-top: 0.6rem;">Effect: <strong>${nodeA.type}: ${nodeA.modifier}</strong> + <strong>${nodeB.type}: ${nodeB.modifier}</strong></p>`;
     narrativeHtml += `<p><em>(Roll ${d3}): Chaos Die (${chaosLog.replace(/&rarr;/g, '→')})</em></p>`;
-    
+
     let baseDcVal = 9 + finalTierClamp * 2;
     if (baseDc.startsWith("DC")) {
       baseDcVal = parseInt(baseDc.replace("DC", ""), 10);
@@ -3256,10 +3399,10 @@ function rollMishap() {
       rollTypeStr = "Cast school (same) + Random school (inverted)";
       resultSchoolIdx = castSchoolIdx;
       resultPolarity = castPolarity;
-      
+
       secondarySchoolIdx = Math.floor(Math.random() * 8);
       secondaryPolarity = getInvertedPolarity(castPolarity);
-      
+
       // Roll random secondary school die and push to diceList
       diceList.push({ label: 'Random', value: secondarySchoolIdx + 1, exploded: false });
     }
@@ -3306,7 +3449,7 @@ function rollMishap() {
         <li><strong>Secondary Save:</strong> Targets also make a <strong>${getSuggestedSave(secondarySchoolIdx)} Save</strong> (${dcStr}).</li>
       `;
     }
-    
+
     if (diceStr !== '—') {
       let dmgTypes = getDamageType(resultSchoolIdx, resultPolarity);
       if (secondarySchoolIdx !== null) {
@@ -3353,23 +3496,23 @@ function rollMishap() {
     diceList.forEach(die => {
       const container = document.createElement('div');
       container.className = 'mishap-die-container die-rolled';
-      
+
       const label = document.createElement('span');
       label.className = 'die-label';
       label.textContent = die.label;
       container.appendChild(label);
-      
+
       const dieEl = document.createElement('div');
       dieEl.className = 'mishap-die' + (die.exploded ? ' exploded' : '');
-      
+
       const val = document.createElement('span');
       val.className = 'die-val';
       val.textContent = die.value;
-      
+
       dieEl.appendChild(val);
       container.appendChild(dieEl);
       diceBox.appendChild(container);
-      
+
       // Trigger reflow to play animation on insertion
       void dieEl.offsetWidth;
     });
