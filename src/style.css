@@ -26,6 +26,7 @@ header {
   background-color: var(--panel-bg);
   border-bottom: 1px solid var(--border-color);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 200;
   transition: margin-top 0.4s cubic-bezier(0.16, 1, 0.3, 1),
               visibility 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -166,12 +167,20 @@ h1 {
   aspect-ratio: 1;
   margin: 0 auto;
   position: relative;
+  pointer-events: none;
 }
 
 svg {
   width: 100%;
   height: 100%;
   filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.5));
+  pointer-events: none;
+}
+
+svg .node-path,
+svg .outer-icon-group,
+svg .clickable {
+  pointer-events: auto;
 }
 
 .node-path {
@@ -1346,11 +1355,9 @@ details.mishap-gm-details.axis-fracture .gm-fiction-prompt {
 }
 
 /* --- Spin Animations --- */
-.animating-ring .spin-ccw-group {
-  transform-origin: 2600px 2600px;
-}
-
-.animating-ring .spin-cw-group {
+.spin-ccw-group,
+.spin-cw-group,
+.spin-pills-group {
   transform-origin: 2600px 2600px;
 }
 

@@ -28,11 +28,12 @@ let appState = {
   animationSpeed: 5,
   animationDuration: 2,
   momentumCurve: 5,
-  staticPills: true,
-  alignSchoolToTop: false,
-  alignEffectToTop: false,
-  showOuterCenterNumbers: true,
-  showInlineNumbers: false,
+  staticPills: false,
+  alignSchoolToTop: true,
+  alignEffectToTop: true,
+  showOuterCenterNumbers: false,
+  showInlineNumbers: true,
+  clockYOffset: -5,
   magicNodes: [
     { id: 'm0', label: 'Thermal', icon: 'gi-flame-spin', negativeIcon: 'gi-snowflake-1', color: '#ff4500', opposite: 'Hydro', slider: 'Injecting kinetic heat (ignition) ↔ siphoning it (absolute zero).' },
     { id: 'm1', label: 'Aero', icon: 'gi-tornado', negativeIcon: 'gi-wind-hole', color: '#87ceeb', opposite: 'Geo', slider: 'High pressure and gales ↔ suffocating vacuums.' },
@@ -527,7 +528,7 @@ function renderScaledMandala() {
           const layout = getOptimalModifierLayout(modText, textRadius, textSpan);
           const isBottomHalf = (textCenterAngle > 90 && textCenterAngle < 270);
 
-          const drawCurvedText = (textContent, radiusOffset, fontSize) => {
+          const drawCurvedText = (textContent, radiusOffset, fontSize, lineIndex = 1, totalLines = 1) => {
             const currentRadius = textRadius + radiusOffset;
             let pathData;
             if (isBottomHalf) {
@@ -549,6 +550,16 @@ function renderScaledMandala() {
             const pathId = `curved-path-${tIndex}-${i}-${radiusOffset}`;
             const defsPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
             defsPath.setAttribute("id", pathId);
+            defsPath.setAttribute("class", "inner-curved-path");
+            defsPath.setAttribute("data-cx", cx);
+            defsPath.setAttribute("data-cy", cy);
+            defsPath.setAttribute("data-radius", currentRadius);
+            defsPath.setAttribute("data-base-radius", textRadius);
+            defsPath.setAttribute("data-line-index", lineIndex);
+            defsPath.setAttribute("data-total-lines", totalLines);
+            defsPath.setAttribute("data-start-angle", textStartAngle);
+            defsPath.setAttribute("data-end-angle", textEndAngle);
+            defsPath.setAttribute("data-school-idx", i);
             defsPath.setAttribute("d", pathData);
             defsPath.setAttribute("fill", "none");
             svg.appendChild(defsPath);
@@ -577,16 +588,16 @@ function renderScaledMandala() {
             const offset1 = isBottomHalf ? -48 : 48;
             const offset2 = 0;
             const offset3 = isBottomHalf ? 48 : -48;
-            drawCurvedText(layout.row1, offset1, layout.fontSize);
-            drawCurvedText(layout.row2, offset2, layout.fontSize);
-            drawCurvedText(layout.row3, offset3, layout.fontSize);
+            drawCurvedText(layout.row1, offset1, layout.fontSize, 1, 3);
+            drawCurvedText(layout.row2, offset2, layout.fontSize, 2, 3);
+            drawCurvedText(layout.row3, offset3, layout.fontSize, 3, 3);
           } else if (layout.isDouble) {
             const offset1 = isBottomHalf ? -28 : 28;
             const offset2 = isBottomHalf ? 28 : -28;
-            drawCurvedText(layout.row1, offset1, layout.fontSize);
-            drawCurvedText(layout.row2, offset2, layout.fontSize);
+            drawCurvedText(layout.row1, offset1, layout.fontSize, 1, 2);
+            drawCurvedText(layout.row2, offset2, layout.fontSize, 2, 2);
           } else {
-            drawCurvedText(layout.row1, 0, layout.fontSize);
+            drawCurvedText(layout.row1, 0, layout.fontSize, 1, 1);
           }
         } else {
           // Draw standard straight text (original code)
@@ -594,9 +605,10 @@ function renderScaledMandala() {
           const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
           text.setAttribute("x", textPos.x);
           text.setAttribute("y", textPos.y);
-          text.setAttribute("class", "scaled-text effect-name-text");
+          text.setAttribute("class", "scaled-text effect-name-text straight-effect-text");
           text.setAttribute("data-school-idx", i);
           text.setAttribute("data-tier-idx", tIndex);
+          text.setAttribute("data-text-center-angle", textCenterAngle);
           text.style.pointerEvents = "none";
 
           let rot = textCenterAngle;
@@ -1125,6 +1137,14 @@ function renderScaledMandala() {
 
         const defsPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
         defsPath.setAttribute("id", pathId);
+        defsPath.setAttribute("class", isSchool ? "outer-school-path" : "outer-effect-path");
+        defsPath.setAttribute("data-cx", cx);
+        defsPath.setAttribute("data-cy", cy);
+        defsPath.setAttribute("data-radius", radius);
+        defsPath.setAttribute("data-center-angle", centerAngle);
+        defsPath.setAttribute("data-half-span", halfSpan);
+        defsPath.setAttribute("data-school-idx", i);
+        defsPath.setAttribute("data-is-school", isSchool ? "true" : "false");
         defsPath.setAttribute("d", pathData);
         defsPath.setAttribute("fill", "none");
         svg.appendChild(defsPath);
@@ -1150,7 +1170,7 @@ function renderScaledMandala() {
           tspanPrefix.setAttribute("fill", "#fbbf24");
           tspanPrefix.textContent = prefix;
           textPath.appendChild(tspanPrefix);
-          
+
           const tspanText = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
           tspanText.textContent = text;
           textPath.appendChild(tspanText);
@@ -1188,12 +1208,16 @@ function renderScaledMandala() {
       const schoolPathId = `outer-school-path-${i}`;
       // Add bottom/top label offset directly for perfect symmetry and adjustment
       const schoolRadius = isBottomHalf ? (centerRadius + labelSep + labelOffsetBottom) : (centerRadius + labelSep + labelOffsetTop);
-      
+
       let schoolPrefix = "";
-      if (appState.showInlineNumbers) schoolPrefix += (i + 1) + " ";
+      if (appState.showInlineNumbers) {
+        schoolPrefix += (i + 1) + "\u00A0\u00A0\u00A0\u00A0";
+      }
       if (appState.showInlineDice) {
         const dText = appState.scaledTiers?.[0]?.nodes?.[i]?.dice || '';
-        if (dText) schoolPrefix += "[" + dText + "] ";
+        if (dText) {
+          schoolPrefix += "[" + dText + "]\u00A0\u00A0\u00A0\u00A0";
+        }
       }
       drawCenteredText(school.label, schoolRadius, angle, schoolPathId, true, schoolPrefix);
 
@@ -1201,7 +1225,12 @@ function renderScaledMandala() {
       const effectPathId = `outer-effect-path-${i}`;
       // Add bottom/top label offset directly for perfect symmetry and adjustment
       const effectRadius = isBottomHalf ? (centerRadius - labelSep + labelOffsetBottom) : (centerRadius - labelSep + labelOffsetTop);
-      drawCenteredText(effectName, effectRadius, angle, effectPathId, false);
+
+      let effectPrefix = "";
+      if (appState.showInlineNumbers) {
+        effectPrefix += (i + 1) + "\u00A0\u00A0\u00A0\u00A0";
+      }
+      drawCenteredText(effectName, effectRadius, angle, effectPathId, false, effectPrefix);
 
       // 4. Positive and Negative Icons (aligned horizontally along the same arc, swapped positions)
       const iconRadius = centerRadius + (isBottomHalf ? bottomIconShift : 0);
@@ -1472,6 +1501,9 @@ function renderScaledMandala() {
       }
 
       const hudGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      hudGroup.setAttribute("class", "hud-group");
+      hudGroup.setAttribute("data-angle", angle);
+      hudGroup.setAttribute("data-school-idx", i);
       hudGroup.setAttribute("transform", `translate(${hudPos.x}, ${hudPos.y}) rotate(${hudRot})`);
 
       // Glassmorphic Capsule Background
@@ -1507,7 +1539,16 @@ function renderScaledMandala() {
       effectText.setAttribute("font-size", "45px");
       effectText.setAttribute("font-weight", "normal");
       effectText.setAttribute("filter", "url(#text-shadow-filter)");
-      effectText.textContent = effectName;
+      if (appState.showInlineNumbers) {
+        const tspanNum = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+        tspanNum.setAttribute("fill", "#fbbf24");
+        tspanNum.setAttribute("font-weight", "bold");
+        tspanNum.textContent = (i + 1) + "\u00A0\u00A0\u00A0\u00A0";
+        effectText.appendChild(tspanNum);
+      }
+      const tspanEffectText = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+      tspanEffectText.textContent = effectName;
+      effectText.appendChild(tspanEffectText);
       hudGroup.appendChild(effectText);
 
       // Left Transition Arrow (pointing left)
@@ -1560,7 +1601,16 @@ function renderScaledMandala() {
       schoolText.setAttribute("font-size", "52px");
       schoolText.setAttribute("font-weight", "bold");
       schoolText.setAttribute("filter", "url(#text-shadow-filter)");
-      schoolText.textContent = school.label;
+      if (appState.showInlineNumbers) {
+        const tspanNum = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+        tspanNum.setAttribute("fill", "#fbbf24");
+        tspanNum.setAttribute("font-weight", "bold");
+        tspanNum.textContent = (i + 1) + "\u00A0\u00A0\u00A0\u00A0";
+        schoolText.appendChild(tspanNum);
+      }
+      const tspanSchoolText = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+      tspanSchoolText.textContent = school.label;
+      schoolText.appendChild(tspanSchoolText);
       hudGroup.appendChild(schoolText);
 
       // Swapped: Positive Icon on Right
@@ -1647,7 +1697,7 @@ function renderScaledMandala() {
       leftAngle = isBottomHalf ? (angle + offsetVal) : (angle - offsetVal);
       rightAngle = isBottomHalf ? (angle - offsetVal) : (angle + offsetVal);
 
-      const drawRadialRayText = (text, textAngle, isLeft) => {
+      const drawRadialRayText = (text, textAngle, isSchool) => {
         const baseDist = isBottomHalf ? outerDistBottom : outerDistTop;
         const textStartRadius = outerRadius + baseDist - 210;
         const pos = polarToCartesian(cx, cy, textStartRadius, textAngle);
@@ -1657,17 +1707,31 @@ function renderScaledMandala() {
         }
 
         const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        textEl.setAttribute("class", "scaled-text");
+        textEl.setAttribute("class", "scaled-text radial-ray-text");
+        textEl.setAttribute("data-text-angle", textAngle);
+        textEl.setAttribute("data-school-idx", i);
+        textEl.setAttribute("data-is-school", isSchool ? "true" : "false");
         textEl.setAttribute("x", pos.x);
         textEl.setAttribute("y", pos.y);
         textEl.setAttribute("font-size", "65px");
-        textEl.setAttribute("font-weight", isLeft ? "bold" : "normal");
-        textEl.setAttribute("fill", isLeft ? school.color : "#e2e8f0");
-        textEl.setAttribute("text-anchor", (textAngle > 90 && textAngle < 270) ? "end" : "start");
+        textEl.setAttribute("font-weight", isSchool ? "bold" : "normal");
         textEl.setAttribute("dominant-baseline", "middle");
         textEl.setAttribute("transform", `rotate(${actualRot}, ${pos.x}, ${pos.y})`);
         textEl.setAttribute("filter", "url(#text-shadow-filter)");
-        textEl.textContent = text;
+
+        if (appState.showInlineNumbers) {
+          const tspanNum = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+          tspanNum.setAttribute("fill", "#fbbf24");
+          tspanNum.setAttribute("font-weight", "bold");
+          tspanNum.textContent = (i + 1) + "\u00A0\u00A0\u00A0\u00A0";
+          textEl.appendChild(tspanNum);
+        }
+
+        const tspanText = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+        tspanText.setAttribute("fill", isSchool ? school.color : "#e2e8f0");
+        tspanText.textContent = text;
+        textEl.appendChild(tspanText);
+
         svg.appendChild(textEl);
       };
 
@@ -1687,6 +1751,9 @@ function renderScaledMandala() {
       }
 
       const runeGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      runeGroup.setAttribute("class", "rune-group");
+      runeGroup.setAttribute("data-angle", angle);
+      runeGroup.setAttribute("data-school-idx", i);
       runeGroup.setAttribute("transform", `translate(${centerPos.x}, ${centerPos.y}) rotate(${rot})`);
 
       // Let iconSeparation determine the coordinate multiplier (default 15 -> 165px center offset)
@@ -1776,13 +1843,20 @@ function renderScaledMandala() {
 
     // Static items stay in svg: defs, bg, center circle, center icon, dice/dc texts
     const staticPillsList = [];
+    const activePillsList = [];
     const childrenToMove = Array.from(svg.childNodes).filter(el => {
       const tagName = el.tagName ? el.tagName.toLowerCase() : '';
       const idName = el.getAttribute('id') || '';
       const className = el.getAttribute('class') || '';
       if (tagName === 'defs' || tagName === 'circle' || idName === 'center-hud-content' || className.includes('dice-dc-text')) return false;
-      if (appState.staticPills && (className.includes('mandala-overlay-box') || className.includes('overlay-text-dice') || className.includes('overlay-text-dc') || className.includes('overlay-text-tier') || className.includes('pill-'))) {
-        staticPillsList.push(el);
+
+      const isPill = className.includes('mandala-overlay-box') || className.includes('overlay-text-dice') || className.includes('overlay-text-dc') || className.includes('overlay-text-tier') || className.includes('pill-');
+      if (isPill) {
+        if (appState.staticPills) {
+          staticPillsList.push(el);
+        } else {
+          activePillsList.push(el);
+        }
         return false;
       }
       return true;
@@ -1811,6 +1885,13 @@ function renderScaledMandala() {
     svg.appendChild(spinCCWGroup);
     svg.appendChild(spinCWGroup);
 
+    const spinPillsGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    spinPillsGroup.setAttribute("class", "spin-pills-group");
+    const initialPills = mishapState.pillsAngle || 0;
+    spinPillsGroup.style.transform = `rotate(${initialPills}deg)`;
+    activePillsList.forEach(el => spinPillsGroup.appendChild(el));
+    svg.appendChild(spinPillsGroup);
+
     // Append static pills last to render on top
     if (appState.staticPills) {
       staticPillsList.forEach(el => svg.appendChild(el));
@@ -1819,31 +1900,208 @@ function renderScaledMandala() {
     // Animation frame loop to fix text flipping during rotation
     const updatePaths = () => {
       if (!svg.isConnected) return; // stop loop if SVG is removed
-      if (appState.animationMode) {
-        const matrixCCW = new DOMMatrix(getComputedStyle(spinCCWGroup).transform);
-        let angleCCW = Math.atan2(matrixCCW.b, matrixCCW.a) * (180 / Math.PI);
-        const matrixCW = new DOMMatrix(getComputedStyle(spinCWGroup).transform);
-        let angleCW = Math.atan2(matrixCW.b, matrixCW.a) * (180 / Math.PI);
 
-        document.querySelectorAll('.outer-number').forEach(textEl => {
-          const sIdx = parseInt(textEl.getAttribute('data-school-idx'), 10);
-          const baseAngle = sIdx * 45 + 22.5;
-          let visualAngle = (baseAngle + angleCCW) % 360;
-          if (visualAngle < 0) visualAngle += 360;
-          const isVisuallyBottomHalf = visualAngle > 90 && visualAngle < 270;
-          const cxNum = parseFloat(textEl.getAttribute('x'));
-          const cyNum = parseFloat(textEl.getAttribute('y'));
-          const rotOffset = isVisuallyBottomHalf ? 180 : 0;
-          textEl.setAttribute("transform", `rotate(${baseAngle + rotOffset}, ${cxNum}, ${cyNum})`);
-        });
+      let angleCCW = 0;
+      let angleCW = 0;
 
+      const transformCCW = getComputedStyle(spinCCWGroup).transform;
+      if (!transformCCW || transformCCW === "none") {
+        angleCCW = -(mishapState.ccwAngle || 0);
+      } else {
+        const matrixCCW = new DOMMatrix(transformCCW);
+        angleCCW = Math.atan2(matrixCCW.b, matrixCCW.a) * (180 / Math.PI);
+      }
+
+      const transformCW = getComputedStyle(spinCWGroup).transform;
+      if (!transformCW || transformCW === "none") {
+        angleCW = mishapState.cwAngle || 0;
+      } else {
+        const matrixCW = new DOMMatrix(transformCW);
+        angleCW = Math.atan2(matrixCW.b, matrixCW.a) * (180 / Math.PI);
+      }
+
+      // 1. Update outer numbers
+      document.querySelectorAll('.outer-number').forEach(textEl => {
+        const sIdx = parseInt(textEl.getAttribute('data-school-idx'), 10);
+        const baseAngle = sIdx * 45 + 22.5;
+        let visualAngle = (baseAngle + angleCCW) % 360;
+        if (visualAngle < 0) visualAngle += 360;
+        const isVisuallyBottomHalf = visualAngle > 90 && visualAngle < 270;
+        const cxNum = parseFloat(textEl.getAttribute('x'));
+        const cyNum = parseFloat(textEl.getAttribute('y'));
+        const rotOffset = isVisuallyBottomHalf ? 180 : 0;
+        textEl.setAttribute("transform", `rotate(${baseAngle + rotOffset}, ${cxNum}, ${cyNum})`);
+      });
+
+      // 2. Update straight effect texts
+      document.querySelectorAll('.straight-effect-text').forEach(textEl => {
+        const textCenterAngle = parseFloat(textEl.getAttribute('data-text-center-angle'));
+        let visualAngle = (textCenterAngle + angleCW) % 360;
+        if (visualAngle < 0) visualAngle += 360;
+        const isVisuallyBottomHalf = visualAngle > 90 && visualAngle < 270;
+        const cxNum = parseFloat(textEl.getAttribute('x'));
+        const cyNum = parseFloat(textEl.getAttribute('y'));
+        const rotOffset = isVisuallyBottomHalf ? 180 : 0;
+        textEl.setAttribute("transform", `rotate(${textCenterAngle + rotOffset}, ${cxNum}, ${cyNum})`);
+      });
+
+      // 3. Update inner curved paths
+      const angleStep = 360 / Math.max(appState.magicNodes.length, 1);
+      document.querySelectorAll('.inner-curved-path').forEach(pathEl => {
+        const cxVal = parseFloat(pathEl.getAttribute('data-cx'));
+        const cyVal = parseFloat(pathEl.getAttribute('data-cy'));
+        const startAng = parseFloat(pathEl.getAttribute('data-start-angle'));
+        const endAng = parseFloat(pathEl.getAttribute('data-end-angle'));
+        const sIdx = parseInt(pathEl.getAttribute('data-school-idx'), 10);
+
+        const centerAngle = sIdx * angleStep + angleStep / 2;
+        let visualAngle = (centerAngle + angleCW) % 360;
+        if (visualAngle < 0) visualAngle += 360;
+        const isVisuallyBottomHalf = visualAngle > 90 && visualAngle < 270;
+
+        // Calculate dynamic radius for line wraps
+        const baseRadiusAttr = pathEl.getAttribute('data-base-radius');
+        const lineIndexAttr = pathEl.getAttribute('data-line-index');
+        const totalLinesAttr = pathEl.getAttribute('data-total-lines');
+
+        let radius = parseFloat(pathEl.getAttribute('data-radius'));
+        if (baseRadiusAttr) {
+          const baseRadius = parseFloat(baseRadiusAttr);
+          const lineIndex = parseInt(lineIndexAttr || "1", 10);
+          const totalLines = parseInt(totalLinesAttr || "1", 10);
+          if (totalLines === 2) {
+            radius = isVisuallyBottomHalf ? (baseRadius - 28) : (baseRadius + 28);
+          } else if (totalLines === 3) {
+            if (lineIndex === 1) {
+              radius = isVisuallyBottomHalf ? (baseRadius - 48) : (baseRadius + 48);
+            } else if (lineIndex === 2) {
+              radius = baseRadius;
+            } else if (lineIndex === 3) {
+              radius = isVisuallyBottomHalf ? (baseRadius + 48) : (baseRadius - 48);
+            }
+          }
+          pathEl.setAttribute('data-radius', radius);
+        }
+
+        let pathData;
+        if (isVisuallyBottomHalf) {
+          const pathStart = polarToCartesian(cxVal, cyVal, radius, endAng);
+          const pathEnd = polarToCartesian(cxVal, cyVal, radius, startAng);
+          pathData = [
+            "M", pathStart.x, pathStart.y,
+            "A", radius, radius, 0, 0, 0, pathEnd.x, pathEnd.y
+          ].join(" ");
+        } else {
+          const pathStart = polarToCartesian(cxVal, cyVal, radius, startAng);
+          const pathEnd = polarToCartesian(cxVal, cyVal, radius, endAng);
+          pathData = [
+            "M", pathStart.x, pathStart.y,
+            "A", radius, radius, 0, 0, 1, pathEnd.x, pathEnd.y
+          ].join(" ");
+        }
+        pathEl.setAttribute("d", pathData);
+      });
+
+      // 4. Update outer curved paths (schools & effects)
+      document.querySelectorAll('.outer-school-path, .outer-effect-path').forEach(pathEl => {
+        const cxVal = parseFloat(pathEl.getAttribute('data-cx'));
+        const cyVal = parseFloat(pathEl.getAttribute('data-cy'));
+        const radius = parseFloat(pathEl.getAttribute('data-radius'));
+        const centerAngle = parseFloat(pathEl.getAttribute('data-center-angle'));
+        const halfSpan = parseFloat(pathEl.getAttribute('data-half-span'));
+        const isSchool = pathEl.getAttribute('data-is-school') === 'true';
+
+        let visualAngle;
+        if (isSchool) {
+          visualAngle = (centerAngle + angleCCW) % 360;
+        } else {
+          visualAngle = (centerAngle + angleCW) % 360;
+        }
+        if (visualAngle < 0) visualAngle += 360;
+        const isVisuallyBottomHalf = visualAngle > 90 && visualAngle < 270;
+
+        let pathData;
+        if (isVisuallyBottomHalf) {
+          const pathStart = polarToCartesian(cxVal, cyVal, radius, centerAngle + halfSpan);
+          const pathEnd = polarToCartesian(cxVal, cyVal, radius, centerAngle - halfSpan);
+          pathData = [
+            "M", pathStart.x, pathStart.y,
+            "A", radius, radius, 0, 0, 0, pathEnd.x, pathEnd.y
+          ].join(" ");
+        } else {
+          const pathStart = polarToCartesian(cxVal, cyVal, radius, centerAngle - halfSpan);
+          const pathEnd = polarToCartesian(cxVal, cyVal, radius, centerAngle + halfSpan);
+          pathData = [
+            "M", pathStart.x, pathStart.y,
+            "A", radius, radius, 0, 0, 1, pathEnd.x, pathEnd.y
+          ].join(" ");
+        }
+        pathEl.setAttribute("d", pathData);
+      });
+
+      // 5. Update radial ray texts
+      document.querySelectorAll('.radial-ray-text').forEach(textEl => {
+        const textAngle = parseFloat(textEl.getAttribute('data-text-angle'));
+        const isSchool = textEl.getAttribute('data-is-school') === 'true';
+        let visualAngle;
+        if (isSchool) {
+          visualAngle = (textAngle + angleCCW) % 360;
+        } else {
+          visualAngle = (textAngle + angleCW) % 360;
+        }
+        if (visualAngle < 0) visualAngle += 360;
+        const isVisuallyBottomHalf = visualAngle > 90 && visualAngle < 270;
+        const cxNum = parseFloat(textEl.getAttribute('x'));
+        const cyNum = parseFloat(textEl.getAttribute('y'));
+        let actualRot = textAngle + 90 + (isVisuallyBottomHalf ? 180 : 0);
+        textEl.setAttribute("transform", `rotate(${actualRot}, ${cxNum}, ${cyNum})`);
+      });
+
+      // 6. Update hud groups
+      document.querySelectorAll('.hud-group').forEach(groupEl => {
+        const angleVal = parseFloat(groupEl.getAttribute('data-angle'));
+        let visualAngle = (angleVal + angleCCW) % 360;
+        if (visualAngle < 0) visualAngle += 360;
+        const isVisuallyBottomHalf = visualAngle > 90 && visualAngle < 270;
+
+        const outerDistTop = Number(appState.outerDistTop ?? 320);
+        const outerDistBottom = Number(appState.outerDistBottom ?? 320);
+        const hudRadius = outerRadius + (isVisuallyBottomHalf ? outerDistBottom : outerDistTop) + 40;
+        const hudPos = polarToCartesian(cx, cy, hudRadius, angleVal);
+        let hudRot = angleVal + (isVisuallyBottomHalf ? 180 : 0);
+
+        groupEl.setAttribute("transform", `translate(${hudPos.x}, ${hudPos.y}) rotate(${hudRot})`);
+      });
+
+      // 7. Update rune groups
+      document.querySelectorAll('.rune-group').forEach(groupEl => {
+        const angleVal = parseFloat(groupEl.getAttribute('data-angle'));
+        let visualAngle = (angleVal + angleCCW) % 360;
+        if (visualAngle < 0) visualAngle += 360;
+        const isVisuallyBottomHalf = visualAngle > 90 && visualAngle < 270;
+
+        const outerDistTop = Number(appState.outerDistTop ?? 320);
+        const outerDistBottom = Number(appState.outerDistBottom ?? 320);
+        const centerRadius = outerRadius + (isVisuallyBottomHalf ? outerDistBottom : outerDistTop);
+        const centerPos = polarToCartesian(cx, cy, centerRadius, angleVal);
+        let rot = angleVal + (isVisuallyBottomHalf ? 180 : 0);
+
+        groupEl.setAttribute("transform", `translate(${centerPos.x}, ${centerPos.y}) rotate(${rot})`);
+      });
+
+      if (appState.animationMode && mishapState.isRolling) {
         requestAnimationFrame(updatePaths);
       }
     };
-    requestAnimationFrame(updatePaths);
+
+    // Expose updatePaths on mishapState
+    mishapState.updatePaths = updatePaths;
   }
 
   container.appendChild(svg);
+  if (appState.animationMode && mishapState.updatePaths) {
+    mishapState.updatePaths();
+  }
 }
 
 
@@ -2213,7 +2471,27 @@ function syncOuterOffsetSlider() {
   }
 }
 
+function applyClockYOffset() {
+  const clockPanel = document.querySelector('.clock-panel');
+  if (clockPanel) {
+    if (window.innerWidth > 1350) {
+      clockPanel.style.marginTop = (appState.clockYOffset ?? -1.5) + "rem";
+    } else {
+      clockPanel.style.marginTop = "";
+    }
+  }
+}
+
 function syncBottomSliders() {
+  const clockYOffsetSlider = document.getElementById('clock-y-offset-slider');
+  const clockYOffsetVal = document.getElementById('clock-y-offset-val');
+  if (clockYOffsetSlider && clockYOffsetVal) {
+    const val = appState.clockYOffset ?? -1.5;
+    clockYOffsetSlider.value = val;
+    clockYOffsetVal.textContent = val + "rem";
+  }
+  applyClockYOffset();
+
   const labelOffsetTopSlider = document.getElementById('label-offset-top-slider');
   const labelOffsetTopVal = document.getElementById('label-offset-top-val');
   const labelOffsetBottomSlider = document.getElementById('label-offset-bottom-slider');
@@ -2646,6 +2924,17 @@ async function init() {
     });
   }
 
+  // Set up Clock Y Offset slider listener
+  const clockYOffsetSlider = document.getElementById('clock-y-offset-slider');
+  const clockYOffsetVal = document.getElementById('clock-y-offset-val');
+  if (clockYOffsetSlider && clockYOffsetVal) {
+    clockYOffsetSlider.addEventListener('input', (e) => {
+      appState.clockYOffset = parseFloat(e.target.value);
+      clockYOffsetVal.textContent = appState.clockYOffset + "rem";
+      applyClockYOffset();
+    });
+  }
+
   // Set up top/bottom label offset sliders listeners
   const labelOffsetTopSlider = document.getElementById('label-offset-top-slider');
   const labelOffsetTopVal = document.getElementById('label-offset-top-val');
@@ -2913,6 +3202,7 @@ async function init() {
   if (header && headerToggleBtn) {
     const updateHeaderHeight = () => {
       document.documentElement.style.setProperty('--header-height', `${header.offsetHeight}px`);
+      applyClockYOffset();
     };
 
     // Initialize height measurement
@@ -3177,7 +3467,8 @@ let mishapState = {
   displayedTier: 1,
   isRolling: false,
   cwAngle: 0,
-  ccwAngle: 0
+  ccwAngle: 0,
+  pillsAngle: 0
 };
 
 function setupMishapRoller() {
@@ -3215,6 +3506,7 @@ function setupMishapRoller() {
       mishapState.displayedTier = mishapState.selectedTier;
       mishapState.cwAngle = 0;
       mishapState.ccwAngle = 0;
+      mishapState.pillsAngle = 0;
       renderScaledMandala();
     });
   }
@@ -3281,8 +3573,15 @@ function clearMandalaHighlights() {
 
 function highlightMandalaElements(schoolIdx, tierIdx, isEffect, polarity) {
   if (isEffect) {
+    // Calculate which school wedge this effect is visually on top of
+    const cw = mishapState.cwAngle || 0;
+    const ccw = mishapState.ccwAngle || 0;
+    const totalRotationOffset = (cw + ccw) / 45;
+    let visualSchoolIdx = (schoolIdx + Math.round(totalRotationOffset)) % 8;
+    if (visualSchoolIdx < 0) visualSchoolIdx += 8;
+
     // 1. Highlight the specific tier slice for the Effect (Border only, no color change)
-    const slice = document.getElementById(`mandala-slice-${tierIdx}-${schoolIdx}`);
+    const slice = document.getElementById(`mandala-slice-${tierIdx}-${visualSchoolIdx}`);
     if (slice) slice.classList.add('effect-result-border');
 
     // 2. Highlight the Effect Label
@@ -3327,6 +3626,8 @@ function rollMishap() {
 
   if (mishapState.isRolling) return;
 
+  mishapState.isRolling = true;
+
   // Default displayed tier to the casting tier
   mishapState.displayedTier = mishapState.selectedTier;
 
@@ -3350,7 +3651,6 @@ function rollMishap() {
   const resetBtn = document.getElementById('btn-mishap-reset');
 
   if (appState.animationMode) {
-    mishapState.isRolling = true;
     if (rollBtn) {
       rollBtn.disabled = true;
       rollBtn.innerHTML = `<i class="gi gi-dice-eight-faces" style="font-size: 1.1rem; line-height: 1;"></i> Rolling...`;
@@ -3360,18 +3660,58 @@ function rollMishap() {
     const svg = container ? container.querySelector('svg') : null;
     const spinCWGroup = svg ? svg.querySelector('.spin-cw-group') : null;
     const spinCCWGroup = svg ? svg.querySelector('.spin-ccw-group') : null;
+    const spinPillsGroup = svg ? svg.querySelector('.spin-pills-group') : null;
 
     const d1 = Math.floor(Math.random() * 8) + 1; // Mishap School
     const d2 = Math.floor(Math.random() * 8) + 1; // Mishap Effect
     mishapState.d1 = d1;
     mishapState.d2 = d2;
 
+    let d3 = null;
+    if (d1 === d2) {
+      // Pre-roll Chaos Die d3 (including resonance explosions)
+      let currentTier = mishapState.selectedTier + 1;
+      let effectDiceBonus = 0;
+      let effectDcBonus = 0;
+      d3 = Math.floor(Math.random() * 8) + 1;
+      let chaosLog = `Rolled ${d3}`;
+
+      const explodedDice = [];
+      while (d3 === d1) {
+        explodedDice.push(d3);
+        if (currentTier < 5) {
+          currentTier++;
+          chaosLog += ` &rarr; 💥 Resonance! Escalated to T${currentTier}. Re-rolling`;
+        } else {
+          effectDiceBonus++;
+          effectDcBonus += 2;
+          chaosLog += ` &rarr; 💥 Overload! DC+2, Dice+1. Re-rolling`;
+        }
+        d3 = Math.floor(Math.random() * 8) + 1;
+        chaosLog += ` [New: ${d3}]`;
+      }
+      mishapState.d3 = d3;
+      mishapState.preExplodedDice = explodedDice;
+      mishapState.preCurrentTier = currentTier;
+      mishapState.preEffectDiceBonus = effectDiceBonus;
+      mishapState.preEffectDcBonus = effectDcBonus;
+      mishapState.preChaosLog = chaosLog;
+    } else {
+      mishapState.d3 = null;
+      mishapState.preExplodedDice = null;
+      mishapState.preCurrentTier = null;
+      mishapState.preEffectDiceBonus = null;
+      mishapState.preEffectDcBonus = null;
+      mishapState.preChaosLog = null;
+    }
+
     if (spinCWGroup && spinCCWGroup) {
       // Calculate target rotation based on speed
       const rotations = 2 + ((appState.animationSpeed || 5) * 0.4);
       let cwAdd = 360 * rotations;
       let ccwAdd = 360 * rotations;
-      
+      let pillsAdd = -360 * rotations;
+
       if (appState.alignSchoolToTop) {
         let alignSchoolIdx = mishapState.selectedSchoolIdx;
         if (d1 === d2) {
@@ -3386,16 +3726,30 @@ function rollMishap() {
         const diff = desiredCCWRemainder - currentCCWRemainder;
         ccwAdd += (diff < 0 ? diff + 360 : diff);
       }
-      
-      if (appState.alignEffectToTop) {
-        const desiredCWRemainder = (360 - (d2 - 1) * 45) % 360;
+
+      if (d1 === d2) {
+        // Axis Fracture: Align the actual activated Chaos Effect (d3 - 1) on top of the active school (d1 - 1)
+        // Formula: visualEffectAngle = visualSchoolAngle
+        // => (d3 - 1) * 45 + 22.5 + cwAngle = (d1 - 1) * 45 + 22.5 - ccwAngle
+        // => cwAngle = -ccwAngle + (d1 - d3) * 45 (mod 360)
+        const finalCCW = (mishapState.ccwAngle || 0) + ccwAdd;
+        const targetCWAngle = -finalCCW + (d1 - d3) * 45;
+        const desiredCWRemainder = ((targetCWAngle % 360) + 360) % 360;
         const currentCWRemainder = mishapState.cwAngle ? mishapState.cwAngle % 360 : 0;
         const diff = desiredCWRemainder - currentCWRemainder;
         cwAdd += (diff < 0 ? diff + 360 : diff);
+      } else {
+        if (appState.alignEffectToTop) {
+          const desiredCWRemainder = (360 - (d2 - 1) * 45) % 360;
+          const currentCWRemainder = mishapState.cwAngle ? mishapState.cwAngle % 360 : 0;
+          const diff = desiredCWRemainder - currentCWRemainder;
+          cwAdd += (diff < 0 ? diff + 360 : diff);
+        }
       }
 
       mishapState.cwAngle = (mishapState.cwAngle || 0) + cwAdd;
       mishapState.ccwAngle = (mishapState.ccwAngle || 0) + ccwAdd;
+      mishapState.pillsAngle = (mishapState.pillsAngle || 0) + pillsAdd;
 
       const duration = appState.animationDuration || 2;
       const curve = appState.momentumCurve || 5;
@@ -3404,14 +3758,21 @@ function rollMishap() {
       // Force reflow
       void spinCWGroup.offsetHeight;
       void spinCCWGroup.offsetHeight;
+      if (spinPillsGroup) void spinPillsGroup.offsetHeight;
 
       // Set transitions
       spinCWGroup.style.transition = `transform ${duration}s ${easing}`;
       spinCCWGroup.style.transition = `transform ${duration}s ${easing}`;
+      if (spinPillsGroup) {
+        spinPillsGroup.style.transition = `transform ${duration}s ${easing}`;
+      }
 
       // Set target rotations
       spinCWGroup.style.transform = `rotate(${mishapState.cwAngle}deg)`;
       spinCCWGroup.style.transform = `rotate(${-mishapState.ccwAngle}deg)`;
+      if (spinPillsGroup) {
+        spinPillsGroup.style.transform = `rotate(${mishapState.pillsAngle}deg)`;
+      }
     }
 
     setTimeout(() => {
@@ -3425,6 +3786,7 @@ function rollMishap() {
       executeMishapRoll();
     }, (appState.animationDuration || 2) * 1000);
   } else {
+    mishapState.isRolling = false;
     executeMishapRoll();
   }
 }
@@ -3564,25 +3926,46 @@ function executeMishapRoll() {
     narrativeHtml += `<p>School: ${formatSchool(rolledSliceIdx, 'positive')} + ${formatSchool(rolledSliceOppIdx, 'negative')}</p>`;
     narrativeHtml += `<p><em>(Roll ${d1}): Axis Fracture (Doubles)</em></p>`;
 
-    let d3 = Math.floor(Math.random() * 8) + 1;
+    let d3;
     let effectDiceBonus = 0;
     let effectDcBonus = 0;
-    let chaosLog = `Rolled ${d3}`;
+    let chaosLog = '';
 
-    while (d3 === d1) {
-      // Exploded! Show it in the dice history
-      diceList.push({ label: 'Resonance', value: d3, exploded: true });
+    if (mishapState.d3 !== undefined && mishapState.d3 !== null) {
+      d3 = mishapState.d3;
+      effectDiceBonus = mishapState.preEffectDiceBonus || 0;
+      effectDcBonus = mishapState.preEffectDcBonus || 0;
+      chaosLog = mishapState.preChaosLog || `Rolled ${d3}`;
+      currentTier = mishapState.preCurrentTier || currentTier;
 
-      if (currentTier < 5) {
-        currentTier++;
-        chaosLog += ` &rarr; 💥 Resonance! Escalated to T${currentTier}. Re-rolling`;
-      } else {
-        effectDiceBonus++;
-        effectDcBonus += 2;
-        chaosLog += ` &rarr; 💥 Overload! DC+2, Dice+1. Re-rolling`;
+      if (mishapState.preExplodedDice) {
+        mishapState.preExplodedDice.forEach(val => {
+          diceList.push({ label: 'Resonance', value: val, exploded: true });
+        });
       }
+
+      mishapState.d3 = null;
+      mishapState.preExplodedDice = null;
+      mishapState.preCurrentTier = null;
+      mishapState.preEffectDiceBonus = null;
+      mishapState.preEffectDcBonus = null;
+      mishapState.preChaosLog = null;
+    } else {
       d3 = Math.floor(Math.random() * 8) + 1;
-      chaosLog += ` [New: ${d3}]`;
+      chaosLog = `Rolled ${d3}`;
+      while (d3 === d1) {
+        diceList.push({ label: 'Resonance', value: d3, exploded: true });
+        if (currentTier < 5) {
+          currentTier++;
+          chaosLog += ` &rarr; 💥 Resonance! Escalated to T${currentTier}. Re-rolling`;
+        } else {
+          effectDiceBonus++;
+          effectDcBonus += 2;
+          chaosLog += ` &rarr; 💥 Overload! DC+2, Dice+1. Re-rolling`;
+        }
+        d3 = Math.floor(Math.random() * 8) + 1;
+        chaosLog += ` [New: ${d3}]`;
+      }
     }
 
     // Settled Chaos Die
