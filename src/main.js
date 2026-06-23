@@ -1897,31 +1897,24 @@ function renderScaledMandala() {
       staticPillsList.forEach(el => svg.appendChild(el));
     }
 
-    // Animation frame loop to fix text flipping during rotation
+    const outerNumbers = svg.querySelectorAll('.outer-number');
+    const straightEffectTexts = svg.querySelectorAll('.straight-effect-text');
+    const innerCurvedPaths = svg.querySelectorAll('.inner-curved-path');
+    const outerPaths = svg.querySelectorAll('.outer-school-path, .outer-effect-path');
+    const radialRayTexts = svg.querySelectorAll('.radial-ray-text');
+    const hudGroups = svg.querySelectorAll('.hud-group');
+    const runeGroups = svg.querySelectorAll('.rune-group');
+
+    // Layout and flip text paths based on current target rotation angles
     const updatePaths = () => {
-      if (!svg.isConnected) return; // stop loop if SVG is removed
+      if (!svg.isConnected) return; // stop if SVG is removed
 
-      let angleCCW = 0;
-      let angleCW = 0;
-
-      const transformCCW = getComputedStyle(spinCCWGroup).transform;
-      if (!transformCCW || transformCCW === "none") {
-        angleCCW = -(mishapState.ccwAngle || 0);
-      } else {
-        const matrixCCW = new DOMMatrix(transformCCW);
-        angleCCW = Math.atan2(matrixCCW.b, matrixCCW.a) * (180 / Math.PI);
-      }
-
-      const transformCW = getComputedStyle(spinCWGroup).transform;
-      if (!transformCW || transformCW === "none") {
-        angleCW = mishapState.cwAngle || 0;
-      } else {
-        const matrixCW = new DOMMatrix(transformCW);
-        angleCW = Math.atan2(matrixCW.b, matrixCW.a) * (180 / Math.PI);
-      }
+      const angleCCW = -(mishapState.ccwAngle || 0);
+      const angleCW = mishapState.cwAngle || 0;
+      const anglePills = mishapState.pillsAngle || 0;
 
       // 1. Update outer numbers
-      document.querySelectorAll('.outer-number').forEach(textEl => {
+      outerNumbers.forEach(textEl => {
         const sIdx = parseInt(textEl.getAttribute('data-school-idx'), 10);
         const baseAngle = sIdx * 45 + 22.5;
         let visualAngle = (baseAngle + angleCCW) % 360;
@@ -1934,7 +1927,7 @@ function renderScaledMandala() {
       });
 
       // 2. Update straight effect texts
-      document.querySelectorAll('.straight-effect-text').forEach(textEl => {
+      straightEffectTexts.forEach(textEl => {
         const textCenterAngle = parseFloat(textEl.getAttribute('data-text-center-angle'));
         let visualAngle = (textCenterAngle + angleCW) % 360;
         if (visualAngle < 0) visualAngle += 360;
@@ -1947,7 +1940,7 @@ function renderScaledMandala() {
 
       // 3. Update inner curved paths
       const angleStep = 360 / Math.max(appState.magicNodes.length, 1);
-      document.querySelectorAll('.inner-curved-path').forEach(pathEl => {
+      innerCurvedPaths.forEach(pathEl => {
         const cxVal = parseFloat(pathEl.getAttribute('data-cx'));
         const cyVal = parseFloat(pathEl.getAttribute('data-cy'));
         const startAng = parseFloat(pathEl.getAttribute('data-start-angle'));
@@ -1970,7 +1963,11 @@ function renderScaledMandala() {
           const lineIndex = parseInt(lineIndexAttr || "1", 10);
           const totalLines = parseInt(totalLinesAttr || "1", 10);
           if (totalLines === 2) {
-            radius = isVisuallyBottomHalf ? (baseRadius - 28) : (baseRadius + 28);
+            if (lineIndex === 1) {
+              radius = isVisuallyBottomHalf ? (baseRadius - 28) : (baseRadius + 28);
+            } else if (lineIndex === 2) {
+              radius = isVisuallyBottomHalf ? (baseRadius + 28) : (baseRadius - 28);
+            }
           } else if (totalLines === 3) {
             if (lineIndex === 1) {
               radius = isVisuallyBottomHalf ? (baseRadius - 48) : (baseRadius + 48);
@@ -2003,7 +2000,7 @@ function renderScaledMandala() {
       });
 
       // 4. Update outer curved paths (schools & effects)
-      document.querySelectorAll('.outer-school-path, .outer-effect-path').forEach(pathEl => {
+      outerPaths.forEach(pathEl => {
         const cxVal = parseFloat(pathEl.getAttribute('data-cx'));
         const cyVal = parseFloat(pathEl.getAttribute('data-cy'));
         const radius = parseFloat(pathEl.getAttribute('data-radius'));
@@ -2040,7 +2037,7 @@ function renderScaledMandala() {
       });
 
       // 5. Update radial ray texts
-      document.querySelectorAll('.radial-ray-text').forEach(textEl => {
+      radialRayTexts.forEach(textEl => {
         const textAngle = parseFloat(textEl.getAttribute('data-text-angle'));
         const isSchool = textEl.getAttribute('data-is-school') === 'true';
         let visualAngle;
@@ -2058,7 +2055,7 @@ function renderScaledMandala() {
       });
 
       // 6. Update hud groups
-      document.querySelectorAll('.hud-group').forEach(groupEl => {
+      hudGroups.forEach(groupEl => {
         const angleVal = parseFloat(groupEl.getAttribute('data-angle'));
         let visualAngle = (angleVal + angleCCW) % 360;
         if (visualAngle < 0) visualAngle += 360;
@@ -2074,7 +2071,7 @@ function renderScaledMandala() {
       });
 
       // 7. Update rune groups
-      document.querySelectorAll('.rune-group').forEach(groupEl => {
+      runeGroups.forEach(groupEl => {
         const angleVal = parseFloat(groupEl.getAttribute('data-angle'));
         let visualAngle = (angleVal + angleCCW) % 360;
         if (visualAngle < 0) visualAngle += 360;
@@ -2088,10 +2085,6 @@ function renderScaledMandala() {
 
         groupEl.setAttribute("transform", `translate(${centerPos.x}, ${centerPos.y}) rotate(${rot})`);
       });
-
-      if (appState.animationMode && mishapState.isRolling) {
-        requestAnimationFrame(updatePaths);
-      }
     };
 
     // Expose updatePaths on mishapState
@@ -3747,44 +3740,53 @@ function rollMishap() {
         }
       }
 
-      mishapState.cwAngle = (mishapState.cwAngle || 0) + cwAdd;
-      mishapState.ccwAngle = (mishapState.ccwAngle || 0) + ccwAdd;
-      mishapState.pillsAngle = (mishapState.pillsAngle || 0) + pillsAdd;
-
       const duration = appState.animationDuration || 2;
       const curve = appState.momentumCurve || 5;
       const easing = `cubic-bezier(0.1, ${0.1 * curve}, 0.1, 1)`;
 
-      // Force reflow
+      // 1. Update the cwAngle, ccwAngle, and pillsAngle in mishapState to the target landing positions
+      mishapState.cwAngle = (mishapState.cwAngle || 0) + cwAdd;
+      mishapState.ccwAngle = (mishapState.ccwAngle || 0) + ccwAdd;
+      mishapState.pillsAngle = (mishapState.pillsAngle || 0) + pillsAdd;
+
+      // 2. Pre-align all path shapes, radii, and text flips for the target landing positions
+      if (mishapState.updatePaths) {
+        mishapState.updatePaths();
+      }
+
+      // 3. Force browser reflow to commit layout changes before initiating CSS transition
       void spinCWGroup.offsetHeight;
       void spinCCWGroup.offsetHeight;
       if (spinPillsGroup) void spinPillsGroup.offsetHeight;
 
-      // Set transitions
+      // 4. Configure CSS transitions for GPU-accelerated smooth rotation
       spinCWGroup.style.transition = `transform ${duration}s ${easing}`;
       spinCCWGroup.style.transition = `transform ${duration}s ${easing}`;
       if (spinPillsGroup) {
         spinPillsGroup.style.transition = `transform ${duration}s ${easing}`;
       }
 
-      // Set target rotations
+      // 5. Set target rotations to trigger the GPU-accelerated transition
       spinCWGroup.style.transform = `rotate(${mishapState.cwAngle}deg)`;
       spinCCWGroup.style.transform = `rotate(${-mishapState.ccwAngle}deg)`;
       if (spinPillsGroup) {
         spinPillsGroup.style.transform = `rotate(${mishapState.pillsAngle}deg)`;
       }
+
+      // 6. Complete the roll after the transition finishes
+      setTimeout(() => {
+        mishapState.isRolling = false;
+        const rollBtn = document.getElementById('btn-roll-mishap');
+        const resetBtn = document.getElementById('btn-mishap-reset');
+        if (rollBtn) {
+          rollBtn.disabled = false;
+          rollBtn.innerHTML = `<i class="gi gi-dice-eight-faces" style="font-size: 1.1rem; line-height: 1;"></i> Roll Mishap (2d8)`;
+        }
+        if (resetBtn) resetBtn.disabled = false;
+
+        executeMishapRoll();
+      }, duration * 1000);
     }
-
-    setTimeout(() => {
-      mishapState.isRolling = false;
-      if (rollBtn) {
-        rollBtn.disabled = false;
-        rollBtn.innerHTML = `<i class="gi gi-dice-eight-faces" style="font-size: 1.1rem; line-height: 1;"></i> Roll Mishap (2d8)`;
-      }
-      if (resetBtn) resetBtn.disabled = false;
-
-      executeMishapRoll();
-    }, (appState.animationDuration || 2) * 1000);
   } else {
     mishapState.isRolling = false;
     executeMishapRoll();
