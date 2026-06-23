@@ -3,7 +3,6 @@ import { defaultScaledTiers } from './mishapData.js';
 
 // State
 let appState = {
-  castHighlightStyle: 'aether',
   viewMode: 'curved-axis',
   polarityMode: 'gap',
   polarityGap: 4,
@@ -140,26 +139,7 @@ function mapTablesToState(tables) {
   };
 }
 
-function renderSidebarTables() {
-  const tbody = document.getElementById('tier-parameters-tbody');
-  if (!tbody) return;
-  tbody.innerHTML = '';
-
-  appState.scaledTiers.forEach((tier, tIdx) => {
-    const firstNode = tier.nodes[0] || {};
-    const dc = (firstNode.dc || '—').replace(/\s+/g, '');
-    const dice = firstNode.dice || '—';
-
-    const labelText = (appState.viewMode === 'clean-bottom' || appState.viewMode === 'bottom-dice') ? `T${tIdx}` : `Tier${tIdx}`;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><strong>${labelText}</strong></td>
-      <td>${dc}</td>
-      <td>${dice}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
+function renderSidebarTables() {}
 
 // Drawing Utilities
 function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
@@ -634,178 +614,7 @@ function renderScaledMandala() {
       // -------------------------------------------------------------
       // CLASSIC MODE (No overlay boxes, original layout restored)
       // -------------------------------------------------------------
-      const showDiceDc = appState.viewMode === 'full' || appState.viewMode === 'bottom-dice';
-      const hasStandardLabel = ['full', 'clean-top', 'clean-bottom', 'bottom-dice'].includes(appState.viewMode);
-
-      if (hasStandardLabel) {
-        let R_label;
-        let labelText;
-        if (appState.viewMode === 'clean-bottom' || appState.viewMode === 'bottom-dice') {
-          R_label = innerR + 45;
-          labelText = "T" + tIndex;
-        } else if (appState.viewMode === 'clean-top') {
-          R_label = outerR - 45;
-          labelText = "Tier" + tIndex;
-        } else {
-          // Default / Full View
-          R_label = tIndex === 0 ? (innerR + ringWidth * 0.5) : (outerR - 45);
-          labelText = "Tier" + tIndex;
-        }
-
-        const R_dice_dc = outerR - 45;
-        const paddingPixels = 80;
-        const anglePadding = (paddingPixels / R_dice_dc) * (180 / Math.PI);
-        const angleOffset = Math.max(10, 22.5 - anglePadding);
-
-        // Center TX label
-        const posC = polarToCartesian(cx, cy, R_label, 0);
-        const tierText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        tierText.setAttribute("x", posC.x);
-        tierText.setAttribute("y", posC.y);
-        tierText.textContent = labelText;
-        tierText.setAttribute("fill", "#ffffff");
-        tierText.setAttribute("opacity", "0.5");
-        tierText.setAttribute("font-size", "50px");
-        tierText.setAttribute("font-weight", "bold");
-        tierText.setAttribute("text-anchor", "middle");
-        tierText.style.pointerEvents = "none";
-        svg.appendChild(tierText);
-
-        if (showDiceDc) {
-          const posL = polarToCartesian(cx, cy, R_dice_dc, -angleOffset);
-          const diceTextEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-          diceTextEl.setAttribute("x", posL.x);
-          diceTextEl.setAttribute("y", posL.y);
-          diceTextEl.textContent = diceText;
-          diceTextEl.setAttribute("fill", "#ffffff");
-          diceTextEl.setAttribute("opacity", "0.5");
-          diceTextEl.setAttribute("font-size", "45px");
-          diceTextEl.setAttribute("font-weight", "bold");
-          diceTextEl.setAttribute("text-anchor", "middle");
-          diceTextEl.setAttribute("class", "dice-dc-text");
-          diceTextEl.setAttribute("transform", `rotate(${-angleOffset}, ${posL.x}, ${posL.y})`);
-          diceTextEl.style.pointerEvents = "none";
-          svg.appendChild(diceTextEl);
-
-          const posR = polarToCartesian(cx, cy, R_dice_dc, angleOffset);
-          const dcTextEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-          dcTextEl.setAttribute("x", posR.x);
-          dcTextEl.setAttribute("y", posR.y);
-          dcTextEl.textContent = dcText;
-          dcTextEl.setAttribute("fill", "#ffffff");
-          dcTextEl.setAttribute("opacity", "0.5");
-          dcTextEl.setAttribute("font-size", "45px");
-          dcTextEl.setAttribute("font-weight", "bold");
-          dcTextEl.setAttribute("text-anchor", "middle");
-          dcTextEl.setAttribute("class", "dice-dc-text");
-          dcTextEl.setAttribute("transform", `rotate(${angleOffset}, ${posR.x}, ${posR.y})`);
-          dcTextEl.style.pointerEvents = "none";
-          svg.appendChild(dcTextEl);
-        }
-      } else {
-        // Experimental/Curved modes in Classic
-        if (appState.viewMode === 'radial-axis') {
-          const axisAngle = 0;
-          const axisStart = polarToCartesian(cx, cy, innerR, axisAngle);
-          const axisEnd = polarToCartesian(cx, cy, outerR, axisAngle);
-
-          const axisLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-          axisLine.setAttribute("x1", axisStart.x);
-          axisLine.setAttribute("y1", axisStart.y);
-          axisLine.setAttribute("x2", axisEnd.x);
-          axisLine.setAttribute("y2", axisEnd.y);
-          axisLine.setAttribute("stroke", "rgba(255, 255, 255, 0.4)");
-          axisLine.setAttribute("stroke-width", "6");
-          svg.appendChild(axisLine);
-
-          const tickStart = polarToCartesian(cx, cy, outerR, axisAngle - 2.5);
-          const tickEnd = polarToCartesian(cx, cy, outerR, axisAngle + 2.5);
-          const tickLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-          tickLine.setAttribute("x1", tickStart.x);
-          tickLine.setAttribute("y1", tickStart.y);
-          tickLine.setAttribute("x2", tickEnd.x);
-          tickLine.setAttribute("y2", tickEnd.y);
-          tickLine.setAttribute("stroke", "rgba(255, 255, 255, 0.6)");
-          tickLine.setAttribute("stroke-width", "6");
-          svg.appendChild(tickLine);
-
-          if (tIndex === 0) {
-            const innerTickStart = polarToCartesian(cx, cy, innerR, axisAngle - 2.5);
-            const innerTickEnd = polarToCartesian(cx, cy, innerR, axisAngle + 2.5);
-            const innerTickLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-            innerTickLine.setAttribute("x1", innerTickStart.x);
-            innerTickLine.setAttribute("y1", innerTickStart.y);
-            innerTickLine.setAttribute("x2", innerTickEnd.x);
-            innerTickLine.setAttribute("y2", innerTickEnd.y);
-            innerTickLine.setAttribute("stroke", "rgba(255, 255, 255, 0.6)");
-            innerTickLine.setAttribute("stroke-width", "6");
-            svg.appendChild(innerTickLine);
-          }
-
-          const textAngle = axisAngle + 3.5;
-          const textR = innerR + ringWidth * 0.5;
-          const textPos = polarToCartesian(cx, cy, textR, textAngle);
-
-          const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-          textEl.setAttribute("x", textPos.x);
-          textEl.setAttribute("y", textPos.y);
-          textEl.textContent = `T${tIndex} [${dcText} • ${diceText}]`;
-          textEl.setAttribute("fill", "#fbbf24");
-          textEl.setAttribute("font-size", "45px");
-          textEl.setAttribute("font-weight", "bold");
-          textEl.setAttribute("text-anchor", "start");
-          textEl.setAttribute("dominant-baseline", "middle");
-
-          let rot = textAngle;
-          if (rot > 90 && rot < 270) {
-            rot += 180;
-          }
-          textEl.setAttribute("transform", `rotate(${rot}, ${textPos.x}, ${textPos.y})`);
-          textEl.style.pointerEvents = "none";
-          svg.appendChild(textEl);
-
-        } else if (appState.viewMode === 'stacked-pill') {
-          const textR = innerR + ringWidth * 0.5;
-          const posC = polarToCartesian(cx, cy, textR, 0);
-          const modifierText = firstNode.modifier || '—';
-
-          const w = 480;
-          const h = 150;
-          const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-          rect.setAttribute("x", posC.x - w / 2);
-          rect.setAttribute("y", posC.y - h / 2);
-          rect.setAttribute("width", w);
-          rect.setAttribute("height", h);
-          rect.setAttribute("rx", "25");
-          rect.setAttribute("ry", "25");
-          rect.setAttribute("fill", "rgba(17, 24, 39, 0.9)");
-          rect.setAttribute("stroke", "rgba(251, 191, 36, 0.5)");
-          rect.setAttribute("stroke-width", "5");
-          rect.style.pointerEvents = "none";
-          svg.appendChild(rect);
-
-          const textTop = document.createElementNS("http://www.w3.org/2000/svg", "text");
-          textTop.setAttribute("x", posC.x);
-          textTop.setAttribute("y", posC.y - 18);
-          textTop.textContent = `T${tIndex}: ${modifierText}`;
-          textTop.setAttribute("fill", "#ffffff");
-          textTop.setAttribute("font-size", "42px");
-          textTop.setAttribute("font-weight", "bold");
-          textTop.setAttribute("text-anchor", "middle");
-          textTop.style.pointerEvents = "none";
-          svg.appendChild(textTop);
-
-          const textBottom = document.createElementNS("http://www.w3.org/2000/svg", "text");
-          textBottom.setAttribute("x", posC.x);
-          textBottom.setAttribute("y", posC.y + 35);
-          textBottom.textContent = `${dcText} • ${diceText}`;
-          textBottom.setAttribute("fill", "#fbbf24");
-          textBottom.setAttribute("font-size", "34px");
-          textBottom.setAttribute("font-weight", "bold");
-          textBottom.setAttribute("text-anchor", "middle");
-          textBottom.style.pointerEvents = "none";
-          svg.appendChild(textBottom);
-        } else if (['curved-axis', 'horizontal-hud', 'radial-vector', 'minimal-rune', 'curved-text'].includes(appState.viewMode)) {
+      if (['curved-axis', 'horizontal-hud', 'radial-vector', 'minimal-rune', 'curved-text'].includes(appState.viewMode)) {
           const getDynamicFontSize = (text, radius) => {
             const arcLength = radius * (angleStep * Math.PI / 180);
             const maxChars = text.length || 1;
@@ -893,7 +702,6 @@ function renderScaledMandala() {
             }
           }
         }
-      }
     } else {
       // -------------------------------------------------------------
       // OVERLAY STYLES
