@@ -3699,8 +3699,8 @@ function rollMishap() {
     }
 
     if (spinCWGroup && spinCCWGroup) {
-      // Calculate target rotation based on speed
-      const rotations = 2 + ((appState.animationSpeed || 5) * 0.4);
+      // Calculate target rotation based on speed, ensuring base spin is an integer multiple of 360 degrees
+      const rotations = Math.max(1, Math.round(2 + ((appState.animationSpeed || 5) * 0.4)));
       let cwAdd = 360 * rotations;
       let ccwAdd = 360 * rotations;
       let pillsAdd = -360 * rotations;
