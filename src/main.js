@@ -44,20 +44,7 @@ let appState = {
     { id: 'm6', label: 'Dimensional', icon: 'gi-portal', negativeIcon: 'gi-hourglass', color: '#8a2be2', opposite: 'Electromagnetic', slider: 'Accelerating chronological flow ↔ halting momentum into stasis.' },
     { id: 'm7', label: 'Vital', icon: 'gi-beech', negativeIcon: 'gi-dead-wood', color: '#32cd32', opposite: 'Neural', slider: 'Rapid cellular growth and healing ↔ necrosis, atrophy, and decay.' },
   ],
-  targetNodes: [
-    { id: 't0', label: 'Self @ Close', color: '#e2e8f0' },
-    { id: 't1', label: 'Self @ Near', color: '#cbd5e1' },
-    { id: 't2', label: 'Self @ Far', color: '#94a3b8' },
-    { id: 't3', label: 'Ally @ Close', color: '#86efac' },
-    { id: 't4', label: 'Ally @ Near', color: '#4ade80' },
-    { id: 't5', label: 'Ally @ Far', color: '#22c55e' },
-    { id: 't6', label: 'Enemy @ Close', color: '#fca5a5' },
-    { id: 't7', label: 'Enemy @ Near', color: '#f87171' },
-    { id: 't8', label: 'Enemy @ Far', color: '#ef4444' },
-    { id: 't9', label: 'All @ Close', color: '#fde047' },
-    { id: 't10', label: 'All @ Near', color: '#facc15' },
-    { id: 't11', label: 'All @ Far', color: '#eab308' },
-  ],
+  targetNodes: [],
   scaledTiers: JSON.parse(JSON.stringify(defaultScaledTiers))
 };
 
@@ -2125,14 +2112,6 @@ document.getElementById('modal-save').addEventListener('click', () => {
     node.label = newLabel;
     node.color = newColor;
     renderMagicMandala();
-  } else {
-    node = appState.targetNodes.find(n => n.id === activeNodeId);
-    if (node) {
-      node.label = newLabel;
-      node.color = newColor;
-      // Scaled mandala is static, no re-render needed for its edits because we disabled them.
-      // But we should just keep this block for safety.
-    }
   }
 
   closeModal();
@@ -2297,7 +2276,7 @@ document.getElementById('file-input').addEventListener('change', (e) => {
   reader.onload = (event) => {
     try {
       const loadedState = JSON.parse(event.target.result);
-      if (loadedState.magicNodes && loadedState.targetNodes) {
+      if (loadedState.magicNodes) {
         appState = loadedState;
         // Update input values
         const msEl = document.getElementById('magic-slots');
