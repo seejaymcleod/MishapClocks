@@ -18,7 +18,8 @@ let appState = {
   labelSeparation: 160,
   outerDistTop: 280,
   outerDistBottom: 280,
-  overlayBoxWidth: 12,
+  overlayBoxWidth: 10.5,
+  overlayBoxHeight: 188,
   overlayFontSize: 45,
   overlayStyle: 'floating-pill',
   modifierMinFontSize: 22,
@@ -731,7 +732,7 @@ function renderScaledMandala() {
 
       if (appState.overlayStyle === 'floating-pill') {
         const w = (appState.overlayBoxWidth ?? 12) * 13;
-        const h = 165;
+        const h = appState.overlayBoxHeight ?? 165;
         const pillW = w - 36;
         const pillH = h;
         boxPath.setAttribute("d", `M ${cx - pillW / 2} ${yCenter - pillH / 2} h ${pillW} a 18 18 0 0 1 18 18 v ${pillH - 36} a 18 18 0 0 1 -18 18 h ${-pillW} a 18 18 0 0 1 -18 -18 v ${-pillH + 36} a 18 18 0 0 1 18 -18 Z`);
@@ -2429,6 +2430,13 @@ function syncBottomSliders() {
     overlayWidthSlider.value = val;
     overlayWidthVal.textContent = val + "°";
   }
+  const overlayHeightSlider = document.getElementById('overlay-height-slider');
+  const overlayHeightVal = document.getElementById('overlay-height-val');
+  if (overlayHeightSlider && overlayHeightVal) {
+    const val = appState.overlayBoxHeight ?? 165;
+    overlayHeightSlider.value = val;
+    overlayHeightVal.textContent = val + "px";
+  }
   if (overlayFontSizeSlider && overlayFontSizeVal) {
     const val = appState.overlayFontSize ?? 45;
     overlayFontSizeSlider.value = val;
@@ -2904,6 +2912,16 @@ async function init() {
     overlayWidthSlider.addEventListener('input', (e) => {
       appState.overlayBoxWidth = parseFloat(e.target.value);
       overlayWidthVal.textContent = appState.overlayBoxWidth + "°";
+      renderScaledMandala();
+    });
+  }
+
+  const overlayHeightSlider = document.getElementById('overlay-height-slider');
+  const overlayHeightVal = document.getElementById('overlay-height-val');
+  if (overlayHeightSlider && overlayHeightVal) {
+    overlayHeightSlider.addEventListener('input', (e) => {
+      appState.overlayBoxHeight = parseFloat(e.target.value);
+      overlayHeightVal.textContent = appState.overlayBoxHeight + "px";
       renderScaledMandala();
     });
   }
