@@ -7,10 +7,8 @@
   <title>Magic Mandalas</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Outfit:wght@300;400;600&display=swap"
-    rel="stylesheet">
-  <link rel="stylesheet" href="/game-icons.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./game-icons.css" />
   <link rel="stylesheet" href="./src/style.css" />
 </head>
 
@@ -55,11 +53,27 @@
       </div>
       <div id="clock-y-offset-container" class="btn"
         style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; padding: 0.4rem 0.8rem;">
-        <span style="opacity: 0.7;">Clock Shift:</span>
+        <span style="opacity: 0.7;">Clock Shift Y:</span>
         <input type="range" id="clock-y-offset-slider" min="-18" max="5" step="0.25" value="-1.5"
           style="cursor: pointer; width: 120px;" />
         <span id="clock-y-offset-val"
           style="font-weight: bold; min-width: 45px; text-align: right; color: #fbbf24;">-1.5rem</span>
+      </div>
+      <div id="clock-x-offset-container" class="btn"
+        style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; padding: 0.4rem 0.8rem;">
+        <span style="opacity: 0.7;">Clock Shift X:</span>
+        <input type="range" id="clock-x-offset-slider" min="-15" max="15" step="0.25" value="0"
+          style="cursor: pointer; width: 120px;" />
+        <span id="clock-x-offset-val"
+          style="font-weight: bold; min-width: 45px; text-align: right; color: #fbbf24;">0rem</span>
+      </div>
+      <div id="clock-padding-container" class="btn"
+        style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; padding: 0.4rem 0.8rem;">
+        <span style="opacity: 0.7;">Clock Padding X:</span>
+        <input type="range" id="clock-padding-slider" min="0" max="250" step="5" value="0"
+          style="cursor: pointer; width: 120px;" />
+        <span id="clock-padding-val"
+          style="font-weight: bold; min-width: 35px; text-align: right; color: #fbbf24;">0px</span>
       </div>
       <div id="label-offset-top-container" class="btn"
         style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; padding: 0.4rem 0.8rem;">
@@ -217,6 +231,19 @@
           style="cursor: pointer; width: 120px;" />
         <span id="animation-momentum-val"
           style="font-weight: bold; min-width: 35px; text-align: right; color: #fbbf24;">5</span>
+      </div>
+      <div id="free-spin-mode-container" class="btn"
+        style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; padding: 0.4rem 0.8rem;">
+        <span style="opacity: 0.7;">Free Spin:</span>
+        <button id="btn-toggle-free-spin" class="btn-segment">OFF</button>
+      </div>
+      <div id="free-spin-friction-container" class="btn"
+        style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; padding: 0.4rem 0.8rem;">
+        <span style="opacity: 0.7;">Spin Friction:</span>
+        <input type="range" id="free-spin-friction-slider" min="0.95" max="0.995" step="0.001" value="0.985"
+          style="cursor: pointer; width: 120px;" />
+        <span id="free-spin-friction-val"
+          style="font-weight: bold; min-width: 45px; text-align: right; color: #fbbf24;">0.985</span>
       </div>
       <div id="effect-wrap-chars-container" class="btn"
         style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; padding: 0.4rem 0.8rem;">

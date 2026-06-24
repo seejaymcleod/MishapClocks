@@ -38,6 +38,10 @@ let appState = {
   animationDuration: 1.8,
   momentumCurve: 2,
   staticPills: false,
+  clockXOffset: 0,
+  clockPadding: 0,
+  freeSpinMode: false,
+  freeSpinFriction: 0.985,
   alignSchoolToTop: true,
   alignEffectToTop: true,
   showOuterCenterNumbers: false,
@@ -1953,9 +1957,170 @@ function renderScaledMandala() {
   }
 
   container.appendChild(svg);
-  if (appState.animationMode && mishapState.updatePaths) {
-    mishapState.updatePaths();
+  if (appState.animationMode) {
+    setupDragAndFlick(svg);
+    if (mishapState.updatePaths) {
+      mishapState.updatePaths();
+    }
   }
+}
+
+// Setup interactive drag & flick on the SVG element
+function setupDragAndFlick(svg) {
+  if (!svg || !appState.animationMode) return;
+
+  const container = document.getElementById('target-mandala');
+  if (!container) return;
+
+  let isDragging = false;
+  let hasDragged = false;
+  let startAngle = 0;
+  let initialCW = 0;
+  let initialCCW = 0;
+  let initialPills = 0;
+  let lastMovements = [];
+  
+  const getPointerAngle = (clientX, clientY) => {
+    const rect = container.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    return Math.atan2(clientY - centerY, clientX - centerX) * 180 / Math.PI;
+  };
+
+  const handlePointerDown = (e) => {
+    // If currently rolling/animating, ignore new drag actions
+    if (mishapState.isRolling) return;
+    
+    // Clear any active free spin animation frame
+    if (mishapState.freeSpinFrameId) {
+      cancelAnimationFrame(mishapState.freeSpinFrameId);
+      mishapState.freeSpinFrameId = null;
+    }
+
+    isDragging = true;
+    hasDragged = false;
+    startAngle = getPointerAngle(e.clientX, e.clientY);
+
+    initialCW = mishapState.cwAngle || 0;
+    initialCCW = mishapState.ccwAngle || 0;
+    initialPills = mishapState.pillsAngle || 0;
+
+    lastMovements = [{ time: performance.now(), angle: startAngle }];
+
+    // Set pointer capture so move/up events continue even if leaving the element
+    svg.setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerMove = (e) => {
+    if (!isDragging) return;
+
+    const currentAngle = getPointerAngle(e.clientX, e.clientY);
+    let angleDiff = currentAngle - startAngle;
+
+    // Unwrap angle difference to avoid wrap-around jumps
+    if (angleDiff > 180) angleDiff -= 360;
+    else if (angleDiff < -180) angleDiff += 360;
+
+    if (Math.abs(angleDiff) > 3) {
+      hasDragged = true;
+    }
+
+    const now = performance.now();
+    lastMovements.push({ time: now, angle: currentAngle });
+    lastMovements = lastMovements.filter(m => now - m.time < 150);
+
+    const spinCWGroup = svg.querySelector('.spin-cw-group');
+    const spinCCWGroup = svg.querySelector('.spin-ccw-group');
+    const spinPillsGroup = svg.querySelector('.spin-pills-group');
+
+    // Drag-rotations (synchronized opposite directions)
+    if (spinCWGroup) spinCWGroup.style.transform = `rotate(${initialCW + angleDiff}deg)`;
+    if (spinCCWGroup) spinCCWGroup.style.transform = `rotate(${-initialCCW - angleDiff}deg)`;
+    if (spinPillsGroup) spinPillsGroup.style.transform = `rotate(${initialPills + angleDiff}deg)`;
+
+    // Update current angles in state for path-updating/flips
+    mishapState.cwAngle = initialCW + angleDiff;
+    mishapState.ccwAngle = initialCCW + angleDiff;
+    mishapState.pillsAngle = initialPills + angleDiff;
+
+    if (mishapState.updatePaths) {
+      mishapState.updatePaths();
+    }
+  };
+
+  const handlePointerUp = (e) => {
+    if (!isDragging) return;
+    isDragging = false;
+    svg.releasePointerCapture(e.pointerId);
+
+    const currentAngle = getPointerAngle(e.clientX, e.clientY);
+    let angleDiff = currentAngle - startAngle;
+    if (angleDiff > 180) angleDiff -= 360;
+    else if (angleDiff < -180) angleDiff += 360;
+
+    mishapState.cwAngle = (initialCW + angleDiff) % 360;
+    mishapState.ccwAngle = (initialCCW + angleDiff) % 360;
+    mishapState.pillsAngle = (initialPills + angleDiff) % 360;
+
+    if (mishapState.cwAngle < 0) mishapState.cwAngle += 360;
+    if (mishapState.ccwAngle < 0) mishapState.ccwAngle += 360;
+    if (mishapState.pillsAngle < 0) mishapState.pillsAngle += 360;
+
+    // Calculate drag velocity (deg/ms)
+    const now = performance.now();
+    lastMovements = lastMovements.filter(m => now - m.time < 150);
+    let velocity = 0;
+    if (lastMovements.length >= 2) {
+      const first = lastMovements[0];
+      const last = lastMovements[lastMovements.length - 1];
+      const dt = last.time - first.time;
+      if (dt > 10) {
+        let dAngle = last.angle - first.angle;
+        if (dAngle > 180) dAngle -= 360;
+        else if (dAngle < -180) dAngle += 360;
+        velocity = dAngle / dt;
+      }
+    }
+
+    const flickThreshold = 0.15; // deg/ms
+    if (Math.abs(velocity) > flickThreshold) {
+      // FLICK SPIN!
+      if (appState.freeSpinMode) {
+        startFreeSpin(velocity, svg);
+      } else {
+        // If school is not selected, select the one closest to the top
+        if (mishapState.selectedSchoolIdx === null) {
+          const schoolIdx = (Math.round(mishapState.ccwAngle / 45) % 8 + 8) % 8;
+          selectMishapIconFromCircle(schoolIdx, mishapState.selectedPolarity || 'positive');
+        }
+        rollMishap();
+      }
+    }
+  };
+
+  svg.addEventListener('pointerdown', handlePointerDown);
+  svg.addEventListener('pointermove', handlePointerMove);
+  svg.addEventListener('pointerup', handlePointerUp);
+  svg.addEventListener('pointercancel', handlePointerUp);
+
+  // Prevent drag selection from firing click events on paths
+  const handleCaptureClick = (e) => {
+    if (hasDragged) {
+      e.stopPropagation();
+      e.preventDefault();
+      hasDragged = false;
+    }
+  };
+  svg.addEventListener('click', handleCaptureClick, true);
+}
+
+// Free spin triggered by drag
+function startFreeSpin(vel, svg) {
+  if (mishapState.isRolling) return;
+  // Trigger exactly the same logic as the 2d8 roll button 
+  // so that flips, pills, and target outcomes align perfectly 
+  // with valid slice snaps.
+  rollMishap();
 }
 
 
@@ -2325,14 +2490,19 @@ function syncOuterOffsetSlider() {
   }
 }
 
-function applyClockYOffset() {
+function applyClockOffsets() {
   const clockPanel = document.querySelector('.clock-panel');
   if (clockPanel) {
     if (window.innerWidth > 1350) {
       clockPanel.style.marginTop = (appState.clockYOffset ?? -1.5) + "rem";
+      clockPanel.style.marginLeft = (appState.clockXOffset ?? 0) + "rem";
     } else {
       clockPanel.style.marginTop = "";
+      clockPanel.style.marginLeft = "";
     }
+    const pad = appState.clockPadding ?? 0;
+    clockPanel.style.paddingLeft = pad + "px";
+    clockPanel.style.paddingRight = pad + "px";
   }
 }
 
@@ -2344,7 +2514,24 @@ function syncBottomSliders() {
     clockYOffsetSlider.value = val;
     clockYOffsetVal.textContent = val + "rem";
   }
-  applyClockYOffset();
+
+  const clockXOffsetSlider = document.getElementById('clock-x-offset-slider');
+  const clockXOffsetVal = document.getElementById('clock-x-offset-val');
+  if (clockXOffsetSlider && clockXOffsetVal) {
+    const val = appState.clockXOffset ?? 0;
+    clockXOffsetSlider.value = val;
+    clockXOffsetVal.textContent = val + "rem";
+  }
+
+  const clockPaddingSlider = document.getElementById('clock-padding-slider');
+  const clockPaddingVal = document.getElementById('clock-padding-val');
+  if (clockPaddingSlider && clockPaddingVal) {
+    const val = appState.clockPadding ?? 0;
+    clockPaddingSlider.value = val;
+    clockPaddingVal.textContent = val + "px";
+  }
+
+  applyClockOffsets();
 
   const labelOffsetTopSlider = document.getElementById('label-offset-top-slider');
   const labelOffsetTopVal = document.getElementById('label-offset-top-val');
@@ -2497,6 +2684,20 @@ function syncAnimationSliders() {
     const momentum = appState.momentumCurve ?? 5;
     momentumSlider.value = momentum;
     momentumVal.textContent = momentum;
+  }
+
+  const freeSpinToggle = document.getElementById('btn-toggle-free-spin');
+  if (freeSpinToggle) {
+    freeSpinToggle.classList.toggle('active', !!appState.freeSpinMode);
+    freeSpinToggle.textContent = appState.freeSpinMode ? 'ON' : 'OFF';
+  }
+
+  const frictionSlider = document.getElementById('free-spin-friction-slider');
+  const frictionVal = document.getElementById('free-spin-friction-val');
+  if (frictionSlider && frictionVal) {
+    const friction = appState.freeSpinFriction ?? 0.985;
+    frictionSlider.value = friction;
+    frictionVal.textContent = friction;
   }
 }
 
@@ -2801,7 +3002,29 @@ async function init() {
     clockYOffsetSlider.addEventListener('input', (e) => {
       appState.clockYOffset = parseFloat(e.target.value);
       clockYOffsetVal.textContent = appState.clockYOffset + "rem";
-      applyClockYOffset();
+      applyClockOffsets();
+    });
+  }
+
+  // Set up Clock X Offset slider listener
+  const clockXOffsetSlider = document.getElementById('clock-x-offset-slider');
+  const clockXOffsetVal = document.getElementById('clock-x-offset-val');
+  if (clockXOffsetSlider && clockXOffsetVal) {
+    clockXOffsetSlider.addEventListener('input', (e) => {
+      appState.clockXOffset = parseFloat(e.target.value);
+      clockXOffsetVal.textContent = appState.clockXOffset + "rem";
+      applyClockOffsets();
+    });
+  }
+
+  // Set up Clock Padding X slider listener
+  const clockPaddingSlider = document.getElementById('clock-padding-slider');
+  const clockPaddingVal = document.getElementById('clock-padding-val');
+  if (clockPaddingSlider && clockPaddingVal) {
+    clockPaddingSlider.addEventListener('input', (e) => {
+      appState.clockPadding = parseInt(e.target.value, 10);
+      clockPaddingVal.textContent = appState.clockPadding + "px";
+      applyClockOffsets();
     });
   }
 
@@ -2990,6 +3213,23 @@ async function init() {
     momentumSlider.addEventListener('input', (e) => {
       appState.momentumCurve = parseFloat(e.target.value);
       momentumVal.textContent = appState.momentumCurve;
+    });
+  }
+
+  const freeSpinToggle = document.getElementById('btn-toggle-free-spin');
+  if (freeSpinToggle) {
+    freeSpinToggle.addEventListener('click', () => {
+      appState.freeSpinMode = !appState.freeSpinMode;
+      syncAnimationSliders();
+    });
+  }
+
+  const frictionSlider = document.getElementById('free-spin-friction-slider');
+  const frictionVal = document.getElementById('free-spin-friction-val');
+  if (frictionSlider && frictionVal) {
+    frictionSlider.addEventListener('input', (e) => {
+      appState.freeSpinFriction = parseFloat(e.target.value);
+      frictionVal.textContent = appState.freeSpinFriction;
     });
   }
 
@@ -3199,7 +3439,7 @@ async function init() {
   if (header && headerToggleBtn) {
     const updateHeaderHeight = () => {
       document.documentElement.style.setProperty('--header-height', `${header.offsetHeight}px`);
-      applyClockYOffset();
+      applyClockOffsets();
     };
 
     // Initialize height measurement
@@ -3208,9 +3448,15 @@ async function init() {
     // Listen for resize to update height variable dynamically
     window.addEventListener('resize', updateHeaderHeight);
 
+    // Helper to sync body class with header collapse state
+    const syncBodyClass = (isCollapsed) => {
+      document.body.classList.toggle('header-collapsed', isCollapsed);
+    };
+
     // Toggle button click listener
     headerToggleBtn.addEventListener('click', () => {
       const isCollapsed = header.classList.toggle('collapsed');
+      syncBodyClass(isCollapsed);
       localStorage.setItem('header-collapsed', isCollapsed);
     });
 
@@ -3219,6 +3465,7 @@ async function init() {
     if (isCollapsedSaved) {
       header.classList.add('no-transition');
       header.classList.add('collapsed');
+      syncBodyClass(true);
       // Trigger a force reflow to ensure styles are applied without transition
       header.offsetHeight;
       header.classList.remove('no-transition');
@@ -3485,6 +3732,10 @@ function setupMishapRoller() {
   const resetBtn = document.getElementById('btn-mishap-reset');
   if (resetBtn) {
     resetBtn.addEventListener('click', () => {
+      if (mishapState.freeSpinFrameId) {
+        cancelAnimationFrame(mishapState.freeSpinFrameId);
+        mishapState.freeSpinFrameId = null;
+      }
       clearMandalaHighlights();
 
       const resultsContainer = document.getElementById('mishap-results-container');
@@ -3616,6 +3867,11 @@ function highlightMandalaElements(schoolIdx, tierIdx, isEffect, polarity) {
 }
 
 function rollMishap() {
+  if (mishapState.freeSpinFrameId) {
+    cancelAnimationFrame(mishapState.freeSpinFrameId);
+    mishapState.freeSpinFrameId = null;
+  }
+
   if (mishapState.selectedSchoolIdx === null) {
     alert("Please select a Cast School Polarity from the mandala before rolling.");
     return;
