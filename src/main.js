@@ -5,6 +5,7 @@ import { defaultScaledTiers } from './mishapData.js';
 let appState = {
   viewMode: 'curved-axis',
   polarityMode: 'gap',
+  polarityLayout: 'visual-right',
   polarityGap: 4,
   centerOuterText: false,
   outerPinOffset: 11,
@@ -1027,26 +1028,57 @@ function renderScaledMandala() {
       }
       drawCenteredText(effectName, effectRadius, angle, effectPathId, false, effectPrefix);
 
-      // 4. Positive and Negative Icons (aligned horizontally along the same arc, swapped positions)
-      const iconRadius = centerRadius + (isBottomHalf ? bottomIconShift : 0);
+      // 4. Positive and Negative Icons (aligned horizontally along the arc, swapped positions)
       const iconSize = 180;
       const containerSize = iconSize * 2;
+      const mode = appState.polarityMode || 'gap';
+      
+      const polarityOffset = appState.centerOuterText ? 15 : offsetVal;
+      const ccwAngleIcon = angle - polarityOffset;
+      const cwAngleIcon = angle + polarityOffset;
+      
+      let ccwAngleText = ccwAngleIcon;
+      let cwAngleText = cwAngleIcon;
+      let radiusTopText = centerRadius;
+      let radiusBottomText = centerRadius + bottomIconShift;
+      const gapVal = Number(appState.polarityGap ?? 3.2);
 
-      const renderIcon = (iconClass, targetAngle, targetColor, polarity) => {
-        const iconPos = polarToCartesian(cx, cy, iconRadius, targetAngle);
-        let iconRot = targetAngle;
-        if (isBottomHalf) {
-          iconRot += 180;
-        }
+      if (mode === 'gap') {
+        ccwAngleText = angle - polarityOffset + gapVal;
+        cwAngleText = angle + polarityOffset - gapVal;
+      } else if (mode === 'flanking') {
+        ccwAngleText = angle - polarityOffset - gapVal;
+        cwAngleText = angle + polarityOffset + gapVal;
+      } else if (mode === 'above') {
+        radiusTopText = centerRadius + labelSep + labelOffsetTop;
+        radiusBottomText = centerRadius + labelSep + labelOffsetBottom;
+      }
 
+      const renderIcon = (iconClass, targetColor, polarity) => {
         const iconGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
         iconGroup.setAttribute("class", `outer-icon-group outer-icon-${i} clickable`);
         iconGroup.setAttribute("data-school-idx", i);
         iconGroup.setAttribute("data-polarity", polarity);
-        iconGroup.setAttribute("data-target-angle", targetAngle);
-        iconGroup.setAttribute("data-icon-x", iconPos.x);
-        iconGroup.setAttribute("data-icon-y", iconPos.y);
-        iconGroup.setAttribute("transform", `rotate(${iconRot}, ${iconPos.x}, ${iconPos.y})`);
+        iconGroup.setAttribute("data-base-angle", angle);
+        iconGroup.setAttribute("data-ccw-angle", ccwAngleIcon);
+        iconGroup.setAttribute("data-cw-angle", cwAngleIcon);
+        
+        const radiusTop = centerRadius;
+        const radiusBottom = centerRadius + bottomIconShift;
+        iconGroup.setAttribute("data-radius-top", radiusTop);
+        iconGroup.setAttribute("data-radius-bottom", radiusBottom);
+
+        const layout = appState.polarityLayout || 'visual-right';
+        const isVisuallyBottomHalf = angle > 90 && angle < 270;
+        const useCW = polarity === 'positive' ? 
+                        (layout === 'visual-right' && isVisuallyBottomHalf ? false : true) : 
+                        (layout === 'visual-right' && isVisuallyBottomHalf ? true : false);
+        const localAngle = useCW ? cwAngleIcon : ccwAngleIcon;
+        const radius = isVisuallyBottomHalf ? radiusBottom : radiusTop;
+        const pos = polarToCartesian(cx, cy, radius, localAngle);
+        let iconRot = localAngle + (isVisuallyBottomHalf ? 180 : 0);
+
+        iconGroup.setAttribute("transform", `translate(${pos.x}, ${pos.y}) rotate(${iconRot})`);
 
         // Check if selected to preserve state on redraw
         const isSelected = (mishapState.selectedSchoolIdx === i && mishapState.selectedPolarity === polarity);
@@ -1057,22 +1089,22 @@ function renderScaledMandala() {
         // Draw selection outer ring (dashed marquee)
         const selectionRingOuter = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         selectionRingOuter.setAttribute("class", "selection-ring-outer");
-        selectionRingOuter.setAttribute("cx", iconPos.x);
-        selectionRingOuter.setAttribute("cy", iconPos.y);
+        selectionRingOuter.setAttribute("cx", 0);
+        selectionRingOuter.setAttribute("cy", 0);
         selectionRingOuter.setAttribute("r", "145");
         iconGroup.appendChild(selectionRingOuter);
 
         // Draw selection inner ring (glowing solid)
         const selectionRingInner = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         selectionRingInner.setAttribute("class", "selection-ring-inner");
-        selectionRingInner.setAttribute("cx", iconPos.x);
-        selectionRingInner.setAttribute("cy", iconPos.y);
+        selectionRingInner.setAttribute("cx", 0);
+        selectionRingInner.setAttribute("cy", 0);
         selectionRingInner.setAttribute("r", "120");
         iconGroup.appendChild(selectionRingInner);
 
         const fObj = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
-        fObj.setAttribute("x", iconPos.x - containerSize / 2);
-        fObj.setAttribute("y", iconPos.y - containerSize / 2);
+        fObj.setAttribute("x", -containerSize / 2);
+        fObj.setAttribute("y", -containerSize / 2);
         fObj.setAttribute("width", containerSize);
         fObj.setAttribute("height", containerSize);
         fObj.innerHTML = `
@@ -1091,64 +1123,49 @@ function renderScaledMandala() {
         });
       };
 
-      // Render Polarity Indicators based on appState.polarityMode
-      const drawPolarity = (symbolText, targetAngle) => {
-        let radius = iconRadius;
-        let finalAngle = targetAngle;
+      const drawPolarity = (symbolText, polarity) => {
         let fontSize = "110px";
         let opacity = "0.45";
-        let isWatermark = false;
-
-        // Use true Unicode mathematical minus sign to match plus sign height and stroke weight
-        const text = symbolText === '-' ? '\u2212' : symbolText;
-        const mode = appState.polarityMode || 'gap';
-
-        if (mode === 'gap') {
-          const gapVal = Number(appState.polarityGap ?? 3.2);
-          const isLeft = (symbolText === '-');
-          if (isLeft) {
-            finalAngle = leftCenterAngle + (isBottomHalf ? -gapVal : gapVal);
-          } else {
-            finalAngle = rightCenterAngle + (isBottomHalf ? gapVal : -gapVal);
-          }
+        let isWatermark = (mode === 'watermark');
+        
+        if (mode === 'gap' || mode === 'flanking') {
           fontSize = "110px";
           opacity = "0.55";
         } else if (mode === 'above') {
-          const schoolRadius = isBottomHalf ? (centerRadius + labelSep + labelOffsetBottom) : (centerRadius + labelSep + labelOffsetTop);
-          radius = schoolRadius;
           fontSize = "95px";
           opacity = "0.6";
-        } else if (mode === 'flanking') {
-          const gapVal = Number(appState.polarityGap ?? 3.2);
-          const isLeft = (symbolText === '-');
-          if (isLeft) {
-            finalAngle = leftCenterAngle + (isBottomHalf ? gapVal : -gapVal);
-          } else {
-            finalAngle = rightCenterAngle + (isBottomHalf ? -gapVal : gapVal);
-          }
-          fontSize = "110px";
-          opacity = "0.55";
-        } else if (mode === 'watermark') {
-          isWatermark = true;
         }
 
-        if (isWatermark) {
-          const iconPos = polarToCartesian(cx, cy, iconRadius, targetAngle);
-          let rot = targetAngle;
-          if (isBottomHalf) {
-            rot += 180;
-          }
+        const text = symbolText === '-' ? '\u2212' : symbolText;
 
+        const layout = appState.polarityLayout || 'visual-right';
+        const isVisuallyBottomHalf = angle > 90 && angle < 270;
+        const useCW = polarity === 'positive' ? 
+                        (layout === 'visual-right' && isVisuallyBottomHalf ? false : true) : 
+                        (layout === 'visual-right' && isVisuallyBottomHalf ? true : false);
+        
+        const localAngle = useCW ? cwAngleText : ccwAngleText;
+        const radiusTop = isWatermark ? centerRadius : radiusTopText;
+        const radiusBottom = isWatermark ? (centerRadius + bottomIconShift) : radiusBottomText;
+        const radius = isVisuallyBottomHalf ? radiusBottom : radiusTop;
+        
+        const pos = polarToCartesian(cx, cy, radius, localAngle);
+        let rot = localAngle + (isVisuallyBottomHalf ? 180 : 0);
+
+        if (isWatermark) {
           const watermarkGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
           watermarkGroup.setAttribute("class", "watermark-group");
-          watermarkGroup.setAttribute("data-target-angle", targetAngle);
-          watermarkGroup.setAttribute("data-icon-x", iconPos.x);
-          watermarkGroup.setAttribute("data-icon-y", iconPos.y);
-          watermarkGroup.setAttribute("transform", `rotate(${rot}, ${iconPos.x}, ${iconPos.y})`);
+          watermarkGroup.setAttribute("data-polarity", polarity);
+          watermarkGroup.setAttribute("data-base-angle", angle);
+          watermarkGroup.setAttribute("data-ccw-angle", ccwAngleText);
+          watermarkGroup.setAttribute("data-cw-angle", cwAngleText);
+          watermarkGroup.setAttribute("data-radius-top", radiusTop);
+          watermarkGroup.setAttribute("data-radius-bottom", radiusBottom);
+          watermarkGroup.setAttribute("transform", `translate(${pos.x}, ${pos.y}) rotate(${rot})`);
 
           const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-          circle.setAttribute("cx", iconPos.x);
-          circle.setAttribute("cy", iconPos.y);
+          circle.setAttribute("cx", 0);
+          circle.setAttribute("cy", 0);
           circle.setAttribute("r", "110");
           circle.setAttribute("stroke", school.color);
           circle.setAttribute("stroke-width", "4");
@@ -1157,8 +1174,8 @@ function renderScaledMandala() {
           watermarkGroup.appendChild(circle);
 
           const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-          textEl.setAttribute("x", iconPos.x);
-          textEl.setAttribute("y", iconPos.y);
+          textEl.setAttribute("x", 0);
+          textEl.setAttribute("y", 0);
           textEl.setAttribute("text-anchor", "middle");
           textEl.setAttribute("dominant-baseline", "central");
           textEl.setAttribute("fill", school.color);
@@ -1170,58 +1187,45 @@ function renderScaledMandala() {
 
           svg.appendChild(watermarkGroup);
         } else {
-          const pos = polarToCartesian(cx, cy, radius, finalAngle);
-          let rot = finalAngle;
-          if (isBottomHalf) {
-            rot += 180;
-          }
-
           const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
           textEl.setAttribute("class", "polarity-text");
-          textEl.setAttribute("data-target-angle", finalAngle);
-          textEl.setAttribute("data-icon-x", pos.x);
-          textEl.setAttribute("data-icon-y", pos.y);
-          textEl.setAttribute("x", pos.x);
-          textEl.setAttribute("y", pos.y);
+          textEl.setAttribute("data-polarity", polarity);
+          textEl.setAttribute("data-base-angle", angle);
+          textEl.setAttribute("data-ccw-angle", ccwAngleText);
+          textEl.setAttribute("data-cw-angle", cwAngleText);
+          textEl.setAttribute("data-radius-top", radiusTop);
+          textEl.setAttribute("data-radius-bottom", radiusBottom);
+          textEl.setAttribute("x", 0);
+          textEl.setAttribute("y", 0);
           textEl.setAttribute("text-anchor", "middle");
           textEl.setAttribute("dominant-baseline", "central");
           textEl.setAttribute("fill", school.color);
           textEl.setAttribute("font-size", fontSize);
           textEl.setAttribute("font-weight", "bold");
           textEl.setAttribute("opacity", opacity);
-          textEl.setAttribute("transform", `rotate(${rot}, ${pos.x}, ${pos.y})`);
+          textEl.setAttribute("transform", `translate(${pos.x}, ${pos.y}) rotate(${rot})`);
           textEl.textContent = text;
           svg.appendChild(textEl);
         }
       };
 
       // Draw watermarks BEFORE icons so they sit in the background
-      if (appState.polarityMode === 'watermark') {
-        if (school.negativeIcon) {
-          drawPolarity('-', leftCenterAngle);
-        }
-        if (school.icon) {
-          drawPolarity('+', rightCenterAngle);
-        }
+      if (mode === 'watermark') {
+        if (school.negativeIcon) drawPolarity('-', 'negative');
+        if (school.icon) drawPolarity('+', 'positive');
       }
 
-      // Swapped: Negative on left, Positive on right
-      if (school.negativeIcon) {
-        renderIcon(school.negativeIcon, leftCenterAngle, school.color, 'negative');
-      }
-      if (school.icon) {
-        renderIcon(school.icon, rightCenterAngle, school.color, 'positive');
-      }
+      // Render Icons
+      if (school.negativeIcon) renderIcon(school.negativeIcon, school.color, 'negative');
+      if (school.icon) renderIcon(school.icon, school.color, 'positive');
 
       // Draw other polarity label styles AFTER icons
-      if (appState.polarityMode && appState.polarityMode !== 'watermark') {
-        if (school.negativeIcon) {
-          drawPolarity('-', leftCenterAngle);
-        }
-        if (school.icon) {
-          drawPolarity('+', rightCenterAngle);
-        }
+      if (mode && mode !== 'watermark') {
+        if (school.negativeIcon) drawPolarity('-', 'negative');
+        if (school.icon) drawPolarity('+', 'positive');
       }
+      
+      const iconRadius = centerRadius + (isBottomHalf ? bottomIconShift : 0);
 
       // 5. Draw Minimalistic Translucent Curved Line Arrows pointing OUTWARDS (no arrowheads)
       const arrowRadius = iconRadius;
@@ -1746,15 +1750,30 @@ function renderScaledMandala() {
 
       // Update flip logic for icons and polarity texts
       const updateFlippable = (selector) => {
+        const layout = appState.polarityLayout || 'visual-right';
         svg.querySelectorAll(selector).forEach(el => {
-          const targetAngle = parseFloat(el.getAttribute('data-target-angle'));
-          const posX = parseFloat(el.getAttribute('data-icon-x'));
-          const posY = parseFloat(el.getAttribute('data-icon-y'));
-          let visualAngle = (targetAngle + angleCCW) % 360;
-          if (visualAngle < 0) visualAngle += 360;
-          const isVisuallyBottomHalf = visualAngle > 90 && visualAngle < 270;
-          let rot = targetAngle + (isVisuallyBottomHalf ? 180 : 0);
-          el.setAttribute("transform", `rotate(${rot}, ${posX}, ${posY})`);
+          const baseAngle = parseFloat(el.getAttribute('data-base-angle'));
+          const ccwAngle = parseFloat(el.getAttribute('data-ccw-angle'));
+          const cwAngle = parseFloat(el.getAttribute('data-cw-angle'));
+          const polarity = el.getAttribute('data-polarity');
+          const radiusTop = parseFloat(el.getAttribute('data-radius-top'));
+          const radiusBottom = parseFloat(el.getAttribute('data-radius-bottom'));
+          
+          let visualWedgeAngle = (baseAngle + angleCCW) % 360;
+          if (visualWedgeAngle < 0) visualWedgeAngle += 360;
+          const isVisuallyBottomHalf = visualWedgeAngle > 90 && visualWedgeAngle < 270;
+          
+          const useCW = polarity === 'positive' ? 
+                          (layout === 'visual-right' && isVisuallyBottomHalf ? false : true) : 
+                          (layout === 'visual-right' && isVisuallyBottomHalf ? true : false);
+                          
+          const localAngle = useCW ? cwAngle : ccwAngle;
+          const radius = isVisuallyBottomHalf ? radiusBottom : radiusTop;
+          
+          const pos = polarToCartesian(cx, cy, radius, localAngle);
+          let rot = localAngle + (isVisuallyBottomHalf ? 180 : 0);
+          
+          el.setAttribute("transform", `translate(${pos.x}, ${pos.y}) rotate(${rot})`);
         });
       };
       updateFlippable('.outer-icon-group');
@@ -2182,6 +2201,14 @@ function syncViewModeButtons() {
 function syncPolarityModeButtons() {
   document.querySelectorAll('.btn-segment[data-polarity]').forEach(btn => {
     if (btn.getAttribute('data-polarity') === appState.polarityMode) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  document.querySelectorAll('.btn-segment[data-polarity-layout]').forEach(btn => {
+    if (btn.getAttribute('data-polarity-layout') === appState.polarityLayout) {
       btn.classList.add('active');
     } else {
       btn.classList.remove('active');
@@ -2701,6 +2728,15 @@ async function init() {
     });
   });
 
+  // Set up polarity layout segmented control
+  document.querySelectorAll('.btn-segment[data-polarity-layout]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      appState.polarityLayout = e.currentTarget.getAttribute('data-polarity-layout');
+      syncPolarityModeButtons();
+      renderScaledMandala();
+    });
+  });
+
   // Set up overlay style segmented control
   document.querySelectorAll('.btn-segment[data-overlay]').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -2987,6 +3023,9 @@ async function init() {
   }
   if (!appState.polarityMode) {
     appState.polarityMode = 'gap';
+  }
+  if (!appState.polarityLayout) {
+    appState.polarityLayout = 'visual-right';
   }
   syncViewModeButtons();
   syncPolarityModeButtons();
