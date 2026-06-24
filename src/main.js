@@ -1104,6 +1104,17 @@ function renderScaledMandala() {
           iconGroup.classList.add('selected-school-polarity');
         }
 
+        // Invisible Hit-Test Circle for guaranteed clickability
+        const hitArea = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        hitArea.setAttribute("class", "hit-area");
+        hitArea.setAttribute("cx", 0);
+        hitArea.setAttribute("cy", 0);
+        hitArea.setAttribute("r", "145");
+        hitArea.setAttribute("fill", "transparent");
+        hitArea.setAttribute("stroke", "none");
+        hitArea.style.pointerEvents = "all";
+        iconGroup.appendChild(hitArea);
+
         // Draw selection outer ring (dashed marquee)
         const selectionRingOuter = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         selectionRingOuter.setAttribute("class", "selection-ring-outer");
@@ -1126,7 +1137,7 @@ function renderScaledMandala() {
         fObj.setAttribute("width", containerSize);
         fObj.setAttribute("height", containerSize);
         fObj.innerHTML = `
-          <div style="position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+          <div style="position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; pointer-events: auto; background: transparent;">
             <i class="gi gi-atomic-slashes selected-backdrop" style="position: absolute; font-size: ${iconSize * 1.6}px; color: #fbbf24; z-index: 1;"></i>
             <i class="gi ${iconClass} base-icon" style="position: relative; font-size: ${iconSize}px; color: ${targetColor}; z-index: 2; transition: all 0.3s ease;"></i>
           </div>
