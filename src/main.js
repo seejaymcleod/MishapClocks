@@ -40,6 +40,7 @@ let appState = {
   staticPills: false,
   clockXOffset: 0,
   clockPadding: 0,
+  quickRoll: true,
   freeSpinMode: false,
   freeSpinFriction: 0.985,
   alignSchoolToTop: true,
@@ -469,9 +470,6 @@ function renderScaledMandala() {
       path.setAttribute("data-school-idx", i);
       path.setAttribute("data-tier-idx", tIndex);
       path.setAttribute("id", `mandala-slice-${tIndex}-${i}`);
-
-      path.addEventListener('click', () => openModal(school, 'magic'));
-
       svg.appendChild(path);
 
       // Add text label
@@ -855,6 +853,18 @@ function renderScaledMandala() {
   centerCircle.setAttribute("fill", "#111827");
   centerCircle.setAttribute("stroke", "#fbbf24");
   centerCircle.setAttribute("stroke-width", "8");
+  if (appState.quickRoll) {
+    centerCircle.classList.add("clickable");
+    centerCircle.style.cursor = "pointer";
+    centerCircle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (mishapState.selectedSchoolIdx === null) {
+        const schoolIdx = (Math.round(mishapState.ccwAngle / 45) % 8 + 8) % 8;
+        selectMishapIconFromCircle(schoolIdx, mishapState.selectedPolarity || 'positive');
+      }
+      rollMishap();
+    });
+  }
   svg.appendChild(centerCircle);
 
   // Mandala Central icon (atomic-slashes, perfectly centered, 2x bigger)
@@ -865,7 +875,19 @@ function renderScaledMandala() {
   centerIconFObj.setAttribute("y", cy - centerIconSize / 2);
   centerIconFObj.setAttribute("width", centerIconSize);
   centerIconFObj.setAttribute("height", centerIconSize);
-  centerIconFObj.innerHTML = `<i class="gi gi-atomic-slashes" style="font-size: ${centerIconSize}px; color: #fbbf24; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></i>`;
+  centerIconFObj.innerHTML = `<i class="gi gi-atomic-slashes" style="font-size: ${centerIconSize}px; color: #fbbf24; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; ${appState.quickRoll ? 'cursor: pointer; pointer-events: auto;' : ''}"></i>`;
+  if (appState.quickRoll) {
+    centerIconFObj.classList.add("clickable");
+    centerIconFObj.style.pointerEvents = 'auto';
+    centerIconFObj.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (mishapState.selectedSchoolIdx === null) {
+        const schoolIdx = (Math.round(mishapState.ccwAngle / 45) % 8 + 8) % 8;
+        selectMishapIconFromCircle(schoolIdx, mishapState.selectedPolarity || 'positive');
+      }
+      rollMishap();
+    });
+  }
   svg.appendChild(centerIconFObj);
 
   // Outer Ring Section
@@ -1741,6 +1763,11 @@ function renderScaledMandala() {
       staticPillsList.forEach(el => svg.appendChild(el));
     }
 
+    // Re-append center circle and icon LAST so they render on top of all spin groups
+    // and receive pointer events for Quick Roll (otherwise spin groups intercept clicks)
+    svg.appendChild(centerCircle);
+    svg.appendChild(centerIconFObj);
+
     const outerNumbers = svg.querySelectorAll('.outer-number');
     const straightEffectTexts = svg.querySelectorAll('.straight-effect-text');
     const innerCurvedPaths = svg.querySelectorAll('.inner-curved-path');
@@ -2089,6 +2116,25 @@ function setupDragAndFlick(svg) {
     if (mishapState.ccwAngle < 0) mishapState.ccwAngle += 360;
     if (mishapState.pillsAngle < 0) mishapState.pillsAngle += 360;
 
+    // --- Quick Roll: detect a short tap in the center zone ---
+    if (!hasDragged && appState.quickRoll) {
+      const rect = container.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = e.clientX - cx;
+      const dy = e.clientY - cy;
+      // holeRadius in SVG coords is roughly 120/1000 of the SVG size
+      const tapRadius = rect.width * 0.14; // ~14% of container width = hole area
+      if (Math.sqrt(dx * dx + dy * dy) < tapRadius) {
+        if (mishapState.selectedSchoolIdx === null) {
+          const schoolIdx = (Math.round(mishapState.ccwAngle / 45) % 8 + 8) % 8;
+          selectMishapIconFromCircle(schoolIdx, mishapState.selectedPolarity || 'positive');
+        }
+        rollMishap();
+        return;
+      }
+    }
+
     // Calculate drag velocity (deg/ms)
     const now = performance.now();
     lastMovements = lastMovements.filter(m => now - m.time < 150);
@@ -2146,38 +2192,6 @@ function startFreeSpin(vel, svg) {
   rollMishap();
 }
 
-
-
-// Modal Logic
-function openModal(node, type) {
-  activeNodeId = node.id;
-  document.getElementById('node-label').value = node.label;
-  document.getElementById('node-color').value = node.color;
-  document.getElementById('edit-modal').classList.remove('hidden');
-}
-
-function closeModal() {
-  document.getElementById('edit-modal').classList.add('hidden');
-  activeNodeId = null;
-}
-
-document.getElementById('modal-cancel').addEventListener('click', closeModal);
-
-document.getElementById('modal-save').addEventListener('click', () => {
-  if (!activeNodeId) return;
-
-  const newLabel = document.getElementById('node-label').value;
-  const newColor = document.getElementById('node-color').value;
-
-  let node = appState.magicNodes.find(n => n.id === activeNodeId);
-  if (node) {
-    node.label = newLabel;
-    node.color = newColor;
-    renderMagicMandala();
-  }
-
-  closeModal();
-});
 
 // Slot Modification Logic
 function resizeNodes(nodeArray, newSize, prefix) {
@@ -2715,6 +2729,12 @@ function syncAnimationSliders() {
     freeSpinToggle.textContent = appState.freeSpinMode ? 'ON' : 'OFF';
   }
 
+  const quickRollToggle = document.getElementById('btn-toggle-quick-roll');
+  if (quickRollToggle) {
+    quickRollToggle.classList.toggle('active', !!appState.quickRoll);
+    quickRollToggle.textContent = appState.quickRoll ? 'ON' : 'OFF';
+  }
+
   const frictionSlider = document.getElementById('free-spin-friction-slider');
   const frictionVal = document.getElementById('free-spin-friction-val');
   if (frictionSlider && frictionVal) {
@@ -3244,6 +3264,15 @@ async function init() {
     freeSpinToggle.addEventListener('click', () => {
       appState.freeSpinMode = !appState.freeSpinMode;
       syncAnimationSliders();
+    });
+  }
+
+  const quickRollToggle = document.getElementById('btn-toggle-quick-roll');
+  if (quickRollToggle) {
+    quickRollToggle.addEventListener('click', () => {
+      appState.quickRoll = !appState.quickRoll;
+      updateControlsFromState();
+      renderScaledMandala();
     });
   }
 
@@ -4037,24 +4066,27 @@ function rollMishap() {
         mishapState.updatePaths();
       }
 
-      // 3. Force browser reflow to commit layout changes before initiating CSS transition
-      void spinCWGroup.offsetHeight;
-      void spinCCWGroup.offsetHeight;
-      if (spinPillsGroup) void spinPillsGroup.offsetHeight;
+      // 3. Use double-rAF so the browser paints the spin groups at their INITIAL position
+      //    before we set the transition + target. Without this, a freshly-created SVG
+      //    (e.g. from center icon tap) has its initial and final states batched into one
+      //    frame, skipping the animation entirely.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          // 4. Configure CSS transitions for GPU-accelerated smooth rotation
+          spinCWGroup.style.transition = `transform ${duration}s ${easing}`;
+          spinCCWGroup.style.transition = `transform ${duration}s ${easing}`;
+          if (spinPillsGroup) {
+            spinPillsGroup.style.transition = `transform ${duration}s ${easing}`;
+          }
 
-      // 4. Configure CSS transitions for GPU-accelerated smooth rotation
-      spinCWGroup.style.transition = `transform ${duration}s ${easing}`;
-      spinCCWGroup.style.transition = `transform ${duration}s ${easing}`;
-      if (spinPillsGroup) {
-        spinPillsGroup.style.transition = `transform ${duration}s ${easing}`;
-      }
-
-      // 5. Set target rotations to trigger the GPU-accelerated transition
-      spinCWGroup.style.transform = `rotate(${mishapState.cwAngle}deg)`;
-      spinCCWGroup.style.transform = `rotate(${-mishapState.ccwAngle}deg)`;
-      if (spinPillsGroup) {
-        spinPillsGroup.style.transform = `rotate(${mishapState.pillsAngle}deg)`;
-      }
+          // 5. Set target rotations to trigger the GPU-accelerated transition
+          spinCWGroup.style.transform = `rotate(${mishapState.cwAngle}deg)`;
+          spinCCWGroup.style.transform = `rotate(${-mishapState.ccwAngle}deg)`;
+          if (spinPillsGroup) {
+            spinPillsGroup.style.transform = `rotate(${mishapState.pillsAngle}deg)`;
+          }
+        });
+      });
 
       // 6. Complete the roll after the transition finishes
       setTimeout(() => {

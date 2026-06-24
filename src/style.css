@@ -31,13 +31,15 @@ header {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   z-index: 200;
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  pointer-events: none; /* Let clicks pass through empty space */
+  pointer-events: none;
+  /* Let clicks pass through empty space */
 }
 
 header h1,
 header .control-group,
 header .header-toggle-btn {
-  pointer-events: auto; /* Re-enable clicks ONLY on actual header contents, not invisible flex containers */
+  pointer-events: auto;
+  /* Re-enable clicks ONLY on actual header contents, not invisible flex containers */
 }
 
 /* Header Collapse State — slide up out of view */
@@ -45,8 +47,8 @@ header.collapsed {
   transform: translateY(-100%);
 }
 
-header.collapsed > h1,
-header.collapsed > .controls {
+header.collapsed>h1,
+header.collapsed>.controls {
   visibility: hidden;
   pointer-events: none;
 }
@@ -216,15 +218,16 @@ svg .clickable {
   font-weight: 600;
   text-anchor: middle;
   dominant-baseline: middle;
-  pointer-events: none; /* Let clicks pass to the path */
+  pointer-events: none;
+  /* Let clicks pass to the path */
   fill: #fff;
-  text-shadow: 0 2px 4px rgba(0,0,0,1);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 1);
 }
 
 .scaled-text {
   font-family: 'Outfit', sans-serif;
   pointer-events: none;
-  text-shadow: 0 2px 6px rgba(0,0,0,1);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 1);
 }
 
 .tier-line {
@@ -243,7 +246,7 @@ svg .clickable {
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
@@ -264,7 +267,7 @@ svg .clickable {
   padding: 2rem;
   border-radius: 12px;
   width: 300px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
 }
 
 .modal-content h3 {
@@ -418,12 +421,14 @@ svg .clickable {
     align-items: center;
     gap: 2rem;
   }
+
   .clock-panel {
     flex: 1 1 auto;
     width: 100%;
     max-width: 850px;
     margin-top: 0;
   }
+
   .rollers-panel {
     width: 100%;
     max-width: 900px;
@@ -432,10 +437,21 @@ svg .clickable {
 }
 
 @media (max-width: 900px) {
+  .mandala-container {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+
+  .dashboard-grid {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+
   .rollers-panel {
     flex-direction: column;
     align-items: center;
   }
+
   .rollers-panel .info-card {
     width: 100%;
   }
@@ -474,7 +490,7 @@ svg .clickable {
   font-size: 0.9rem;
 }
 
-.dashboard-table th, 
+.dashboard-table th,
 .dashboard-table td {
   padding: 0.35rem 0.5rem;
   border-bottom: 1px solid var(--border-color);
@@ -731,10 +747,12 @@ svg foreignObject i.gi:before {
     transform: scale(0.97);
     filter: brightness(0.8);
   }
+
   50% {
     transform: scale(1.02);
     filter: brightness(1.2);
   }
+
   100% {
     transform: scale(1);
     filter: brightness(1);
@@ -945,8 +963,10 @@ svg foreignObject i.gi:before {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px; /* Increased to prevent rotated diamond corner from overlapping the label */
-  margin-bottom: 8px; /* Extra bottom spacing to prevent bottom point overlap */
+  gap: 14px;
+  /* Increased to prevent rotated diamond corner from overlapping the label */
+  margin-bottom: 8px;
+  /* Extra bottom spacing to prevent bottom point overlap */
 }
 
 .mishap-die {
@@ -966,7 +986,8 @@ svg foreignObject i.gi:before {
 .mishap-die .die-val {
   font-size: 1.3rem;
   color: var(--accent-color);
-  transform: rotate(-45deg); /* Counter-rotate the text so it's upright */
+  transform: rotate(-45deg);
+  /* Counter-rotate the text so it's upright */
 }
 
 .mishap-die-container .die-label {
@@ -988,9 +1009,19 @@ svg foreignObject i.gi:before {
 }
 
 @keyframes dieRollDiamond {
-  0% { transform: rotate(45deg) scale(0.85); opacity: 0.5; }
-  50% { transform: rotate(45deg) scale(1.15); opacity: 1; }
-  100% { transform: rotate(45deg) scale(1); }
+  0% {
+    transform: rotate(45deg) scale(0.85);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: rotate(45deg) scale(1.15);
+    opacity: 1;
+  }
+
+  100% {
+    transform: rotate(45deg) scale(1);
+  }
 }
 
 .mishap-narrative-box {
@@ -1041,9 +1072,17 @@ svg foreignObject i.gi:before {
 }
 
 @keyframes pulseFlash {
-  0% { box-shadow: 0 0 0 0 rgba(255, 69, 0, 0.6); }
-  70% { box-shadow: 0 0 0 8px rgba(255, 69, 0, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 69, 0, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 69, 0, 0.6);
+  }
+
+  70% {
+    box-shadow: 0 0 0 8px rgba(255, 69, 0, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 69, 0, 0);
+  }
 }
 
 /* SVG Mandala Non-destructive Highlights (Extremely Obvious) */
@@ -1058,6 +1097,7 @@ svg foreignObject i.gi:before {
 
 @keyframes pulseSlice {
   0% {}
+
   100% {}
 }
 
@@ -1092,16 +1132,17 @@ svg foreignObject i.gi:before {
   filter: brightness(1.8) drop-shadow(0 0 12px rgba(255, 255, 255, 0.7)) !important;
 }
 
-.outer-icon-group.highlighted .base-icon {
-}
+.outer-icon-group.highlighted .base-icon {}
 
 @keyframes pulseGlowText {
   0% {}
+
   100% {}
 }
 
 @keyframes pulseGlow {
   0% {}
+
   100% {}
 }
 
@@ -1163,8 +1204,15 @@ svg foreignObject i.gi:before {
 
 
 @keyframes pulseRingResult {
-  0% { filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5)); stroke: rgba(255, 255, 255, 0.8); }
-  100% { filter: drop-shadow(0 0 25px #fff); stroke: #fff; }
+  0% {
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+    stroke: rgba(255, 255, 255, 0.8);
+  }
+
+  100% {
+    filter: drop-shadow(0 0 25px #fff);
+    stroke: #fff;
+  }
 }
 
 /* details block styling */
@@ -1195,7 +1243,8 @@ details.mishap-gm-details summary {
   letter-spacing: 0.07em;
   cursor: pointer;
   outline: none;
-  list-style: none; /* Hide default arrow in Chrome/Firefox */
+  list-style: none;
+  /* Hide default arrow in Chrome/Firefox */
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1203,7 +1252,8 @@ details.mishap-gm-details summary {
 }
 
 details.mishap-gm-details summary::-webkit-details-marker {
-  display: none; /* Hide default arrow in Safari */
+  display: none;
+  /* Hide default arrow in Safari */
 }
 
 details.mishap-gm-details summary::after {
@@ -1328,7 +1378,8 @@ details.mishap-gm-details.axis-fracture .gm-fiction-prompt {
   font-size: 0.85rem;
   top: -8px;
   right: -8px;
-  transform: rotate(-45deg); /* Counter-rotate to stay upright with text */
+  transform: rotate(-45deg);
+  /* Counter-rotate to stay upright with text */
   filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5));
 }
 
@@ -1336,8 +1387,13 @@ details.mishap-gm-details.axis-fracture .gm-fiction-prompt {
 
 
 @keyframes spinIcon {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* --- Dulling Logic for Roll Results --- */
@@ -1379,13 +1435,23 @@ details.mishap-gm-details.axis-fracture .gm-fiction-prompt {
 }
 
 @keyframes spinCCW {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(-360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(-360deg);
+  }
 }
 
 @keyframes spinCW {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* --- Overlay Pill Styling in Default/Neutral State vs Rolled State --- */
@@ -1441,30 +1507,39 @@ details.mishap-gm-details.axis-fracture .gm-fiction-prompt {
     gap: 1rem;
     align-items: stretch;
   }
+
   .controls {
     justify-content: center;
     gap: 0.5rem;
   }
+
   .mandala-container {
-    padding: 1rem 0.5rem;
+    padding: 1rem 0;
     gap: 1.5rem;
   }
+
   .dashboard-grid {
-    padding: 0 0.25rem;
+    padding: 0;
     gap: 1.5rem;
   }
+
   .clock-panel {
     padding-left: 0 !important;
     padding-right: 0 !important;
   }
+
   .svg-container {
     max-width: 100%;
     margin: 0 auto;
   }
+
   .rollers-panel {
     gap: 1.5rem;
   }
-  .btn, .btn-segment, .segmented-control span {
+
+  .btn,
+  .btn-segment,
+  .segmented-control span {
     font-size: 0.8rem !important;
     padding: 0.35rem 0.7rem !important;
   }
