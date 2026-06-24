@@ -3483,12 +3483,12 @@ async function init() {
       localStorage.setItem('header-collapsed', isCollapsed);
     });
 
-    // Apply initial state from local storage on load
-    const isCollapsedSaved = localStorage.getItem('header-collapsed') === 'true';
-    if (isCollapsedSaved) {
+    // Apply initial state from local storage on load (default to collapsed if not set)
+    const isCollapsedSaved = localStorage.getItem('header-collapsed') !== 'false';
+    if (!isCollapsedSaved) {
       header.classList.add('no-transition');
-      header.classList.add('collapsed');
-      syncBodyClass(true);
+      header.classList.remove('collapsed');
+      syncBodyClass(false);
       // Trigger a force reflow to ensure styles are applied without transition
       header.offsetHeight;
       header.classList.remove('no-transition');
