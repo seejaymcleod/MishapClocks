@@ -47,7 +47,7 @@ let appState = {
   alignEffectToTop: true,
   showOuterCenterNumbers: false,
   showInlineNumbers: true,
-  clockYOffset: -5,
+  clockYOffset: -1,
   magicNodes: [
     { id: 'm0', label: 'Thermal', icon: 'gi-flame-spin', negativeIcon: 'gi-snowflake-1', color: '#ff4500', opposite: 'Hydro', slider: 'Injecting kinetic heat (ignition) ↔ siphoning it (absolute zero).' },
     { id: 'm1', label: 'Aero', icon: 'gi-tornado', negativeIcon: 'gi-wind-hole', color: '#87ceeb', opposite: 'Geo', slider: 'High pressure and gales ↔ suffocating vacuums.' },
@@ -386,14 +386,18 @@ function renderScaledMandala() {
   const container = document.getElementById('target-mandala');
   if (!container) return;
   container.innerHTML = '';
-
-  const size = 5200;
-  const cx = size / 2;
-  const cy = size / 2;
-
   const holeRadius = 120;
   const outerRadius = 1800;
   const ringWidth = (outerRadius - holeRadius) / 6;
+
+  const outerDistTop = Number(appState.outerDistTop ?? 320);
+  const outerDistBottom = Number(appState.outerDistBottom ?? 320);
+  const maxOuterDist = Math.max(outerDistTop, outerDistBottom);
+  const safetyMargin = 220;
+  const contentRadius = outerRadius + maxOuterDist + safetyMargin;
+  const size = Math.round(contentRadius * 2);
+  const cx = size / 2;
+  const cy = size / 2;
 
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
@@ -1699,11 +1703,13 @@ function renderScaledMandala() {
 
     const spinCCWGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
     spinCCWGroup.setAttribute("class", "spin-ccw-group");
+    spinCCWGroup.style.transformOrigin = `${cx}px ${cy}px`;
     const initialCCW = mishapState.ccwAngle || 0;
     spinCCWGroup.style.transform = `rotate(${-initialCCW}deg)`;
 
     const spinCWGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
     spinCWGroup.setAttribute("class", "spin-cw-group");
+    spinCWGroup.style.transformOrigin = `${cx}px ${cy}px`;
     const initialCW = mishapState.cwAngle || 0;
     spinCWGroup.style.transform = `rotate(${initialCW}deg)`;
 
@@ -1753,6 +1759,7 @@ function renderScaledMandala() {
 
     const spinPillsGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
     spinPillsGroup.setAttribute("class", "spin-pills-group");
+    spinPillsGroup.style.transformOrigin = `${cx}px ${cy}px`;
     const initialPills = mishapState.pillsAngle || 0;
     spinPillsGroup.style.transform = `rotate(${initialPills}deg)`;
     activePillsList.forEach(el => spinPillsGroup.appendChild(el));
@@ -2018,7 +2025,7 @@ function setupDragAndFlick(svg) {
   let initialPills = 0;
   let lastMovements = [];
   let capturedPointerId = null;
-  
+
   const getPointerAngle = (clientX, clientY) => {
     const rect = container.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
@@ -2029,7 +2036,7 @@ function setupDragAndFlick(svg) {
   const handlePointerDown = (e) => {
     // If currently rolling/animating, ignore new drag actions
     if (mishapState.isRolling) return;
-    
+
     // Clear any active free spin animation frame
     if (mishapState.freeSpinFrameId) {
       cancelAnimationFrame(mishapState.freeSpinFrameId);
@@ -2530,13 +2537,8 @@ function syncOuterOffsetSlider() {
 function applyClockOffsets() {
   const clockPanel = document.querySelector('.clock-panel');
   if (clockPanel) {
-    if (window.innerWidth > 1350) {
-      clockPanel.style.marginTop = (appState.clockYOffset ?? -1.5) + "rem";
-      clockPanel.style.marginLeft = (appState.clockXOffset ?? 0) + "rem";
-    } else {
-      clockPanel.style.marginTop = "";
-      clockPanel.style.marginLeft = "";
-    }
+    clockPanel.style.marginTop = (appState.clockYOffset ?? -1.5) + "rem";
+    clockPanel.style.marginLeft = (appState.clockXOffset ?? 0) + "rem";
     const pad = appState.clockPadding ?? 0;
     clockPanel.style.paddingLeft = pad + "px";
     clockPanel.style.paddingRight = pad + "px";

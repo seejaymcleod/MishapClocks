@@ -36,6 +36,7 @@ header {
 }
 
 header h1,
+header .controls,
 header .control-group,
 header .header-toggle-btn {
   pointer-events: auto;
@@ -155,16 +156,16 @@ h1 {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 4rem;
-  padding: 3rem;
-  padding-top: calc(var(--header-height, 80px) + 3rem);
+  gap: 2rem;
+  padding: 1rem;
+  padding-top: calc(var(--header-height, 80px) + 1rem);
   flex-grow: 1;
   transition: padding-top 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* When header is hidden, remove the top padding offset */
 body.header-collapsed .mandala-container {
-  padding-top: 3rem;
+  padding-top: 1rem;
 }
 
 .mandala-wrapper {
