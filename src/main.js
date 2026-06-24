@@ -1990,6 +1990,7 @@ function setupDragAndFlick(svg) {
   let initialCCW = 0;
   let initialPills = 0;
   let lastMovements = [];
+  let capturedPointerId = null;
   
   const getPointerAngle = (clientX, clientY) => {
     const rect = container.getBoundingClientRect();
@@ -2018,8 +2019,10 @@ function setupDragAndFlick(svg) {
 
     lastMovements = [{ time: performance.now(), angle: startAngle }];
 
-    // Set pointer capture so move/up events continue even if leaving the element
-    svg.setPointerCapture(e.pointerId);
+    // Store pointerId but do NOT capture yet — capturing on every pointerdown
+    // redirects the synthetic click event to the SVG, bypassing iconGroup listeners.
+    // We only capture once a real drag begins (in handlePointerMove).
+    capturedPointerId = e.pointerId;
   };
 
   const handlePointerMove = (e) => {
@@ -2034,6 +2037,12 @@ function setupDragAndFlick(svg) {
 
     if (Math.abs(angleDiff) > 3) {
       hasDragged = true;
+      // Only capture the pointer once we know it's a real drag.
+      // Capturing in pointerdown would redirect the click event to the SVG,
+      // breaking icon tap detection.
+      if (capturedPointerId !== null && !svg.hasPointerCapture(capturedPointerId)) {
+        svg.setPointerCapture(capturedPointerId);
+      }
     }
 
     const now = performance.now();
@@ -2062,7 +2071,10 @@ function setupDragAndFlick(svg) {
   const handlePointerUp = (e) => {
     if (!isDragging) return;
     isDragging = false;
-    svg.releasePointerCapture(e.pointerId);
+    if (svg.hasPointerCapture(e.pointerId)) {
+      svg.releasePointerCapture(e.pointerId);
+    }
+    capturedPointerId = null;
 
     const currentAngle = getPointerAngle(e.clientX, e.clientY);
     let angleDiff = currentAngle - startAngle;
