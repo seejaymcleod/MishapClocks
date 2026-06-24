@@ -24,6 +24,14 @@ let appState = {
   modifierMinFontSize: 22,
   modifierMaxFontSize: 80,
   modifierDesiredFontSize: 100,
+  effectWrapChars: 40,
+  inlineNumberSize: 90,
+  inlineNumberSpacing: 40,
+  polarityCharSize: 145,
+  polarityLineGap: 0,
+  polarityLineLength: 10,
+  polarityLineGradPos: 40,
+  headerFontSize: 0.75,
   animationMode: true,
   animationSpeed: 15,
   animationDuration: 1.8,
@@ -140,7 +148,7 @@ function mapTablesToState(tables) {
   };
 }
 
-function renderSidebarTables() {}
+function renderSidebarTables() { }
 
 // Drawing Utilities
 function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
@@ -616,93 +624,93 @@ function renderScaledMandala() {
       // CLASSIC MODE (No overlay boxes, original layout restored)
       // -------------------------------------------------------------
       if (['curved-axis', 'horizontal-hud', 'radial-vector', 'minimal-rune', 'curved-text'].includes(appState.viewMode)) {
-          const getDynamicFontSize = (text, radius) => {
-            const arcLength = radius * (angleStep * Math.PI / 180);
-            const maxChars = text.length || 1;
-            const targetWidth = arcLength * 0.85;
-            return Math.min(75, targetWidth / (maxChars * 0.50));
-          };
+        const getDynamicFontSize = (text, radius) => {
+          const arcLength = radius * (angleStep * Math.PI / 180);
+          const maxChars = text.length || 1;
+          const targetWidth = arcLength * 0.85;
+          return Math.min(75, targetWidth / (maxChars * 0.50));
+        };
 
-          const pathRadius = innerR + ringWidth * 0.5;
-          const modifierText = firstNode.modifier || '—';
+        const pathRadius = innerR + ringWidth * 0.5;
+        const modifierText = firstNode.modifier || '—';
 
-          const createCurvedLine = (id, radius, textContent, color, fontSize, customClass = "scaled-text") => {
-            const pathStart = polarToCartesian(cx, cy, radius, 0);
-            const pathEnd = polarToCartesian(cx, cy, radius, 45);
-            const pathData = [
-              "M", pathStart.x, pathStart.y,
-              "A", radius, radius, 0, 0, 1, pathEnd.x, pathEnd.y
-            ].join(" ");
+        const createCurvedLine = (id, radius, textContent, color, fontSize, customClass = "scaled-text") => {
+          const pathStart = polarToCartesian(cx, cy, radius, 0);
+          const pathEnd = polarToCartesian(cx, cy, radius, 45);
+          const pathData = [
+            "M", pathStart.x, pathStart.y,
+            "A", radius, radius, 0, 0, 1, pathEnd.x, pathEnd.y
+          ].join(" ");
 
-            const defsPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            defsPath.setAttribute("id", id);
-            defsPath.setAttribute("d", pathData);
-            defsPath.setAttribute("fill", "none");
-            svg.appendChild(defsPath);
+          const defsPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          defsPath.setAttribute("id", id);
+          defsPath.setAttribute("d", pathData);
+          defsPath.setAttribute("fill", "none");
+          svg.appendChild(defsPath);
 
-            const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-            textEl.setAttribute("class", customClass);
-            textEl.setAttribute("fill", color);
-            textEl.setAttribute("font-size", `${fontSize}px`);
-            textEl.setAttribute("font-weight", "bold");
-            textEl.setAttribute("filter", "url(#text-shadow-filter)");
-            textEl.style.pointerEvents = "none";
+          const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          textEl.setAttribute("class", customClass);
+          textEl.setAttribute("fill", color);
+          textEl.setAttribute("font-size", `${fontSize}px`);
+          textEl.setAttribute("font-weight", "bold");
+          textEl.setAttribute("filter", "url(#text-shadow-filter)");
+          textEl.style.pointerEvents = "none";
 
-            const textPath = document.createElementNS("http://www.w3.org/2000/svg", "textPath");
-            textPath.setAttribute("href", `#${id}`);
-            textPath.setAttribute("startOffset", "50%");
-            textPath.setAttribute("text-anchor", "middle");
-            textPath.textContent = textContent;
+          const textPath = document.createElementNS("http://www.w3.org/2000/svg", "textPath");
+          textPath.setAttribute("href", `#${id}`);
+          textPath.setAttribute("startOffset", "50%");
+          textPath.setAttribute("text-anchor", "middle");
+          textPath.textContent = textContent;
 
-            textEl.appendChild(textPath);
-            svg.appendChild(textEl);
-          };
+          textEl.appendChild(textPath);
+          svg.appendChild(textEl);
+        };
 
-          if (tIndex === 0) {
-            const rRow1 = pathRadius + 35;
-            const rRow2 = pathRadius - 35;
-            createCurvedLine(`curved-path-${tIndex}-r1`, rRow1, `${diceText}   ${dcText}`, "#fbbf24", 45, "scaled-text");
-            createCurvedLine(`curved-path-${tIndex}-r2`, rRow2, "T0", "rgba(255, 255, 255, 0.7)", 56, "scaled-text tier-label-text");
+        if (tIndex === 0) {
+          const rRow1 = pathRadius + 35;
+          const rRow2 = pathRadius - 35;
+          createCurvedLine(`curved-path-${tIndex}-r1`, rRow1, `${diceText}   ${dcText}`, "#fbbf24", 45, "scaled-text");
+          createCurvedLine(`curved-path-${tIndex}-r2`, rRow2, "T0", "rgba(255, 255, 255, 0.7)", 56, "scaled-text tier-label-text");
+        } else {
+          let row1Text = modifierText;
+          let row2Text = '';
+          if (modifierText.includes(' - ')) {
+            const parts = modifierText.split(' - ');
+            row1Text = parts[0];
+            row2Text = '- ' + parts[1];
+          } else if (modifierText.includes(' ')) {
+            const words = modifierText.split(' ');
+            const mid = Math.ceil(words.length / 2);
+            row1Text = words.slice(0, mid).join(' ');
+            row2Text = words.slice(mid).join(' ');
+          }
+
+          if (row2Text) {
+            const rRow1a = pathRadius + 90;
+            const rRow1b = pathRadius + 40;
+            const rRow2 = pathRadius - 20;
+            const rRow3 = pathRadius - 85;
+
+            const fs1 = getDynamicFontSize(row1Text, rRow1a);
+            const fs2 = getDynamicFontSize(row2Text, rRow1b);
+
+            createCurvedLine(`curved-path-${tIndex}-r1a`, rRow1a, row1Text, "#ffffff", Math.min(fs1 + 10, 80), "scaled-text effect-name-text");
+            createCurvedLine(`curved-path-${tIndex}-r1b`, rRow1b, row2Text, "#ffffff", Math.min(fs2 + 10, 80), "scaled-text effect-name-text");
+            createCurvedLine(`curved-path-${tIndex}-r2`, rRow2, `${diceText}   ${dcText}`, "#fbbf24", 45, "scaled-text");
+            createCurvedLine(`curved-path-${tIndex}-r3`, rRow3, `T${tIndex}`, "rgba(255, 255, 255, 0.7)", 56, "scaled-text tier-label-text");
           } else {
-            let row1Text = modifierText;
-            let row2Text = '';
-            if (modifierText.includes(' - ')) {
-              const parts = modifierText.split(' - ');
-              row1Text = parts[0];
-              row2Text = '- ' + parts[1];
-            } else if (modifierText.includes(' ')) {
-              const words = modifierText.split(' ');
-              const mid = Math.ceil(words.length / 2);
-              row1Text = words.slice(0, mid).join(' ');
-              row2Text = words.slice(mid).join(' ');
-            }
+            const rRow1 = pathRadius + 65;
+            const rRow2 = pathRadius - 10;
+            const rRow3 = pathRadius - 85;
 
-            if (row2Text) {
-              const rRow1a = pathRadius + 90;
-              const rRow1b = pathRadius + 40;
-              const rRow2 = pathRadius - 20;
-              const rRow3 = pathRadius - 85;
+            const calculatedFontSize = getDynamicFontSize(modifierText, rRow1);
 
-              const fs1 = getDynamicFontSize(row1Text, rRow1a);
-              const fs2 = getDynamicFontSize(row2Text, rRow1b);
-
-              createCurvedLine(`curved-path-${tIndex}-r1a`, rRow1a, row1Text, "#ffffff", Math.min(fs1 + 10, 80), "scaled-text effect-name-text");
-              createCurvedLine(`curved-path-${tIndex}-r1b`, rRow1b, row2Text, "#ffffff", Math.min(fs2 + 10, 80), "scaled-text effect-name-text");
-              createCurvedLine(`curved-path-${tIndex}-r2`, rRow2, `${diceText}   ${dcText}`, "#fbbf24", 45, "scaled-text");
-              createCurvedLine(`curved-path-${tIndex}-r3`, rRow3, `T${tIndex}`, "rgba(255, 255, 255, 0.7)", 56, "scaled-text tier-label-text");
-            } else {
-              const rRow1 = pathRadius + 65;
-              const rRow2 = pathRadius - 10;
-              const rRow3 = pathRadius - 85;
-
-              const calculatedFontSize = getDynamicFontSize(modifierText, rRow1);
-
-              createCurvedLine(`curved-path-${tIndex}-r1`, rRow1, modifierText, "#ffffff", Math.min(calculatedFontSize + 10, 80), "scaled-text effect-name-text");
-              createCurvedLine(`curved-path-${tIndex}-r2`, rRow2, `${diceText}   ${dcText}`, "#fbbf24", 45, "scaled-text");
-              createCurvedLine(`curved-path-${tIndex}-r3`, rRow3, `T${tIndex}`, "rgba(255, 255, 255, 0.7)", 56, "scaled-text tier-label-text");
-            }
+            createCurvedLine(`curved-path-${tIndex}-r1`, rRow1, modifierText, "#ffffff", Math.min(calculatedFontSize + 10, 80), "scaled-text effect-name-text");
+            createCurvedLine(`curved-path-${tIndex}-r2`, rRow2, `${diceText}   ${dcText}`, "#fbbf24", 45, "scaled-text");
+            createCurvedLine(`curved-path-${tIndex}-r3`, rRow3, `T${tIndex}`, "rgba(255, 255, 255, 0.7)", 56, "scaled-text tier-label-text");
           }
         }
+      }
     } else {
       // -------------------------------------------------------------
       // OVERLAY STYLES
@@ -959,16 +967,21 @@ function renderScaledMandala() {
         textPath.setAttribute("href", `#${pathId}`);
         textPath.setAttribute("startOffset", "50%");
         textPath.setAttribute("text-anchor", "middle");
+        textPath.setAttribute("text-anchor", "middle");
         textPath.setAttribute("fill", isSchool ? school.color : "#e2e8f0");
         if (prefix) {
           const tspanPrefix = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
           tspanPrefix.setAttribute("font-weight", "bold");
           tspanPrefix.setAttribute("fill", "#fbbf24");
-          tspanPrefix.textContent = prefix;
+          const pSize = Number(appState.inlineNumberSize ?? 70);
+          tspanPrefix.setAttribute("font-size", `${pSize}px`);
+          tspanPrefix.textContent = prefix.replace(/\u00A0/g, '').trim();
           textPath.appendChild(tspanPrefix);
 
           const tspanText = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
           tspanText.textContent = text;
+          const pSpace = Number(appState.inlineNumberSpacing ?? 30);
+          tspanText.setAttribute("dx", `${pSpace}px`);
           textPath.appendChild(tspanText);
         } else {
           textPath.textContent = text;
@@ -980,7 +993,7 @@ function renderScaledMandala() {
 
       const drawCenteredText = (text, radius, centerAngle, pathId, isSchool, prefix) => {
         // Wrap effect names if they contain a space or hyphen and are long enough
-        const shouldWrap = !isSchool && (text.includes(" ") || text.includes("-")) && text.length > 15;
+        const shouldWrap = !isSchool && (text.includes(" ") || text.includes("-")) && text.length > Number(appState.effectWrapChars ?? 40);
         if (shouldWrap) {
           let parts = [];
           if (text.includes(" ")) {
@@ -1032,11 +1045,11 @@ function renderScaledMandala() {
       const iconSize = 180;
       const containerSize = iconSize * 2;
       const mode = appState.polarityMode || 'gap';
-      
+
       const polarityOffset = appState.centerOuterText ? 15 : offsetVal;
       const ccwAngleIcon = angle - polarityOffset;
       const cwAngleIcon = angle + polarityOffset;
-      
+
       let ccwAngleText = ccwAngleIcon;
       let cwAngleText = cwAngleIcon;
       let radiusTopText = centerRadius;
@@ -1062,7 +1075,7 @@ function renderScaledMandala() {
         iconGroup.setAttribute("data-base-angle", angle);
         iconGroup.setAttribute("data-ccw-angle", ccwAngleIcon);
         iconGroup.setAttribute("data-cw-angle", cwAngleIcon);
-        
+
         const radiusTop = centerRadius;
         const radiusBottom = centerRadius + bottomIconShift;
         iconGroup.setAttribute("data-radius-top", radiusTop);
@@ -1070,9 +1083,9 @@ function renderScaledMandala() {
 
         const layout = appState.polarityLayout || 'visual-right';
         const isVisuallyBottomHalf = angle > 90 && angle < 270;
-        const useCW = polarity === 'positive' ? 
-                        (layout === 'visual-right' && isVisuallyBottomHalf ? false : true) : 
-                        (layout === 'visual-right' && isVisuallyBottomHalf ? true : false);
+        const useCW = polarity === 'positive' ?
+          (layout === 'visual-right' && isVisuallyBottomHalf ? false : true) :
+          (layout === 'visual-right' && isVisuallyBottomHalf ? true : false);
         const localAngle = useCW ? cwAngleIcon : ccwAngleIcon;
         const radius = isVisuallyBottomHalf ? radiusBottom : radiusTop;
         const pos = polarToCartesian(cx, cy, radius, localAngle);
@@ -1124,15 +1137,16 @@ function renderScaledMandala() {
       };
 
       const drawPolarity = (symbolText, polarity) => {
-        let fontSize = "110px";
+        const sizeVal = Number(appState.polarityCharSize ?? 110);
+        let fontSize = `${sizeVal}px`;
         let opacity = "0.45";
         let isWatermark = (mode === 'watermark');
-        
+
         if (mode === 'gap' || mode === 'flanking') {
-          fontSize = "110px";
+          fontSize = `${sizeVal}px`;
           opacity = "0.55";
         } else if (mode === 'above') {
-          fontSize = "95px";
+          fontSize = `${Math.floor(sizeVal * 0.86)}px`;
           opacity = "0.6";
         }
 
@@ -1140,15 +1154,15 @@ function renderScaledMandala() {
 
         const layout = appState.polarityLayout || 'visual-right';
         const isVisuallyBottomHalf = angle > 90 && angle < 270;
-        const useCW = polarity === 'positive' ? 
-                        (layout === 'visual-right' && isVisuallyBottomHalf ? false : true) : 
-                        (layout === 'visual-right' && isVisuallyBottomHalf ? true : false);
-        
+        const useCW = polarity === 'positive' ?
+          (layout === 'visual-right' && isVisuallyBottomHalf ? false : true) :
+          (layout === 'visual-right' && isVisuallyBottomHalf ? true : false);
+
         const localAngle = useCW ? cwAngleText : ccwAngleText;
         const radiusTop = isWatermark ? centerRadius : radiusTopText;
         const radiusBottom = isWatermark ? (centerRadius + bottomIconShift) : radiusBottomText;
         const radius = isVisuallyBottomHalf ? radiusBottom : radiusTop;
-        
+
         const pos = polarToCartesian(cx, cy, radius, localAngle);
         let rot = localAngle + (isVisuallyBottomHalf ? 180 : 0);
 
@@ -1224,11 +1238,15 @@ function renderScaledMandala() {
         if (school.negativeIcon) drawPolarity('-', 'negative');
         if (school.icon) drawPolarity('+', 'positive');
       }
-      
+
       const iconRadius = centerRadius + (isBottomHalf ? bottomIconShift : 0);
 
       // 5. Draw Minimalistic Translucent Curved Line Arrows pointing OUTWARDS (no arrowheads)
       const arrowRadius = iconRadius;
+
+      const pGap = Number(appState.polarityLineGap ?? 3.5);
+      const pLen = Number(appState.polarityLineLength ?? 8);
+      const gradPos = Number(appState.polarityLineGradPos ?? 40);
 
       // Define Arrow Gradients dynamically in the SVG defs (more aggressive fade to 0.0 opacity)
       const defs = svg.querySelector('defs');
@@ -1242,15 +1260,15 @@ function renderScaledMandala() {
           leftGrad.setAttribute("gradientUnits", "userSpaceOnUse");
           defs.appendChild(leftGrad);
         }
-        const startLeft = polarToCartesian(cx, cy, arrowRadius, angle - 3.5);
-        const endLeft = polarToCartesian(cx, cy, arrowRadius, angle - 11.5);
-        leftGrad.setAttribute("x1", startLeft.x);
-        leftGrad.setAttribute("y1", startLeft.y);
-        leftGrad.setAttribute("x2", endLeft.x);
-        leftGrad.setAttribute("y2", endLeft.y);
+        const startLeftG = polarToCartesian(cx, cy, arrowRadius, angle - pGap);
+        const endLeftG = polarToCartesian(cx, cy, arrowRadius, angle - (pGap + pLen));
+        leftGrad.setAttribute("x1", startLeftG.x);
+        leftGrad.setAttribute("y1", startLeftG.y);
+        leftGrad.setAttribute("x2", endLeftG.x);
+        leftGrad.setAttribute("y2", endLeftG.y);
         leftGrad.innerHTML = `
           <stop offset="0%" stop-color="${school.color}" stop-opacity="1.0" />
-          <stop offset="40%" stop-color="${school.color}" stop-opacity="0.2" />
+          <stop offset="${gradPos}%" stop-color="${school.color}" stop-opacity="0.2" />
           <stop offset="100%" stop-color="${school.color}" stop-opacity="0.0" />
         `;
 
@@ -1263,22 +1281,22 @@ function renderScaledMandala() {
           rightGrad.setAttribute("gradientUnits", "userSpaceOnUse");
           defs.appendChild(rightGrad);
         }
-        const startRight = polarToCartesian(cx, cy, arrowRadius, angle + 3.5);
-        const endRight = polarToCartesian(cx, cy, arrowRadius, angle + 11.5);
-        rightGrad.setAttribute("x1", startRight.x);
-        rightGrad.setAttribute("y1", startRight.y);
-        rightGrad.setAttribute("x2", endRight.x);
-        rightGrad.setAttribute("y2", endRight.y);
+        const startRightG = polarToCartesian(cx, cy, arrowRadius, angle + pGap);
+        const endRightG = polarToCartesian(cx, cy, arrowRadius, angle + (pGap + pLen));
+        rightGrad.setAttribute("x1", startRightG.x);
+        rightGrad.setAttribute("y1", startRightG.y);
+        rightGrad.setAttribute("x2", endRightG.x);
+        rightGrad.setAttribute("y2", endRightG.y);
         rightGrad.innerHTML = `
           <stop offset="0%" stop-color="${school.color}" stop-opacity="1.0" />
-          <stop offset="40%" stop-color="${school.color}" stop-opacity="0.2" />
+          <stop offset="${gradPos}%" stop-color="${school.color}" stop-opacity="0.2" />
           <stop offset="100%" stop-color="${school.color}" stop-opacity="0.0" />
         `;
       }
 
       // Draw Left Arrow Line
-      const startLeft = polarToCartesian(cx, cy, arrowRadius, angle - 3.5);
-      const endLeft = polarToCartesian(cx, cy, arrowRadius, angle - 11.5);
+      const startLeft = polarToCartesian(cx, cy, arrowRadius, angle - pGap);
+      const endLeft = polarToCartesian(cx, cy, arrowRadius, angle - (pGap + pLen));
 
       const leftArrowLine = document.createElementNS("http://www.w3.org/2000/svg", "path");
       leftArrowLine.setAttribute("d", `M ${startLeft.x} ${startLeft.y} A ${arrowRadius} ${arrowRadius} 0 0 0 ${endLeft.x} ${endLeft.y}`);
@@ -1289,8 +1307,8 @@ function renderScaledMandala() {
       svg.appendChild(leftArrowLine);
 
       // Draw Right Arrow Line
-      const startRight = polarToCartesian(cx, cy, arrowRadius, angle + 3.5);
-      const endRight = polarToCartesian(cx, cy, arrowRadius, angle + 11.5);
+      const startRight = polarToCartesian(cx, cy, arrowRadius, angle + pGap);
+      const endRight = polarToCartesian(cx, cy, arrowRadius, angle + (pGap + pLen));
 
       const rightArrowLine = document.createElementNS("http://www.w3.org/2000/svg", "path");
       rightArrowLine.setAttribute("d", `M ${startRight.x} ${startRight.y} A ${arrowRadius} ${arrowRadius} 0 0 1 ${endRight.x} ${endRight.y}`);
@@ -1758,21 +1776,21 @@ function renderScaledMandala() {
           const polarity = el.getAttribute('data-polarity');
           const radiusTop = parseFloat(el.getAttribute('data-radius-top'));
           const radiusBottom = parseFloat(el.getAttribute('data-radius-bottom'));
-          
+
           let visualWedgeAngle = (baseAngle + angleCCW) % 360;
           if (visualWedgeAngle < 0) visualWedgeAngle += 360;
           const isVisuallyBottomHalf = visualWedgeAngle > 90 && visualWedgeAngle < 270;
-          
-          const useCW = polarity === 'positive' ? 
-                          (layout === 'visual-right' && isVisuallyBottomHalf ? false : true) : 
-                          (layout === 'visual-right' && isVisuallyBottomHalf ? true : false);
-                          
+
+          const useCW = polarity === 'positive' ?
+            (layout === 'visual-right' && isVisuallyBottomHalf ? false : true) :
+            (layout === 'visual-right' && isVisuallyBottomHalf ? true : false);
+
           const localAngle = useCW ? cwAngle : ccwAngle;
           const radius = isVisuallyBottomHalf ? radiusBottom : radiusTop;
-          
+
           const pos = polarToCartesian(cx, cy, radius, localAngle);
           let rot = localAngle + (isVisuallyBottomHalf ? 180 : 0);
-          
+
           el.setAttribute("transform", `translate(${pos.x}, ${pos.y}) rotate(${rot})`);
         });
       };
@@ -2954,6 +2972,120 @@ async function init() {
     momentumSlider.addEventListener('input', (e) => {
       appState.momentumCurve = parseFloat(e.target.value);
       momentumVal.textContent = appState.momentumCurve;
+    });
+  }
+
+  const effectWrapCharsSlider = document.getElementById('effect-wrap-chars-slider');
+  const effectWrapCharsVal = document.getElementById('effect-wrap-chars-val');
+  if (effectWrapCharsSlider && effectWrapCharsVal) {
+    effectWrapCharsSlider.value = appState.effectWrapChars ?? 40;
+    effectWrapCharsVal.textContent = appState.effectWrapChars ?? 40;
+    effectWrapCharsSlider.addEventListener('input', (e) => {
+      appState.effectWrapChars = parseInt(e.target.value);
+      effectWrapCharsVal.textContent = appState.effectWrapChars;
+      renderScaledMandala();
+    });
+  }
+
+  const inlineNumSizeSlider = document.getElementById('inline-number-size-slider');
+  const inlineNumSizeVal = document.getElementById('inline-number-size-val');
+  if (inlineNumSizeSlider && inlineNumSizeVal) {
+    inlineNumSizeSlider.value = appState.inlineNumberSize ?? 70;
+    inlineNumSizeVal.textContent = (appState.inlineNumberSize ?? 70) + "px";
+    inlineNumSizeSlider.addEventListener('input', (e) => {
+      appState.inlineNumberSize = parseInt(e.target.value);
+      inlineNumSizeVal.textContent = appState.inlineNumberSize + "px";
+      renderScaledMandala();
+    });
+  }
+
+  const inlineNumSpacingSlider = document.getElementById('inline-number-spacing-slider');
+  const inlineNumSpacingVal = document.getElementById('inline-number-spacing-val');
+  if (inlineNumSpacingSlider && inlineNumSpacingVal) {
+    inlineNumSpacingSlider.value = appState.inlineNumberSpacing ?? 30;
+    inlineNumSpacingVal.textContent = (appState.inlineNumberSpacing ?? 30) + "px";
+    inlineNumSpacingSlider.addEventListener('input', (e) => {
+      appState.inlineNumberSpacing = parseInt(e.target.value);
+      inlineNumSpacingVal.textContent = appState.inlineNumberSpacing + "px";
+      renderScaledMandala();
+    });
+  }
+
+  const polarityCharSizeSlider = document.getElementById('polarity-char-size-slider');
+  const polarityCharSizeVal = document.getElementById('polarity-char-size-val');
+  if (polarityCharSizeSlider && polarityCharSizeVal) {
+    polarityCharSizeSlider.value = appState.polarityCharSize ?? 110;
+    polarityCharSizeVal.textContent = (appState.polarityCharSize ?? 110) + "px";
+    polarityCharSizeSlider.addEventListener('input', (e) => {
+      appState.polarityCharSize = parseInt(e.target.value);
+      polarityCharSizeVal.textContent = appState.polarityCharSize + "px";
+      renderScaledMandala();
+    });
+  }
+
+  const polarityLineGapSlider = document.getElementById('polarity-line-gap-slider');
+  const polarityLineGapVal = document.getElementById('polarity-line-gap-val');
+  if (polarityLineGapSlider && polarityLineGapVal) {
+    polarityLineGapSlider.value = appState.polarityLineGap ?? 3.5;
+    polarityLineGapVal.textContent = (appState.polarityLineGap ?? 3.5) + "°";
+    polarityLineGapSlider.addEventListener('input', (e) => {
+      appState.polarityLineGap = parseFloat(e.target.value);
+      polarityLineGapVal.textContent = appState.polarityLineGap + "°";
+      renderScaledMandala();
+    });
+  }
+
+  const polarityLineLengthSlider = document.getElementById('polarity-line-length-slider');
+  const polarityLineLengthVal = document.getElementById('polarity-line-length-val');
+  if (polarityLineLengthSlider && polarityLineLengthVal) {
+    polarityLineLengthSlider.value = appState.polarityLineLength ?? 8;
+    polarityLineLengthVal.textContent = (appState.polarityLineLength ?? 8) + "°";
+    polarityLineLengthSlider.addEventListener('input', (e) => {
+      appState.polarityLineLength = parseFloat(e.target.value);
+      polarityLineLengthVal.textContent = appState.polarityLineLength + "°";
+      renderScaledMandala();
+    });
+  }
+
+  const polarityLineGradPosSlider = document.getElementById('polarity-line-grad-pos-slider');
+  const polarityLineGradPosVal = document.getElementById('polarity-line-grad-pos-val');
+  if (polarityLineGradPosSlider && polarityLineGradPosVal) {
+    polarityLineGradPosSlider.value = appState.polarityLineGradPos ?? 40;
+    polarityLineGradPosVal.textContent = (appState.polarityLineGradPos ?? 40) + "%";
+    polarityLineGradPosSlider.addEventListener('input', (e) => {
+      appState.polarityLineGradPos = parseInt(e.target.value);
+      polarityLineGradPosVal.textContent = appState.polarityLineGradPos + "%";
+      renderScaledMandala();
+    });
+  }
+
+  const headerFontSizeSlider = document.getElementById('header-font-size-slider');
+  const headerFontSizeVal = document.getElementById('header-font-size-val');
+
+  const applyHeaderFontSize = (v) => {
+    document.documentElement.style.setProperty('--header-font-size', `${v}rem`);
+    document.querySelectorAll('.controls .btn, .controls span, .controls label').forEach(el => {
+      if (el.style.fontSize || el.tagName.toLowerCase() === 'span' || el.tagName.toLowerCase() === 'label') {
+        el.style.fontSize = `${v}rem`;
+      }
+    });
+    document.querySelectorAll('.btn-segment').forEach(el => {
+      el.style.fontSize = `${v}rem`;
+    });
+  };
+
+  if (headerFontSizeSlider && headerFontSizeVal) {
+    const initVal = appState.headerFontSize ?? 0.9;
+    headerFontSizeSlider.value = initVal;
+    headerFontSizeVal.textContent = initVal + "rem";
+    // Defer the initial styling slightly to ensure elements are rendered
+    setTimeout(() => applyHeaderFontSize(initVal), 10);
+
+    headerFontSizeSlider.addEventListener('input', (e) => {
+      const v = parseFloat(e.target.value);
+      appState.headerFontSize = v;
+      headerFontSizeVal.textContent = v + "rem";
+      applyHeaderFontSize(v);
     });
   }
 
