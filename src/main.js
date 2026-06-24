@@ -2943,7 +2943,7 @@ async function init() {
   }
 
   try {
-    const response = await fetch('/mishap_config.md');
+    const response = await fetch('./mishap_config.md');
     if (response.ok) {
       const markdownText = await response.text();
       const tables = parseMarkdownTables(markdownText);
@@ -3513,7 +3513,7 @@ function arrayBufferToBase64(buffer) {
 
 async function getGameIconsBase64() {
   if (cachedGameIconsBase64) return cachedGameIconsBase64;
-  const response = await fetch('/fonts/rpgen-gameicons.ttf');
+  const response = await fetch('./fonts/rpgen-gameicons.ttf');
   if (!response.ok) throw new Error(`Font fetch failed: ${response.status}`);
   const buffer = await response.arrayBuffer();
   cachedGameIconsBase64 = arrayBufferToBase64(buffer);
