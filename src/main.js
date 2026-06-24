@@ -1043,6 +1043,9 @@ function renderScaledMandala() {
         iconGroup.setAttribute("class", `outer-icon-group outer-icon-${i} clickable`);
         iconGroup.setAttribute("data-school-idx", i);
         iconGroup.setAttribute("data-polarity", polarity);
+        iconGroup.setAttribute("data-target-angle", targetAngle);
+        iconGroup.setAttribute("data-icon-x", iconPos.x);
+        iconGroup.setAttribute("data-icon-y", iconPos.y);
         iconGroup.setAttribute("transform", `rotate(${iconRot}, ${iconPos.x}, ${iconPos.y})`);
 
         // Check if selected to preserve state on redraw
@@ -1137,6 +1140,10 @@ function renderScaledMandala() {
           }
 
           const watermarkGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+          watermarkGroup.setAttribute("class", "watermark-group");
+          watermarkGroup.setAttribute("data-target-angle", targetAngle);
+          watermarkGroup.setAttribute("data-icon-x", iconPos.x);
+          watermarkGroup.setAttribute("data-icon-y", iconPos.y);
           watermarkGroup.setAttribute("transform", `rotate(${rot}, ${iconPos.x}, ${iconPos.y})`);
 
           const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -1170,6 +1177,10 @@ function renderScaledMandala() {
           }
 
           const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          textEl.setAttribute("class", "polarity-text");
+          textEl.setAttribute("data-target-angle", finalAngle);
+          textEl.setAttribute("data-icon-x", pos.x);
+          textEl.setAttribute("data-icon-y", pos.y);
           textEl.setAttribute("x", pos.x);
           textEl.setAttribute("y", pos.y);
           textEl.setAttribute("text-anchor", "middle");
@@ -1732,6 +1743,23 @@ function renderScaledMandala() {
         const rotOffset = isVisuallyBottomHalf ? 180 : 0;
         textEl.setAttribute("transform", `rotate(${textCenterAngle + rotOffset}, ${cxNum}, ${cyNum})`);
       });
+
+      // Update flip logic for icons and polarity texts
+      const updateFlippable = (selector) => {
+        svg.querySelectorAll(selector).forEach(el => {
+          const targetAngle = parseFloat(el.getAttribute('data-target-angle'));
+          const posX = parseFloat(el.getAttribute('data-icon-x'));
+          const posY = parseFloat(el.getAttribute('data-icon-y'));
+          let visualAngle = (targetAngle + angleCCW) % 360;
+          if (visualAngle < 0) visualAngle += 360;
+          const isVisuallyBottomHalf = visualAngle > 90 && visualAngle < 270;
+          let rot = targetAngle + (isVisuallyBottomHalf ? 180 : 0);
+          el.setAttribute("transform", `rotate(${rot}, ${posX}, ${posY})`);
+        });
+      };
+      updateFlippable('.outer-icon-group');
+      updateFlippable('.watermark-group');
+      updateFlippable('.polarity-text');
 
       // 3. Update inner curved paths
       const angleStep = 360 / Math.max(appState.magicNodes.length, 1);

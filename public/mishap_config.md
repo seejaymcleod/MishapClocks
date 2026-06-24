@@ -13,11 +13,11 @@
 
 # Mishap Tiers
 
-| Tier | DC | Feedback Formula | Chaos + reroll | Essense Fracture | Spatial Tear | Vector Drift | Temporal Rupture | Materia Snap | Cosmic Debt | Flesh Corruption |
+| Tier | DC | Feedback Formula | Flesh Corruption | Psyche Fracture | Spatial Tear | Vector Shift | Materia Snap | Temporal Rupture | Cosmic Debt | Primal Chaos |
 |---|---|---|---|---|---|---|---|---|---|---|
-| T0 | DC 9 | 1d4 | Chaos + reroll - 0 | Essense Fracture - 0 | Spatial Tear - 0 | Vector Drift - 0 | Temporal Rupture - 0 | Materia Snap - 0 | Cosmic Debt - 0 | Flesh Corruption - 0 |
-| T1 | DC 11 | 1d6 | Chaos + reroll - 1 | Essense Fracture - 1 | Spatial Tear - 1 | Vector Drift - 1 | Temporal Rupture - 1 | Materia Snap - 1 | Cosmic Debt - 1 | Flesh Corruption - 1 |
-| T2 | DC 13 | 2d6 | Chaos + reroll - 2 | Essense Fracture - 2 | Spatial Tear - 2 | Vector Drift - 2 | Temporal Rupture - 2 | Materia Snap - 2 | Cosmic Debt - 2 | Flesh Corruption - 2 |
-| T3 | DC 15 | 3d6 | Chaos + reroll - 3 | Essense Fracture - 3 | Spatial Tear - 3 | Vector Drift - 3 | Temporal Rupture - 3 | Materia Snap - 3 | Cosmic Debt - 3 | Flesh Corruption - 3 |
-| T4 | DC 17 | 4d8 | Chaos + reroll - 4 | Essense Fracture - 4 | Spatial Tear - 4 | Vector Drift - 4 | Temporal Rupture - 4 | Materia Snap - 4 | Cosmic Debt - 4 | Flesh Corruption - 4 |
-| T5 | DC 19 | 5d8 | Chaos + reroll - 5 | Essense Fracture - 5 | Spatial Tear - 5 | Vector Drift - 5 | Temporal Rupture - 5 | Materia Snap - 5 | Cosmic Debt - 5 | Flesh Corruption - 5 |
+| T0 | DC 9 | 1d4 | Flesh Corruption - 0 | Psyche Fracture - 0 | Spatial Tear - 0 | Vector Shift - 0 | Materia Snap - 0 | Temporal Rupture - 0 | Cosmic Debt - 0 | Primal Chaos - 0 |
+| T1 | DC 11 | 1d6 | Wound | Daze | Shift | Stray | Leak | Echo | Toll | Flux |
+| T2 | DC 13 | 2d6 | Trauma | Fixation | Warp | Reversal | Whiplash | Stutter | Mark | Amalgam |
+| T3 | DC 15 | 3d6 | Affliction | Compulsion | Mirror | Fork | Inversion | Freeze | Geas | Aberration |
+| T4 | DC 17 | 4d8 | Crippled | Delusion | Fold | Chain | Lockdown | Loop | Harbinger | Maelstrom |
+| T5 | DC 19 | 5d8 | Mutilation | Ruin | Expanse | Nexus | Burnout | Paradox | Reckoning | Oblivion |
