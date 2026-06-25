@@ -3974,43 +3974,99 @@ function rollMishap() {
     mishapState.d1 = d1;
     mishapState.d2 = d2;
 
-    let d3 = null;
-    if (d1 === d2) {
-      // Pre-roll Chaos Die d3 (including resonance explosions)
-      let currentTier = mishapState.selectedTier + 1;
-      let effectDiceBonus = 0;
-      let effectDcBonus = 0;
-      d3 = Math.floor(Math.random() * 8) + 1;
-      let chaosLog = `Rolled ${d3}`;
+    let rollType = 'standard';
+    if (d1 === 1 && d2 === 1) rollType = 'total_collapse';
+    else if (d1 === 1) rollType = 'school_cascade';
+    else if (d2 === 1) rollType = 'effect_cascade';
+    else if (d1 === d2) rollType = 'axis_fracture';
 
-      const explodedDice = [];
+    mishapState.rollType = rollType;
+
+    mishapState.d3 = null;
+    mishapState.cascadeSchool = null;
+    mishapState.cascadeEffect = null;
+    mishapState.preExplodedDice = [];
+    mishapState.preCurrentTier = mishapState.selectedTier;
+    mishapState.preEffectDiceBonus = 0;
+    mishapState.preEffectDcBonus = 0;
+    mishapState.preChaosLog = '';
+
+    let currentTier = mishapState.selectedTier;
+    let effectDiceBonus = 0;
+    let effectDcBonus = 0;
+    let chaosLog = '';
+    const explodedDice = [];
+
+    const triggerExplosion = (val, type) => {
+      explodedDice.push({ val, type });
+      if (currentTier < 5) {
+        currentTier++;
+        chaosLog += ` &rarr; 💥 Escalated to T${currentTier}.`;
+      } else {
+        effectDiceBonus++;
+        effectDcBonus += 2;
+        chaosLog += ` &rarr; 💥 Overload! DC+2, Dice+1.`;
+      }
+    };
+
+    if (rollType === 'axis_fracture') {
+      currentTier++; // Axis fracture base rule: Tier + 1
+      chaosLog = `Rolled ${d1} & ${d2} &rarr; ⚠️ Axis Fracture! T${currentTier}. Roll Chaos Die: `;
+      let d3 = Math.floor(Math.random() * 8) + 1;
+      chaosLog += `[${d3}]`;
       while (d3 === d1) {
-        explodedDice.push(d3);
-        if (currentTier < 5) {
-          currentTier++;
-          chaosLog += ` &rarr; 💥 Resonance! Escalated to T${currentTier}. Re-rolling`;
-        } else {
-          effectDiceBonus++;
-          effectDcBonus += 2;
-          chaosLog += ` &rarr; 💥 Overload! DC+2, Dice+1. Re-rolling`;
-        }
+        triggerExplosion(d3, 'effect');
         d3 = Math.floor(Math.random() * 8) + 1;
         chaosLog += ` [New: ${d3}]`;
       }
       mishapState.d3 = d3;
-      mishapState.preExplodedDice = explodedDice;
-      mishapState.preCurrentTier = currentTier;
-      mishapState.preEffectDiceBonus = effectDiceBonus;
-      mishapState.preEffectDcBonus = effectDcBonus;
-      mishapState.preChaosLog = chaosLog;
-    } else {
-      mishapState.d3 = null;
-      mishapState.preExplodedDice = null;
-      mishapState.preCurrentTier = null;
-      mishapState.preEffectDiceBonus = null;
-      mishapState.preEffectDcBonus = null;
-      mishapState.preChaosLog = null;
+    } else if (rollType === 'total_collapse') {
+      chaosLog = `Rolled 1 & 1 &rarr; 🌌 TOTAL COLLAPSE! `;
+      triggerExplosion(1, 'school');
+      triggerExplosion(1, 'effect');
+      let newD1 = Math.floor(Math.random() * 8) + 1;
+      chaosLog += ` School Reroll: [${newD1}]`;
+      while (newD1 === 1) {
+        triggerExplosion(1, 'school');
+        newD1 = Math.floor(Math.random() * 8) + 1;
+        chaosLog += ` [New School: ${newD1}]`;
+      }
+      let newD2 = Math.floor(Math.random() * 8) + 1;
+      chaosLog += ` Effect Reroll: [${newD2}]`;
+      while (newD2 === 1) {
+        triggerExplosion(1, 'effect');
+        newD2 = Math.floor(Math.random() * 8) + 1;
+        chaosLog += ` [New Effect: ${newD2}]`;
+      }
+      mishapState.cascadeSchool = newD1;
+      mishapState.cascadeEffect = newD2;
+    } else if (rollType === 'school_cascade') {
+      chaosLog = `Rolled School 1 &rarr; 🌀 School Cascade! `;
+      let newD1 = Math.floor(Math.random() * 8) + 1;
+      chaosLog += ` School Reroll: [${newD1}]`;
+      while (newD1 === 1) {
+        triggerExplosion(1, 'school');
+        newD1 = Math.floor(Math.random() * 8) + 1;
+        chaosLog += ` [New: ${newD1}]`;
+      }
+      mishapState.cascadeSchool = newD1;
+    } else if (rollType === 'effect_cascade') {
+      chaosLog = `Rolled Effect 1 &rarr; 🌀 Primal Chaos! `;
+      let newD2 = Math.floor(Math.random() * 8) + 1;
+      chaosLog += ` Effect Reroll: [${newD2}]`;
+      while (newD2 === 1) {
+        triggerExplosion(1, 'effect');
+        newD2 = Math.floor(Math.random() * 8) + 1;
+        chaosLog += ` [New: ${newD2}]`;
+      }
+      mishapState.cascadeEffect = newD2;
     }
+
+    mishapState.preExplodedDice = explodedDice;
+    mishapState.preCurrentTier = currentTier;
+    mishapState.preEffectDiceBonus = effectDiceBonus;
+    mishapState.preEffectDcBonus = effectDcBonus;
+    mishapState.preChaosLog = chaosLog;
 
     if (spinCWGroup && spinCCWGroup) {
       // Calculate target rotation based on speed, ensuring base spin is an integer multiple of 360 degrees
@@ -4021,9 +4077,14 @@ function rollMishap() {
 
       if (appState.alignSchoolToTop) {
         let alignSchoolIdx = mishapState.selectedSchoolIdx;
-        if (d1 === d2) {
-          alignSchoolIdx = d1 - 1;
-        } else if (d1 === 2 || d1 === 3) {
+        if (mishapState.rollType === 'axis_fracture' || mishapState.rollType === 'total_collapse' || mishapState.rollType === 'school_cascade') {
+          // Aligning to original cast school is standard, unless we want to align to something else.
+          alignSchoolIdx = mishapState.selectedSchoolIdx;
+        } else if (d1 >= 6) {
+          alignSchoolIdx = mishapState.selectedSchoolIdx;
+        } else if (d1 >= 4) {
+          alignSchoolIdx = mishapState.selectedSchoolIdx;
+        } else if (d1 === 3 || d1 === 2) {
           const oppLabel = appState.magicNodes[mishapState.selectedSchoolIdx].opposite;
           alignSchoolIdx = appState.magicNodes.findIndex(n => n.label === oppLabel);
         }
@@ -4034,20 +4095,17 @@ function rollMishap() {
         ccwAdd += (diff < 0 ? diff + 360 : diff);
       }
 
-      if (d1 === d2) {
-        // Axis Fracture: Align the actual activated Chaos Effect (d3 - 1) on top of the active school (d1 - 1)
-        // Formula: visualEffectAngle = visualSchoolAngle
-        // => (d3 - 1) * 45 + 22.5 + cwAngle = (d1 - 1) * 45 + 22.5 - ccwAngle
-        // => cwAngle = -ccwAngle + (d1 - d3) * 45 (mod 360)
+      if (mishapState.rollType === 'axis_fracture') {
         const finalCCW = (mishapState.ccwAngle || 0) + ccwAdd;
-        const targetCWAngle = -finalCCW + (d1 - d3) * 45;
+        const targetCWAngle = -finalCCW + (d1 - mishapState.d3) * 45;
         const desiredCWRemainder = ((targetCWAngle % 360) + 360) % 360;
         const currentCWRemainder = mishapState.cwAngle ? mishapState.cwAngle % 360 : 0;
         const diff = desiredCWRemainder - currentCWRemainder;
         cwAdd += (diff < 0 ? diff + 360 : diff);
       } else {
         if (appState.alignEffectToTop) {
-          const desiredCWRemainder = (360 - (d2 - 1) * 45) % 360;
+          const alignD2 = (mishapState.rollType === 'total_collapse' || mishapState.rollType === 'effect_cascade') ? mishapState.cascadeEffect : d2;
+          const desiredCWRemainder = (360 - (alignD2 - 1) * 45) % 360;
           const currentCWRemainder = mishapState.cwAngle ? mishapState.cwAngle % 360 : 0;
           const diff = desiredCWRemainder - currentCWRemainder;
           cwAdd += (diff < 0 ? diff + 360 : diff);
@@ -4221,118 +4279,120 @@ function executeMishapRoll() {
     return `<li><strong>Catastrophic Complication:</strong> Apply the custom effect <em>${modifier}</em> to the scene.</li>`;
   };
 
+  const rollType = mishapState.rollType || 'standard';
+
   const diceList = [];
-  if (d1 === d2) {
-    diceList.push({ label: 'Axis', value: d1, exploded: false });
-    diceList.push({ label: 'Axis', value: d2, exploded: false });
+  if (rollType === 'axis_fracture') {
+    diceList.push({ label: 'Axis', value: d1, exploded: false, type: 'axis' });
+    diceList.push({ label: 'Axis', value: d2, exploded: false, type: 'axis' });
+  } else if (rollType === 'total_collapse') {
+    diceList.push({ label: 'School', value: 1, exploded: false, type: 'school' });
+    diceList.push({ label: 'Effect', value: 1, exploded: false, type: 'effect' });
+  } else if (rollType === 'school_cascade') {
+    diceList.push({ label: 'School', value: 1, exploded: false, type: 'school' });
+    diceList.push({ label: 'Effect', value: d2, exploded: false, type: 'effect' });
+  } else if (rollType === 'effect_cascade') {
+    diceList.push({ label: 'School', value: d1, exploded: false, type: 'school' });
+    diceList.push({ label: 'Effect', value: 1, exploded: false, type: 'effect' });
   } else {
-    diceList.push({ label: 'School', value: d1, exploded: false });
-    diceList.push({ label: 'Effect', value: d2, exploded: false });
+    diceList.push({ label: 'School', value: d1, exploded: false, type: 'school' });
+    diceList.push({ label: 'Effect', value: d2, exploded: false, type: 'effect' });
+  }
+
+  let currentTier = initialTier;
+  let effectDiceBonus = 0;
+  let effectDcBonus = 0;
+  let chaosLog = '';
+
+  if (mishapState.preCurrentTier !== undefined && mishapState.preCurrentTier !== null) {
+      currentTier = mishapState.preCurrentTier;
+      effectDiceBonus = mishapState.preEffectDiceBonus || 0;
+      effectDcBonus = mishapState.preEffectDcBonus || 0;
+      chaosLog = mishapState.preChaosLog || '';
+
+      if (mishapState.preExplodedDice) {
+        mishapState.preExplodedDice.forEach(dieObj => {
+          diceList.push({ label: 'Explosion', value: dieObj.val, exploded: true, type: dieObj.type });
+        });
+      }
+  }
+
+  if (rollType === 'axis_fracture') {
+      diceList.push({ label: 'Chaos', value: mishapState.d3, exploded: false, type: 'effect' });
+  } else if (rollType === 'total_collapse') {
+      diceList.push({ label: 'School', value: mishapState.cascadeSchool, exploded: false, type: 'school' });
+      diceList.push({ label: 'Effect', value: mishapState.cascadeEffect, exploded: false, type: 'effect' });
+  } else if (rollType === 'school_cascade') {
+      diceList.push({ label: 'School', value: mishapState.cascadeSchool, exploded: false, type: 'school' });
+  } else if (rollType === 'effect_cascade') {
+      diceList.push({ label: 'Effect', value: mishapState.cascadeEffect, exploded: false, type: 'effect' });
+  }
+
+  const finalTierClamp = Math.min(currentTier, 5);
+  const baseNode = appState.scaledTiers[finalTierClamp].nodes[0];
+  const baseDc = (baseNode.dc || 'DC11').replace(/\s+/g, '');
+  const baseDice = baseNode.dice || '1d6';
+  
+  let baseDcVal = 9 + finalTierClamp * 2;
+  if (baseDc.startsWith("DC")) {
+    baseDcVal = parseInt(baseDc.replace("DC", ""), 10);
+  }
+  const finalDcVal = baseDcVal + effectDcBonus;
+  const finalDcStr = `DC${finalDcVal}`;
+
+  let finalDiceStr = baseDice;
+  if (effectDiceBonus > 0) {
+    finalDiceStr = `${baseDice} + ${effectDiceBonus} instance(s)`;
+  }
+
+  let escalationHtml = '';
+  if (currentTier > initialTier || effectDcBonus > 0 || effectDiceBonus > 0) {
+    escalationHtml = `<p style="margin-top: 0.6rem; font-size: 0.95rem; font-weight: bold; color: #ef4444;">Escalated: T${currentTier} (${finalDcStr} • ${finalDiceStr})</p>`;
+  } else {
+    escalationHtml = `<p style="margin-top: 0.6rem; font-size: 0.95rem; font-weight: bold; color: #f59e0b;">Final Severity: T${currentTier} (${finalDcStr} • ${finalDiceStr})</p>`;
   }
 
   let narrativeHtml = ``;
   let gmGuideHtml = '';
+  
+  // Resolve standard school if not a cascade
+  let stdSchoolIdx = castSchoolIdx;
+  let stdPolarity = castPolarity;
+  let rollTypeStr = "";
+  if (d1 >= 6) { rollTypeStr = "Cast school (same polarity)"; }
+  else if (d1 >= 4) { rollTypeStr = "Cast school (inverted polarity)"; stdPolarity = getInvertedPolarity(castPolarity); }
+  else if (d1 === 3) { rollTypeStr = "Circle-opposite School (positive)"; stdSchoolIdx = getOppositeSchoolIdx(castSchoolIdx); stdPolarity = 'positive'; }
+  else if (d1 === 2) { rollTypeStr = "Circle-opposite School (negative)"; stdSchoolIdx = getOppositeSchoolIdx(castSchoolIdx); stdPolarity = 'negative'; }
 
-  if (d1 === d2) {
-    // AXIS FRACTURE (Doubles)
+  if (rollType === 'axis_fracture') {
     if (gmGuideBox) gmGuideBox.className = 'mishap-gm-details axis-fracture';
     narrativeHtml += `<div class="axis-fracture-badge" style="margin-bottom: 0.5rem;">⚠️ AXIS FRACTURE ⚠️</div>`;
 
-    let currentTier = initialTier + 1;
     const rolledSliceIdx = d1 - 1;
     const rolledSliceOppIdx = getOppositeSchoolIdx(rolledSliceIdx);
+    const finalSliceIdx = mishapState.d3 - 1;
+    const finalOppSliceIdx = getOppositeSchoolIdx(finalSliceIdx);
 
     narrativeHtml += `<p>School: ${formatSchool(rolledSliceIdx, 'positive')} + ${formatSchool(rolledSliceOppIdx, 'negative')}</p>`;
     narrativeHtml += `<p><em>(Roll ${d1}): Axis Fracture (Doubles)</em></p>`;
 
-    let d3;
-    let effectDiceBonus = 0;
-    let effectDcBonus = 0;
-    let chaosLog = '';
-
-    if (mishapState.d3 !== undefined && mishapState.d3 !== null) {
-      d3 = mishapState.d3;
-      effectDiceBonus = mishapState.preEffectDiceBonus || 0;
-      effectDcBonus = mishapState.preEffectDcBonus || 0;
-      chaosLog = mishapState.preChaosLog || `Rolled ${d3}`;
-      currentTier = mishapState.preCurrentTier || currentTier;
-
-      if (mishapState.preExplodedDice) {
-        mishapState.preExplodedDice.forEach(val => {
-          diceList.push({ label: 'Resonance', value: val, exploded: true });
-        });
-      }
-
-      mishapState.d3 = null;
-      mishapState.preExplodedDice = null;
-      mishapState.preCurrentTier = null;
-      mishapState.preEffectDiceBonus = null;
-      mishapState.preEffectDcBonus = null;
-      mishapState.preChaosLog = null;
-    } else {
-      d3 = Math.floor(Math.random() * 8) + 1;
-      chaosLog = `Rolled ${d3}`;
-      while (d3 === d1) {
-        diceList.push({ label: 'Resonance', value: d3, exploded: true });
-        if (currentTier < 5) {
-          currentTier++;
-          chaosLog += ` &rarr; 💥 Resonance! Escalated to T${currentTier}. Re-rolling`;
-        } else {
-          effectDiceBonus++;
-          effectDcBonus += 2;
-          chaosLog += ` &rarr; 💥 Overload! DC+2, Dice+1. Re-rolling`;
-        }
-        d3 = Math.floor(Math.random() * 8) + 1;
-        chaosLog += ` [New: ${d3}]`;
-      }
-    }
-
-    // Settled Chaos Die
-    diceList.push({ label: 'Chaos Effect', value: d3, exploded: false });
-
-    const finalSliceIdx = d3 - 1;
-    const finalOppSliceIdx = getOppositeSchoolIdx(finalSliceIdx);
-    const finalTierClamp = Math.min(currentTier, 5);
-
     const nodeA = appState.scaledTiers[finalTierClamp].nodes[finalSliceIdx];
     const nodeB = appState.scaledTiers[finalTierClamp].nodes[finalOppSliceIdx];
-    const baseNode = appState.scaledTiers[finalTierClamp].nodes[0];
-    const baseDc = (baseNode.dc || 'DC11').replace(/\s+/g, '');
-    const baseDice = baseNode.dice || '1d6';
 
     narrativeHtml += `<p style="margin-top: 0.6rem;">Effect: <strong>${nodeA.type}: ${nodeA.modifier}</strong> + <strong>${nodeB.type}: ${nodeB.modifier}</strong></p>`;
-    narrativeHtml += `<p><em>(Roll ${d3}): Chaos Die (${chaosLog.replace(/&rarr;/g, '→')})</em></p>`;
+    narrativeHtml += `<p><em>Chaos Die: ${chaosLog.replace(/&rarr;/g, '→')}</em></p>`;
+    narrativeHtml += escalationHtml;
 
-    let baseDcVal = 9 + finalTierClamp * 2;
-    if (baseDc.startsWith("DC")) {
-      baseDcVal = parseInt(baseDc.replace("DC", ""), 10);
-    }
-    const finalDcVal = baseDcVal + effectDcBonus;
-    const finalDcStr = `DC${finalDcVal}`;
-
-    let finalDiceStr = baseDice;
-    if (effectDiceBonus > 0) {
-      finalDiceStr = `${baseDice} + ${effectDiceBonus} instance(s)`;
-    }
-    narrativeHtml += `<p style="margin-top: 0.6rem; font-size: 0.95rem; font-weight: bold; color: #ef4444;">Escalated: T${currentTier} (${finalDcStr} • ${finalDiceStr})</p>`;
-
-    // Sync mishapState displayed tier with the new escalated tier (do not affect selected casting tier)
     mishapState.displayedTier = finalTierClamp;
-
-    // Re-render the mandala so the correct overlay pill is selected
     renderScaledMandala();
-
-    // Re-add has-results to the container (since renderScaledMandala replaces innerHTML)
     const container = document.getElementById('target-mandala');
     if (container) container.classList.add('has-results');
 
-    // Highlight schools and effects at the final tier
     highlightMandalaElements(rolledSliceIdx, finalTierClamp, false, 'positive');
     highlightMandalaElements(rolledSliceOppIdx, finalTierClamp, false, 'negative');
     highlightMandalaElements(finalSliceIdx, finalTierClamp, true);
     highlightMandalaElements(finalOppSliceIdx, finalTierClamp, true);
 
-    // OSR Guide Output
     const schoolFlavorA = getSchoolFlavor(rolledSliceIdx, 'positive');
     const schoolFlavorB = getSchoolFlavor(rolledSliceOppIdx, 'negative');
 
@@ -4343,126 +4403,162 @@ function executeMishapRoll() {
           "The cosmic circuit shatters under a catastrophic collision of opposing forces! Eruptions of <strong>${schoolFlavorA}</strong> and <strong>${schoolFlavorB}</strong> clash violently, tearing reality with both <strong>${getEffectFlavor(finalSliceIdx)}</strong> and <strong>${getEffectFlavor(finalOppSliceIdx)}</strong>."
         </div>
       </div>
-
       <div class="gm-guide-section">
         <span class="gm-guide-title">Mechanics</span>
         <div class="gm-guide-content">
           <ul>
             <li><strong>Saves:</strong> Target makes a <strong>${getSuggestedSave(rolledSliceIdx)} Save</strong> OR a <strong>${getSuggestedSave(rolledSliceOppIdx)} Save</strong> at <strong>${finalDcStr}</strong>.</li>
             <li><strong>Damage:</strong> Inflict <strong>${finalDiceStr} ${getDamageType(rolledSliceIdx, 'positive')} damage</strong> AND <strong>${finalDiceStr} ${getDamageType(rolledSliceOppIdx, 'negative')} damage</strong>.</li>
-            <li><strong>Shape A — ${nodeA.type} (${nodeA.modifier}):</strong>
-              <ul>
-                ${getEffectRuling(finalSliceIdx, finalTierClamp, nodeA.modifier)}
-              </ul>
-            </li>
-            <li><strong>Shape B — ${nodeB.type} (${nodeB.modifier}):</strong>
-              <ul>
-                ${getEffectRuling(finalOppSliceIdx, finalTierClamp, nodeB.modifier)}
-              </ul>
-            </li>
+            <li><strong>Shape A — ${nodeA.type} (${nodeA.modifier}):</strong><ul>${getEffectRuling(finalSliceIdx, finalTierClamp, nodeA.modifier)}</ul></li>
+            <li><strong>Shape B — ${nodeB.type} (${nodeB.modifier}):</strong><ul>${getEffectRuling(finalOppSliceIdx, finalTierClamp, nodeB.modifier)}</ul></li>
           </ul>
         </div>
       </div>
     `;
+  } else if (rollType === 'total_collapse') {
+    if (gmGuideBox) gmGuideBox.className = 'mishap-gm-details axis-fracture';
+    narrativeHtml += `<div class="axis-fracture-badge" style="margin-bottom: 0.5rem; background: linear-gradient(135deg, #7c3aed 0%, #db2777 100%);">🌌 TOTAL COLLAPSE 🌌</div>`;
 
-  } else {
-    // STANDARD ROLL
+    const schoolA = castSchoolIdx;
+    const polA = castPolarity;
+    const schoolB = mishapState.cascadeSchool - 1;
+    const polB = getInvertedPolarity(castPolarity);
+
+    narrativeHtml += `<p>School: ${formatSchool(schoolA, polA)} + ${formatSchool(schoolB, polB)}</p>`;
+    narrativeHtml += `<p><em>(Roll 1): School Cascade</em></p>`;
+
+    const effectA = 0; // Primal Chaos
+    const effectB = mishapState.cascadeEffect - 1;
+    const nodeA = appState.scaledTiers[finalTierClamp].nodes[effectA];
+    const nodeB = appState.scaledTiers[finalTierClamp].nodes[effectB];
+
+    narrativeHtml += `<p style="margin-top: 0.6rem;">Effect: <strong>${nodeA.type}: ${nodeA.modifier}</strong> + <strong>${nodeB.type}: ${nodeB.modifier}</strong></p>`;
+    narrativeHtml += `<p><em>Log: ${chaosLog.replace(/&rarr;/g, '→')}</em></p>`;
+    narrativeHtml += escalationHtml;
+
+    mishapState.displayedTier = finalTierClamp;
+    renderScaledMandala();
+    const container = document.getElementById('target-mandala');
+    if (container) container.classList.add('has-results');
+
+    highlightMandalaElements(schoolA, finalTierClamp, false, polA);
+    highlightMandalaElements(schoolB, finalTierClamp, false, polB);
+    highlightMandalaElements(effectA, finalTierClamp, true);
+    highlightMandalaElements(effectB, finalTierClamp, true);
+
+    const fA = getSchoolFlavor(schoolA, polA);
+    const fB = getSchoolFlavor(schoolB, polB);
+    gmGuideHtml = `
+      <div class="gm-guide-section">
+        <span class="gm-guide-title">Fiction</span>
+        <div class="gm-guide-content gm-fiction-prompt">
+          "A total magical collapse triggers! The world screams as <strong>${fA}</strong> violently intertwines with random <strong>${fB}</strong>, causing <strong>${getEffectFlavor(effectA)}</strong> and <strong>${getEffectFlavor(effectB)}</strong>."
+        </div>
+      </div>
+      <div class="gm-guide-section">
+        <span class="gm-guide-title">Mechanics</span>
+        <div class="gm-guide-content">
+          <ul>
+            <li><strong>Saves:</strong> Targets make a <strong>${getSuggestedSave(schoolA)} Save</strong> AND <strong>${getSuggestedSave(schoolB)} Save</strong> at <strong>${finalDcStr}</strong>.</li>
+            <li><strong>Damage:</strong> Inflict <strong>${finalDiceStr} ${getDamageType(schoolA, polA)}</strong> AND <strong>${finalDiceStr} ${getDamageType(schoolB, polB)}</strong>.</li>
+            <li><strong>Shape A — ${nodeA.type} (${nodeA.modifier}):</strong><ul>${getEffectRuling(effectA, finalTierClamp, nodeA.modifier)}</ul></li>
+            <li><strong>Shape B — ${nodeB.type} (${nodeB.modifier}):</strong><ul>${getEffectRuling(effectB, finalTierClamp, nodeB.modifier)}</ul></li>
+          </ul>
+        </div>
+      </div>
+    `;
+  } else if (rollType === 'school_cascade' || rollType === 'effect_cascade') {
     if (gmGuideBox) gmGuideBox.className = 'mishap-gm-details';
-    let resultSchoolIdx = castSchoolIdx;
-    let resultPolarity = castPolarity;
-    let secondarySchoolIdx = null;
-    let secondaryPolarity = null;
-    let rollTypeStr = "";
+    narrativeHtml += `<div class="axis-fracture-badge" style="margin-bottom: 0.5rem; background: #ea580c;">🌀 CASCADING MISFIRE 🌀</div>`;
 
-    if (d1 >= 6) {
-      rollTypeStr = "Cast school (same polarity)";
-      resultSchoolIdx = castSchoolIdx;
-      resultPolarity = castPolarity;
-    } else if (d1 >= 4) {
-      rollTypeStr = "Cast school (inverted polarity)";
-      resultSchoolIdx = castSchoolIdx;
-      resultPolarity = getInvertedPolarity(castPolarity);
-    } else if (d1 === 3) {
-      rollTypeStr = "Circle-opposite School (positive)";
-      resultSchoolIdx = getOppositeSchoolIdx(castSchoolIdx);
-      resultPolarity = 'positive';
-    } else if (d1 === 2) {
-      rollTypeStr = "Circle-opposite School (negative)";
-      resultSchoolIdx = getOppositeSchoolIdx(castSchoolIdx);
-      resultPolarity = 'negative';
-    } else if (d1 === 1) {
-      rollTypeStr = "Cast school (same) + Random school (inverted)";
-      resultSchoolIdx = castSchoolIdx;
-      resultPolarity = castPolarity;
-
-      secondarySchoolIdx = Math.floor(Math.random() * 8);
-      secondaryPolarity = getInvertedPolarity(castPolarity);
-
-      // Roll random secondary school die and push to diceList
-      diceList.push({ label: 'Random', value: secondarySchoolIdx + 1, exploded: false });
+    const schoolA = rollType === 'effect_cascade' ? stdSchoolIdx : castSchoolIdx;
+    const polA = rollType === 'effect_cascade' ? stdPolarity : castPolarity;
+    
+    let schoolB = null;
+    let polB = null;
+    if (rollType === 'school_cascade') {
+      schoolB = mishapState.cascadeSchool - 1;
+      polB = getInvertedPolarity(castPolarity);
     }
 
-    if (secondarySchoolIdx !== null) {
-      narrativeHtml += `<p>School: ${formatSchool(resultSchoolIdx, resultPolarity)} + ${formatSchool(secondarySchoolIdx, secondaryPolarity)}</p>`;
+    if (schoolB !== null) {
+      narrativeHtml += `<p>School: ${formatSchool(schoolA, polA)} + ${formatSchool(schoolB, polB)}</p>`;
+      narrativeHtml += `<p><em>(Roll 1): School Cascade</em></p>`;
     } else {
-      narrativeHtml += `<p>School: ${formatSchool(resultSchoolIdx, resultPolarity)}</p>`;
+      narrativeHtml += `<p>School: ${formatSchool(schoolA, polA)}</p>`;
+      narrativeHtml += `<p><em>(Roll ${d1}): ${rollTypeStr}</em></p>`;
     }
+
+    const effectA = rollType === 'school_cascade' ? d2 - 1 : 0;
+    const nodeA = appState.scaledTiers[finalTierClamp].nodes[effectA];
+    
+    let effectB = null;
+    let nodeB = null;
+    if (rollType === 'effect_cascade') {
+      effectB = mishapState.cascadeEffect - 1;
+      nodeB = appState.scaledTiers[finalTierClamp].nodes[effectB];
+    }
+
+    if (effectB !== null) {
+      narrativeHtml += `<p style="margin-top: 0.6rem;">Effect: <strong>${nodeA.type}: ${nodeA.modifier}</strong> + <strong>${nodeB.type}: ${nodeB.modifier}</strong></p>`;
+      narrativeHtml += `<p><em>(Roll 1): Primal Chaos</em></p>`;
+    } else {
+      narrativeHtml += `<p style="margin-top: 0.6rem;">Effect: <strong>${nodeA.type}: ${nodeA.modifier}</strong></p>`;
+      narrativeHtml += `<p><em>(Roll ${d2}): T${finalTierClamp} Slice ${d2}</em></p>`;
+    }
+
+    narrativeHtml += `<p><em>Log: ${chaosLog.replace(/&rarr;/g, '→')}</em></p>`;
+    narrativeHtml += escalationHtml;
+
+    mishapState.displayedTier = finalTierClamp;
+    renderScaledMandala();
+    const container = document.getElementById('target-mandala');
+    if (container) container.classList.add('has-results');
+
+    highlightMandalaElements(schoolA, finalTierClamp, false, polA);
+    if (schoolB !== null) highlightMandalaElements(schoolB, finalTierClamp, false, polB);
+    highlightMandalaElements(effectA, finalTierClamp, true);
+    if (effectB !== null) highlightMandalaElements(effectB, finalTierClamp, true);
+
+    const fA = getSchoolFlavor(schoolA, polA);
+    let fiction = `The spell fractures, escalating magically as <strong>${fA}</strong>`;
+    if (schoolB !== null) fiction += ` and random <strong>${getSchoolFlavor(schoolB, polB)}</strong>`;
+    fiction += ` manifests as <strong>${getEffectFlavor(effectA)}</strong>`;
+    if (effectB !== null) fiction += ` and <strong>${getEffectFlavor(effectB)}</strong>`;
+    fiction += `.`;
+
+    gmGuideHtml = `
+      <div class="gm-guide-section">
+        <span class="gm-guide-title">Fiction</span>
+        <div class="gm-guide-content gm-fiction-prompt">"${fiction}"</div>
+      </div>
+      <div class="gm-guide-section">
+        <span class="gm-guide-title">Mechanics</span>
+        <div class="gm-guide-content">
+          <ul>
+            <li><strong>Saves:</strong> Target makes a <strong>${getSuggestedSave(schoolA)} Save</strong> at <strong>${finalDcStr}</strong>. ${schoolB !== null ? `(Plus ${getSuggestedSave(schoolB)} Save)` : ''}</li>
+            <li><strong>Damage:</strong> Inflict <strong>${finalDiceStr} ${getDamageType(schoolA, polA)} damage</strong>. ${schoolB !== null ? `(+ ${getDamageType(schoolB, polB)})` : ''}</li>
+            <li><strong>Shape A — ${nodeA.type} (${nodeA.modifier}):</strong><ul>${getEffectRuling(effectA, finalTierClamp, nodeA.modifier)}</ul></li>
+            ${effectB !== null ? `<li><strong>Shape B — ${nodeB.type} (${nodeB.modifier}):</strong><ul>${getEffectRuling(effectB, finalTierClamp, nodeB.modifier)}</ul></li>` : ''}
+          </ul>
+        </div>
+      </div>
+    `;
+  } else {
+    if (gmGuideBox) gmGuideBox.className = 'mishap-gm-details';
+    
+    narrativeHtml += `<p>School: ${formatSchool(stdSchoolIdx, stdPolarity)}</p>`;
     narrativeHtml += `<p><em>(Roll ${d1}): ${rollTypeStr}</em></p>`;
-    highlightMandalaElements(resultSchoolIdx, initialTier, false, resultPolarity);
-    if (secondarySchoolIdx !== null) {
-      highlightMandalaElements(secondarySchoolIdx, initialTier, false, secondaryPolarity);
-    }
+    highlightMandalaElements(stdSchoolIdx, initialTier, false, stdPolarity);
 
     const effectSliceIdx = d2 - 1;
     const effectNode = appState.scaledTiers[initialTier].nodes[effectSliceIdx];
-    const modifier = effectNode.modifier;
-    const effectType = effectNode.type;
-    const baseNode = appState.scaledTiers[initialTier].nodes[0];
-    const dcStr = (baseNode.dc || `DC${9 + initialTier * 2}`).replace(/\s+/g, '');
-    const diceStr = baseNode.dice || `1d${4 + initialTier * 2}`;
 
-    narrativeHtml += `<p style="margin-top: 0.6rem;">Effect: <strong>${effectType}: ${modifier}</strong></p>`;
-    narrativeHtml += `<p><em>(Roll ${d2}): T${initialTier} Slice ${d2} (${dcStr} • ${diceStr})</em></p>`;
+    narrativeHtml += `<p style="margin-top: 0.6rem;">Effect: <strong>${effectNode.type}: ${effectNode.modifier}</strong></p>`;
+    narrativeHtml += `<p><em>(Roll ${d2}): T${initialTier} Slice ${d2} (${baseDc} • ${baseDice})</em></p>`;
     highlightMandalaElements(effectSliceIdx, initialTier, true);
 
-    // OSR Guide Output
-    const schoolFlavorA = getSchoolFlavor(resultSchoolIdx, resultPolarity);
-    const effectFlavor = getEffectFlavor(effectSliceIdx);
-
-    let fictionText = `The local magical field buckles as a surge of <strong>${schoolFlavorA}</strong> manifests as <strong>${effectFlavor}</strong>.`;
-    if (secondarySchoolIdx !== null) {
-      const schoolFlavorB = getSchoolFlavor(secondarySchoolIdx, secondaryPolarity);
-      fictionText = `The local magical field splits as a dual surge of <strong>${schoolFlavorA}</strong> and <strong>${schoolFlavorB}</strong> manifests as <strong>${effectFlavor}</strong>.`;
-    }
-
-    let mechanicsHtml = `
-      <ul>
-        <li><strong>Save:</strong> Target makes a <strong>${getSuggestedSave(resultSchoolIdx)} Save</strong> (${dcStr}).</li>
-    `;
-    if (secondarySchoolIdx !== null) {
-      mechanicsHtml += `
-        <li><strong>Secondary Save:</strong> Targets also make a <strong>${getSuggestedSave(secondarySchoolIdx)} Save</strong> (${dcStr}).</li>
-      `;
-    }
-
-    if (diceStr !== '—') {
-      let dmgTypes = getDamageType(resultSchoolIdx, resultPolarity);
-      if (secondarySchoolIdx !== null) {
-        dmgTypes += ` and ${getDamageType(secondarySchoolIdx, secondaryPolarity)}`;
-      }
-      mechanicsHtml += `
-        <li><strong>Damage:</strong> Inflict <strong>${diceStr} ${dmgTypes} damage</strong> (half on success).</li>
-      `;
-    }
-
-    mechanicsHtml += `
-        <li><strong>Complication — ${effectType} (${modifier}):</strong>
-          <ul>
-            ${getEffectRuling(effectSliceIdx, initialTier, modifier)}
-          </ul>
-        </li>
-      </ul>
-    `;
+    const fictionText = `The local magical field buckles as a surge of <strong>${getSchoolFlavor(stdSchoolIdx, stdPolarity)}</strong> manifests as <strong>${getEffectFlavor(effectSliceIdx)}</strong>.`;
 
     gmGuideHtml = `
       <div class="gm-guide-section">
@@ -4471,15 +4567,24 @@ function executeMishapRoll() {
           "${fictionText}"
         </div>
       </div>
-
       <div class="gm-guide-section">
         <span class="gm-guide-title">Mechanics</span>
         <div class="gm-guide-content">
-          ${mechanicsHtml}
+          <ul>
+            <li><strong>Save:</strong> Target makes a <strong>${getSuggestedSave(stdSchoolIdx)} Save</strong> (${baseDc}).</li>
+            <li><strong>Damage:</strong> Inflict <strong>${baseDice} ${getDamageType(stdSchoolIdx, stdPolarity)} damage</strong> (half on success).</li>
+            <li><strong>Complication — ${effectNode.type} (${effectNode.modifier}):</strong>
+              <ul>
+                ${getEffectRuling(effectSliceIdx, initialTier, effectNode.modifier)}
+              </ul>
+            </li>
+          </ul>
         </div>
       </div>
     `;
   }
+
+
 
   narrativeBox.innerHTML = narrativeHtml;
   if (detailsContent) detailsContent.innerHTML = gmGuideHtml;
@@ -4488,29 +4593,46 @@ function executeMishapRoll() {
   const diceBox = document.getElementById('mishap-dice-box');
   if (diceBox) {
     diceBox.innerHTML = '';
-    diceList.forEach(die => {
-      const container = document.createElement('div');
-      container.className = 'mishap-die-container die-rolled';
+    
+    const topRowTypes = ['school', 'axis'];
+    const topRowDice = diceList.filter(d => topRowTypes.includes(d.type));
+    const bottomRowDice = diceList.filter(d => !topRowTypes.includes(d.type));
 
-      const label = document.createElement('span');
-      label.className = 'die-label';
-      label.textContent = die.label;
-      container.appendChild(label);
+    const renderRow = (diceArray) => {
+      if (diceArray.length === 0) return null;
+      const rowDiv = document.createElement('div');
+      rowDiv.className = 'mishap-dice-row';
+      diceArray.forEach(die => {
+        const container = document.createElement('div');
+        container.className = 'mishap-die-container die-rolled';
 
-      const dieEl = document.createElement('div');
-      dieEl.className = 'mishap-die' + (die.exploded ? ' exploded' : '');
+        const label = document.createElement('span');
+        label.className = 'die-label';
+        label.textContent = die.label;
+        container.appendChild(label);
 
-      const val = document.createElement('span');
-      val.className = 'die-val';
-      val.textContent = die.value;
+        const dieEl = document.createElement('div');
+        dieEl.className = `mishap-die ${die.type || 'school'}` + (die.exploded ? ' exploded' : '');
 
-      dieEl.appendChild(val);
-      container.appendChild(dieEl);
-      diceBox.appendChild(container);
+        const val = document.createElement('span');
+        val.className = 'die-val';
+        val.textContent = die.value;
 
-      // Trigger reflow to play animation on insertion
-      void dieEl.offsetWidth;
-    });
+        dieEl.appendChild(val);
+        container.appendChild(dieEl);
+        rowDiv.appendChild(container);
+
+        // Trigger reflow to play animation on insertion
+        void dieEl.offsetWidth;
+      });
+      return rowDiv;
+    };
+
+    const topRow = renderRow(topRowDice);
+    const bottomRow = renderRow(bottomRowDice);
+
+    if (topRow) diceBox.appendChild(topRow);
+    if (bottomRow) diceBox.appendChild(bottomRow);
   }
 }
 

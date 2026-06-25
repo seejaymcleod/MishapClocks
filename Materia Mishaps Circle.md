@@ -1,4 +1,5 @@
-# Materia Mishap Rules
+![[mandala_high_res (6).png]]
+
 
 ## Core Procedure & Catastrophes
 
@@ -48,3 +49,16 @@ _Determines mechanical consequence, scaled by Tier._
 | **1**  | **Primal Chaos***    | Flux   | Amalgam  | Aberration | Maelstrom | Oblivion   |
 
 _*Adds a random d8 effect. Explodes on 1._
+
+## Reference Data: School Sliders
+
+|**Slice**|**School**|**Opposite**|**The Slider (Axis of Control)**|
+|---|---|---|---|
+|**1**|Thermal|Hydro|Kinetic heat & combustion ↔ Siphoning to absolute zero|
+|**2**|Aero|Geo|High pressure, gales, sound ↔ Suffocating vacuum, dead silence|
+|**3**|Electromagnetic|Dimensional|Spiking circuitry, lasers ↔ EMPs, absolute shadow, dead zones|
+|**4**|Neural|Vital|Structuring logic, illusions ↔ Shattering psyche into raw madness|
+|**5**|Hydro|Thermal|Flooding, ice, fluid control ↔ Severe desiccation, drought|
+|**6**|Geo|Aero|Density, metal, bedrock ↔ Rust, erosion, structural collapse|
+|**7**|Dimensional|Electromagnetic|Folding distance, speed time ↔ Crushing gravity, chrono-stasis|
+|**8**|Vital|Neural|Rapid cellular growth, healing ↔ Necrosis, mutation, decay|

@@ -652,6 +652,7 @@ svg foreignObject i.gi:before {
   margin-top: 0.6rem;
 }
 
+
 #spell-result-box {
   min-height: 60px;
   border-radius: 8px;
@@ -954,10 +955,19 @@ svg foreignObject i.gi:before {
 
 .mishap-dice-box {
   display: flex;
-  justify-content: center;
-  gap: 1rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
   margin-top: 0.75rem;
   margin-bottom: 0.75rem;
+}
+
+.mishap-dice-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .mishap-die-container {
@@ -982,6 +992,21 @@ svg foreignObject i.gi:before {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
   transform: rotate(45deg);
   transition: all 0.3s ease;
+}
+
+.mishap-die.school {
+  background: linear-gradient(135deg, #1f242d 40%, rgba(59, 130, 246, 0.2) 100%);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.mishap-die.effect {
+  background: linear-gradient(135deg, #1f242d 40%, rgba(16, 185, 129, 0.2) 100%);
+  border-color: rgba(16, 185, 129, 0.5);
+}
+
+.mishap-die.axis {
+  background: linear-gradient(135deg, #1f242d 40%, rgba(219, 39, 119, 0.2) 100%);
+  border-color: rgba(219, 39, 119, 0.5);
 }
 
 .mishap-die .die-val {
