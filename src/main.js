@@ -4081,7 +4081,9 @@ function rollMishap(isFlick = false) {
 
       if (appState.alignSchoolToTop) {
         let alignSchoolIdx = mishapState.selectedSchoolIdx;
-        if (mishapState.rollType === 'axis_fracture' || mishapState.rollType === 'total_collapse' || mishapState.rollType === 'school_cascade') {
+        if (mishapState.rollType === 'axis_fracture') {
+          alignSchoolIdx = d1 - 1;
+        } else if (mishapState.rollType === 'total_collapse' || mishapState.rollType === 'school_cascade') {
           // Aligning to original cast school is standard, unless we want to align to something else.
           alignSchoolIdx = mishapState.selectedSchoolIdx;
         } else if (d1 >= 6) {
@@ -4100,23 +4102,19 @@ function rollMishap(isFlick = false) {
         ccwAdd += (diff < 0 ? diff + 360 : diff);
       }
 
-      if (mishapState.rollType === 'axis_fracture') {
-        const finalCCW = (mishapState.ccwAngle || 0) + ccwAdd;
-        const targetCWAngle = -finalCCW + (d1 - mishapState.d3) * 45;
-        const desiredCWRemainder = ((targetCWAngle % 360) + 360) % 360;
-        // Double-mod for safety
+      // CW ring (effect) alignment — all roll types use the same standard formula.
+      if (appState.alignEffectToTop) {
+        let alignD2 = d2;
+        if (mishapState.rollType === 'total_collapse' || mishapState.rollType === 'effect_cascade') {
+          alignD2 = mishapState.cascadeEffect;
+        } else if (mishapState.rollType === 'axis_fracture') {
+          alignD2 = mishapState.d3;
+        }
+        const desiredCWRemainder = (360 - (alignD2 - 1) * 45) % 360;
+        // Double-mod for safety against negative angles (e.g. after a backward drag)
         const currentCWRemainder = (((mishapState.cwAngle || 0) % 360) + 360) % 360;
         const diff = desiredCWRemainder - currentCWRemainder;
         cwAdd += (diff < 0 ? diff + 360 : diff);
-      } else {
-        if (appState.alignEffectToTop) {
-          const alignD2 = (mishapState.rollType === 'total_collapse' || mishapState.rollType === 'effect_cascade') ? mishapState.cascadeEffect : d2;
-          const desiredCWRemainder = (360 - (alignD2 - 1) * 45) % 360;
-          // Double-mod for safety
-          const currentCWRemainder = (((mishapState.cwAngle || 0) % 360) + 360) % 360;
-          const diff = desiredCWRemainder - currentCWRemainder;
-          cwAdd += (diff < 0 ? diff + 360 : diff);
-        }
       }
 
       // Snap pills back to 0° (straight up) regardless of where the drag left them.
