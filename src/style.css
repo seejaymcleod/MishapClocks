@@ -188,6 +188,7 @@ body.header-collapsed .mandala-container {
   margin: 0 auto;
   position: relative;
   pointer-events: none;
+  touch-action: none;
 }
 
 svg {
@@ -195,12 +196,18 @@ svg {
   height: 100%;
   filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.5));
   pointer-events: none;
+  touch-action: none;
 }
 
 svg .node-path,
 svg .outer-icon-group,
 svg .clickable {
   pointer-events: auto;
+  touch-action: none;
+}
+
+.svg-container * {
+  touch-action: none;
 }
 
 .node-path {
