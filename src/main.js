@@ -2181,6 +2181,13 @@ function setupDragAndFlick(svg) {
   svg.addEventListener('pointerup', handlePointerUp);
   svg.addEventListener('pointercancel', handlePointerUp);
 
+  // Prevent default page scroll and pull-to-refresh on touch devices when interacting with the wheel
+  const preventTouchDefault = (e) => {
+    e.preventDefault();
+  };
+  svg.addEventListener('touchmove', preventTouchDefault, { passive: false });
+  container.addEventListener('touchmove', preventTouchDefault, { passive: false });
+
   // Prevent drag selection from firing click events on paths
   const handleCaptureClick = (e) => {
     if (hasDragged) {

@@ -187,7 +187,7 @@ body.header-collapsed .mandala-container {
   aspect-ratio: 1;
   margin: 0 auto;
   position: relative;
-  pointer-events: none;
+  pointer-events: auto;
   touch-action: none;
 }
 
@@ -195,7 +195,7 @@ svg {
   width: 100%;
   height: 100%;
   filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.5));
-  pointer-events: none;
+  pointer-events: auto;
   touch-action: none;
 }
 
