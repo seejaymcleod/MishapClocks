@@ -2093,6 +2093,8 @@ function setupDragAndFlick(svg) {
     if (spinPillsGroup) spinPillsGroup.style.transform = `rotate(${initialPills + angleDiff}deg)`;
 
     // Update current angles in state for path-updating/flips
+    // Keep full accumulated values (no % 360) to preserve the CW/CCW alignment offset
+    // established by the previous roll's alignment math.
     mishapState.cwAngle = initialCW + angleDiff;
     mishapState.ccwAngle = initialCCW + angleDiff;
     mishapState.pillsAngle = initialPills + angleDiff;
@@ -2115,13 +2117,13 @@ function setupDragAndFlick(svg) {
     if (angleDiff > 180) angleDiff -= 360;
     else if (angleDiff < -180) angleDiff += 360;
 
-    mishapState.cwAngle = (initialCW + angleDiff) % 360;
-    mishapState.ccwAngle = (initialCCW + angleDiff) % 360;
-    mishapState.pillsAngle = (initialPills + angleDiff) % 360;
-
-    if (mishapState.cwAngle < 0) mishapState.cwAngle += 360;
-    if (mishapState.ccwAngle < 0) mishapState.ccwAngle += 360;
-    if (mishapState.pillsAngle < 0) mishapState.pillsAngle += 360;
+    // Preserve the full accumulated values — DO NOT strip with % 360.
+    // After a roll, cwAngle and ccwAngle are deliberately offset from each other
+    // (CW aligns effect, CCW aligns school). Stripping with % 360 destroys that
+    // relative offset and causes all subsequent rolls to land in the wrong positions.
+    mishapState.cwAngle = initialCW + angleDiff;
+    mishapState.ccwAngle = initialCCW + angleDiff;
+    mishapState.pillsAngle = initialPills + angleDiff;
 
     // --- Quick Roll: detect a short tap in the center zone ---
     if (!hasDragged && appState.quickRoll) {
@@ -2160,7 +2162,7 @@ function setupDragAndFlick(svg) {
 
     const flickThreshold = 0.15; // deg/ms
     if (Math.abs(velocity) > flickThreshold) {
-      // FLICK SPIN!
+      // FLICK SPIN! Pass isFlick so the animation starts fast (ease-out), matching the feel of a wheel already in motion.
       if (appState.freeSpinMode) {
         startFreeSpin(velocity, svg);
       } else {
@@ -2169,7 +2171,7 @@ function setupDragAndFlick(svg) {
           const schoolIdx = (Math.round(mishapState.ccwAngle / 45) % 8 + 8) % 8;
           selectMishapIconFromCircle(schoolIdx, mishapState.selectedPolarity || 'positive');
         }
-        rollMishap();
+        rollMishap(true);
       }
     }
   };
@@ -2196,7 +2198,7 @@ function startFreeSpin(vel, svg) {
   // Trigger exactly the same logic as the 2d8 roll button 
   // so that flips, pills, and target outcomes align perfectly 
   // with valid slice snaps.
-  rollMishap();
+  rollMishap(true);
 }
 
 
@@ -3920,7 +3922,7 @@ function highlightMandalaElements(schoolIdx, tierIdx, isEffect, polarity) {
   }
 }
 
-function rollMishap() {
+function rollMishap(isFlick = false) {
   if (mishapState.freeSpinFrameId) {
     cancelAnimationFrame(mishapState.freeSpinFrameId);
     mishapState.freeSpinFrameId = null;
@@ -4070,6 +4072,8 @@ function rollMishap() {
 
     if (spinCWGroup && spinCCWGroup) {
       // Calculate target rotation based on speed, ensuring base spin is an integer multiple of 360 degrees
+      // NOTE: We always spin FORWARD (positive) regardless of drag direction. The drag velocity
+      // only shapes the CSS easing on-ramp. This guarantees landing is identical to the button press.
       const rotations = Math.max(1, Math.round(2 + ((appState.animationSpeed || 5) * 0.4)));
       let cwAdd = 360 * rotations;
       let ccwAdd = 360 * rotations;
@@ -4090,7 +4094,8 @@ function rollMishap() {
         }
 
         const desiredCCWRemainder = (alignSchoolIdx * 45) % 360;
-        const currentCCWRemainder = mishapState.ccwAngle ? mishapState.ccwAngle % 360 : 0;
+        // Use double-mod to guarantee 0-359 even when ccwAngle is negative (e.g. after a backward drag)
+        const currentCCWRemainder = ((( mishapState.ccwAngle || 0) % 360) + 360) % 360;
         const diff = desiredCCWRemainder - currentCCWRemainder;
         ccwAdd += (diff < 0 ? diff + 360 : diff);
       }
@@ -4099,22 +4104,35 @@ function rollMishap() {
         const finalCCW = (mishapState.ccwAngle || 0) + ccwAdd;
         const targetCWAngle = -finalCCW + (d1 - mishapState.d3) * 45;
         const desiredCWRemainder = ((targetCWAngle % 360) + 360) % 360;
-        const currentCWRemainder = mishapState.cwAngle ? mishapState.cwAngle % 360 : 0;
+        // Double-mod for safety
+        const currentCWRemainder = (((mishapState.cwAngle || 0) % 360) + 360) % 360;
         const diff = desiredCWRemainder - currentCWRemainder;
         cwAdd += (diff < 0 ? diff + 360 : diff);
       } else {
         if (appState.alignEffectToTop) {
           const alignD2 = (mishapState.rollType === 'total_collapse' || mishapState.rollType === 'effect_cascade') ? mishapState.cascadeEffect : d2;
           const desiredCWRemainder = (360 - (alignD2 - 1) * 45) % 360;
-          const currentCWRemainder = mishapState.cwAngle ? mishapState.cwAngle % 360 : 0;
+          // Double-mod for safety
+          const currentCWRemainder = (((mishapState.cwAngle || 0) % 360) + 360) % 360;
           const diff = desiredCWRemainder - currentCWRemainder;
           cwAdd += (diff < 0 ? diff + 360 : diff);
         }
       }
 
+      // Snap pills back to 0° (straight up) regardless of where the drag left them.
+      // pillsAdd is always negative (CCW). We subtract the current pills remainder so
+      // the final pills position is always an exact multiple of 360° = visual 0°.
+      const currentPillsRemainder = (((mishapState.pillsAngle || 0) % 360) + 360) % 360;
+      pillsAdd -= currentPillsRemainder;
+
       const duration = appState.animationDuration || 2;
       const curve = appState.momentumCurve || 5;
-      const easing = `cubic-bezier(0.1, ${0.1 * curve}, 0.1, 1)`;
+      // When coming from a flick, use ease-out (starts fast, decelerates) so the
+      // automated spin feels like a seamless continuation of the physical drag momentum.
+      // When triggered by button, use the standard spin-up curve (slow → fast → slow).
+      const easing = isFlick
+        ? `cubic-bezier(0.05, 0.7, 0.1, 1)`
+        : `cubic-bezier(0.1, ${0.1 * curve}, 0.1, 1)`;
 
       // 1. Update the cwAngle, ccwAngle, and pillsAngle in mishapState to the target landing positions
       mishapState.cwAngle = (mishapState.cwAngle || 0) + cwAdd;
