@@ -1083,6 +1083,12 @@ svg foreignObject i.gi:before {
   margin: 0.4rem 0;
 }
 
+.mishap-narrative-box em {
+  font-style: italic;
+  font-weight: 300;
+  opacity: 0.75;
+}
+
 .mishap-narrative-box hr {
   border: none;
   border-top: 1px solid var(--border-color);

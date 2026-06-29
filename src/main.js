@@ -4227,7 +4227,11 @@ function executeMishapRoll() {
   const formatSchool = (idx, pol) => {
     const node = appState.magicNodes[idx];
     const signText = pol === 'positive' ? '+' : '−';
-    return `<span style="color: ${node.color}; font-weight: bold;">${node.label} (${signText})</span>`;
+    return `<span style="color: ${node.color}; font-weight: bold;">${node.label.toUpperCase()} (${signText})</span>`;
+  };
+
+  const formatEffect = (node) => {
+    return `<strong style="font-weight: bold;">${(node.type + ': ' + node.modifier).toUpperCase()}</strong>`;
   };
 
   const getSchoolFlavor = (idx, pol) => {
@@ -4402,7 +4406,7 @@ function executeMishapRoll() {
     const nodeA = appState.scaledTiers[finalTierClamp].nodes[finalSliceIdx];
     const nodeB = appState.scaledTiers[finalTierClamp].nodes[finalOppSliceIdx];
 
-    narrativeHtml += `<p style="margin-top: 0.6rem;">Effect: <strong>${nodeA.type}: ${nodeA.modifier}</strong> + <strong>${nodeB.type}: ${nodeB.modifier}</strong></p>`;
+    narrativeHtml += `<p style="margin-top: 0.6rem;">Effect: ${formatEffect(nodeA)} + ${formatEffect(nodeB)}</p>`;
     narrativeHtml += `<p><em>Chaos Die: ${chaosLog.replace(/&rarr;/g, '→')}</em></p>`;
     narrativeHtml += escalationHtml;
 
@@ -4455,7 +4459,7 @@ function executeMishapRoll() {
     const nodeA = appState.scaledTiers[finalTierClamp].nodes[effectA];
     const nodeB = appState.scaledTiers[finalTierClamp].nodes[effectB];
 
-    narrativeHtml += `<p style="margin-top: 0.6rem;">Effect: <strong>${nodeA.type}: ${nodeA.modifier}</strong> + <strong>${nodeB.type}: ${nodeB.modifier}</strong></p>`;
+    narrativeHtml += `<p style="margin-top: 0.6rem;">Effect: ${formatEffect(nodeA)} + ${formatEffect(nodeB)}</p>`;
     narrativeHtml += `<p><em>Log: ${chaosLog.replace(/&rarr;/g, '→')}</em></p>`;
     narrativeHtml += escalationHtml;
 
@@ -4523,10 +4527,10 @@ function executeMishapRoll() {
     }
 
     if (effectB !== null) {
-      narrativeHtml += `<p style="margin-top: 0.6rem;">Effect: <strong>${nodeA.type}: ${nodeA.modifier}</strong> + <strong>${nodeB.type}: ${nodeB.modifier}</strong></p>`;
+      narrativeHtml += `<p style="margin-top: 0.6rem;">Effect: ${formatEffect(nodeA)} + ${formatEffect(nodeB)}</p>`;
       narrativeHtml += `<p><em>(Roll 1): Primal Chaos</em></p>`;
     } else {
-      narrativeHtml += `<p style="margin-top: 0.6rem;">Effect: <strong>${nodeA.type}: ${nodeA.modifier}</strong></p>`;
+      narrativeHtml += `<p style="margin-top: 0.6rem;">Effect: ${formatEffect(nodeA)}</p>`;
       narrativeHtml += `<p><em>(Roll ${d2}): T${finalTierClamp} Slice ${d2}</em></p>`;
     }
 
@@ -4577,7 +4581,7 @@ function executeMishapRoll() {
     const effectSliceIdx = d2 - 1;
     const effectNode = appState.scaledTiers[initialTier].nodes[effectSliceIdx];
 
-    narrativeHtml += `<p style="margin-top: 0.6rem;">Effect: <strong>${effectNode.type}: ${effectNode.modifier}</strong></p>`;
+    narrativeHtml += `<p style="margin-top: 0.6rem;">Effect: ${formatEffect(effectNode)}</p>`;
     narrativeHtml += `<p><em>(Roll ${d2}): T${initialTier} Slice ${d2} (${baseDc} • ${baseDice})</em></p>`;
     highlightMandalaElements(effectSliceIdx, initialTier, true);
 
